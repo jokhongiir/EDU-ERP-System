@@ -1,0 +1,53 @@
+.branches-container {
+    background: #f1f5f9;
+    padding: 20px;
+    border-radius: 12px;
+    margin-top: 20px;
+  }
+  
+  .branches-container h3 {
+    margin-bottom: 12px;
+    color: #1e40af;
+  }
+  
+  .branches-container ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .branches-container li {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    align-items: center;
+  }
+  
+  .branches-container li.active {
+    background: #2563eb;
+    color: white;
+    font-weight: bold;
+  }
+  
+  .branches-container li:hover {
+    background: #e0e7ff;
+  }
+  
+  .delete-btn {
+    background: #ef4444;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  
+  .delete-btn:hover {
+    background: #dc2626;
+  }

@@ -1,0 +1,196 @@
+/* Teachers.css */
+:root {
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --bg-main: #f8fafc;
+  --white: #ffffff;
+  --text-dark: #1e293b;
+  --text-light: #64748b;
+  --border-color: #e2e8f0;
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --radius: 12px;
+}
+
+.teachers {
+  padding: 24px;
+  background-color: var(--bg-main);
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Header qismi */
+.teachers__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.teachers__header h1 {
+  font-size: 24px;
+  color: var(--text-dark);
+  font-weight: 700;
+}
+
+.teachers__header button {
+  background-color: var(--primary);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.teachers__header button:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+/* Jadval (Table) stili */
+.teachers__table-wrapper {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+thead {
+  background-color: #f1f5f9;
+}
+
+th {
+  padding: 14px 20px;
+  font-size: 13px;
+  text-transform: uppercase;
+  color: var(--text-light);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+td {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-dark);
+  font-size: 15px;
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+tr:hover {
+  background-color: #f8fafc;
+}
+
+/* Status Badgelari */
+td:nth-child(6) {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+/* Modal Stili */
+.teachers__modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.5); /* Backdrop blur */
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.teachers__modal-content {
+  background: var(--white);
+  padding: 32px;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 450px;
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+}
+
+.teachers__modal-content h2 {
+  margin-bottom: 20px;
+  font-size: 20px;
+  color: var(--text-dark);
+}
+
+/* Form elementlari */
+.teachers__form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.teachers__form input, 
+.teachers__form select {
+  padding: 12px;
+  border: 1.5px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.teachers__form input:focus, 
+.teachers__form select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* Amallar tugmasi (Edit/Delete) */
+td button {
+  padding: 6px 12px;
+  margin-right: 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: white;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+td button:first-child:hover {
+  background: #eff6ff;
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+td button:last-child:hover {
+  background: #fef2f2;
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .teachers__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .teachers__table-wrapper {
+    overflow-x: auto;
+  }
+}

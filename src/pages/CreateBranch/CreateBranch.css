@@ -1,0 +1,4 @@
+.branch-container { display: flex; justify-content: center; align-items: center; height: 100vh; background: #0f172a; }
+.branch-box { background: #1e293b; padding: 40px; border-radius: 12px; color: white; width: 350px; }
+.branch-box input { width: 100%; padding: 12px; margin-top: 15px; border-radius: 8px; border: none; }
+.branch-box button { width: 100%; margin-top: 15px; padding: 12px; background: #2563eb; border: none; border-radius: 8px; color: white; }

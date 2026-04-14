@@ -1,0 +1,135 @@
+.navbar {
+  height: 70px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  border-bottom: 1px solid #e0e0e0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.hamburger {
+  display: block; /* Har doim ko‘rsatiladi */
+  background: none;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  z-index: 200;
+}
+
+.center-name {
+  font-weight: bold;
+  font-size: 1.25rem;
+  color: #1a5bff;
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+  background: #f1f3f8;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  gap: 0.5rem;
+}
+
+.search-container input {
+  border: none;
+  outline: none;
+  background: transparent;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.branch-dropdown {
+  position: relative;
+}
+
+.branch-btn {
+  background: #f1f3f8;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 500;
+  transition: background 0.3s;
+}
+
+.branch-btn.open {
+  background: #1a5bff;
+  color: #fff;
+}
+
+.branch-btn .rotated {
+  transform: rotate(180deg);
+  transition: transform 0.3s;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 120%;
+  left: 0;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  min-width: 150px;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+  display: none;
+  flex-direction: column;
+  z-index: 10;
+}
+
+.dropdown-menu.show {
+  display: flex;
+}
+
+.dropdown-item {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.dropdown-item:hover,
+.dropdown-item.active {
+  background: #1a5bff;
+  color: #fff;
+  border-radius: 6px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #1a5bff;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.user-email {
+  font-size: 0.9rem;
+  color: #333;
+}

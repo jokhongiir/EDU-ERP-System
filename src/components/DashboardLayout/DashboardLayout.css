@@ -1,0 +1,42 @@
+.dashboard-layout {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+    background: #f7f9fc;
+    position: relative;
+  }
+  
+  .main-content {
+    flex: 1;
+    margin-left: 250px;
+    transition: margin-left 0.3s ease;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .main-content.collapsed {
+    margin-left: 80px;
+  }
+  
+  .content-area {
+    padding: 2rem;
+    flex: 1;
+    overflow-y: auto;
+  }
+  
+  /* OVERLAY */
+  .overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.4);
+    z-index: 90;
+    transition: opacity 0.3s;
+  }
+  
+  /* MOBILE */
+  @media (max-width: 1024px) {
+    .main-content {
+      margin-left: 0;
+    }
+  }

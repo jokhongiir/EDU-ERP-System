@@ -1,0 +1,7 @@
+.auth-container {
+    display: flex; justify-content: center; align-items: center; height: 100vh; background: #0f172a;
+  }
+  .auth-box { background: #1e293b; padding: 40px; border-radius: 12px; width: 350px; color: white; }
+  .auth-box input { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 8px; border: none; }
+  .auth-box button { width: 100%; padding: 12px; background: #2563eb; color: white; border: none; border-radius: 8px; }
+  .error { color: red; }
