@@ -9,6 +9,7 @@ export default function Sidebar({ collapsed, mobileOpen, activeBranch, logout, s
     { name: "Teachers", icon: GraduationCap, path: "teachers" },
     { name: "Courses", icon: BookOpen, path: "courses" },
     { name: "Groups", icon: BookOpen, path: "groups" },
+    { name: "Add Students", icon: BookOpen, path: "addstudents" },
     { name: "Payments", icon: CreditCard, path: "payments" },
   ];
 

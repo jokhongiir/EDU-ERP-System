@@ -1,76 +1,118 @@
-import { useState } from 'react';
-import { supabase } from '../../services/supabaseClient';
-import { useNavigate } from 'react-router-dom';
-import './Auth.css';
+import { useState } from "react";
+import { supabase } from "../../services/supabaseClient";
+import { useNavigate } from "react-router-dom";
+import "./Auth.css";
 
-export default function Auth({ setCenterName }) { // 👈 Navbar uchun prop qo‘shildi
+export default function Auth({ setCenterName }) {
   const navigate = useNavigate();
+
   const [isRegister, setIsRegister] = useState(true);
-  const [form, setForm] = useState({ centerName: '', email: '', password: '' });
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const [form, setForm] = useState({
+    centerName: "",
+    email: "",
+    password: "",
+  });
 
-  const checkBranchAndRedirect = async (user) => {
-    const { data: branches } = await supabase
-      .from('branches')
-      .select('*')
-      .eq('owner_uid', user.id);
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
-    if (!branches || branches.length === 0) {
-      navigate('/create-branch');
+  const checkBranchAndRedirect = async (userId) => {
+    const { data, error } = await supabase
+      .from("branches")
+      .select("*")
+      .eq("owner_uid", userId);
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      navigate("/create-branch");
     } else {
-      navigate(`/dashboard/${user.id}`);
+      navigate(`/dashboard/${userId}`);
     }
   };
 
   const handleAuth = async () => {
     setLoading(true);
-    setError('');
+    setError("");
+
     try {
+      // 🔐 BASIC VALIDATION
+      if (!form.email || !form.password) {
+        throw new Error("Email va password kiritilishi shart");
+      }
+
+      if (isRegister && !form.centerName) {
+        throw new Error("Center name kiritilishi shart");
+      }
+
       if (isRegister) {
-        // ✅ Sign Up with centerName metadata
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: form.email,
-          password: form.password,
-          options: { data: { centerName: form.centerName } }
-        });
+        // ========================
+        // REGISTER
+        // ========================
+        const { data: signUpData, error: signUpError } =
+          await supabase.auth.signUp({
+            email: form.email,
+            password: form.password,
+            options: {
+              data: {
+                centerName: form.centerName,
+              },
+            },
+          });
+
         if (signUpError) throw signUpError;
 
-        // ✅ Add to users table
-        await supabase.from('users').insert([
+        const user = signUpData?.user;
+
+        if (!user) {
+          throw new Error("User yaratilmadi");
+        }
+
+        // Save in users table
+        const { error: insertError } = await supabase.from("users").insert([
           {
             full_name: form.centerName,
             email: form.email,
-            owner_uid: signUpData.user.id,
-            role: 'admin'
-          }
+            owner_uid: user.id,
+            role: "admin",
+          },
         ]);
 
-        // 👇 Navbar uchun centerName yuboriladi
+        if (insertError) throw insertError;
+
+        // Navbar uchun
         if (setCenterName) setCenterName(form.centerName);
 
-        // ✅ Login immediately
-        const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
-          email: form.email,
-          password: form.password
-        });
+        // AUTO LOGIN (NO CONFIRM FLOW)
+        const { data: loginData, error: loginError } =
+          await supabase.auth.signInWithPassword({
+            email: form.email,
+            password: form.password,
+          });
+
         if (loginError) throw loginError;
 
-        await checkBranchAndRedirect(loginData.user);
+        await checkBranchAndRedirect(loginData.user.id);
       } else {
-        // Login
-        const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
-          email: form.email,
-          password: form.password
-        });
+        // ========================
+        // LOGIN
+        // ========================
+        const { data: loginData, error: loginError } =
+          await supabase.auth.signInWithPassword({
+            email: form.email,
+            password: form.password,
+          });
+
         if (loginError) throw loginError;
 
-        await checkBranchAndRedirect(loginData.user);
+        await checkBranchAndRedirect(loginData.user.id);
       }
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Xatolik yuz berdi");
     } finally {
       setLoading(false);
     }
@@ -79,7 +121,9 @@ export default function Auth({ setCenterName }) { // 👈 Navbar uchun prop qo�
   return (
     <div className="auth-container">
       <div className="auth-box">
-        <h2>{isRegister ? 'Register' : 'Login'}</h2>
+
+        <h2>{isRegister ? "Register" : "Login"}</h2>
+
         {isRegister && (
           <input
             name="centerName"
@@ -88,7 +132,14 @@ export default function Auth({ setCenterName }) { // 👈 Navbar uchun prop qo�
             onChange={handleChange}
           />
         )}
-        <input name="email" placeholder="Email" value={form.email} onChange={handleChange} />
+
+        <input
+          name="email"
+          placeholder="Email"
+          value={form.email}
+          onChange={handleChange}
+        />
+
         <input
           name="password"
           type="password"
@@ -96,12 +147,18 @@ export default function Auth({ setCenterName }) { // 👈 Navbar uchun prop qo�
           value={form.password}
           onChange={handleChange}
         />
+
         {error && <p className="error">{error}</p>}
-        <button onClick={handleAuth}>
-          {loading ? 'Loading...' : isRegister ? 'Register' : 'Login'}
+
+        <button onClick={handleAuth} disabled={loading}>
+          {loading ? "Loading..." : isRegister ? "Register" : "Login"}
         </button>
-        <p onClick={() => setIsRegister(!isRegister)} className="toggle-auth">
-          {isRegister ? 'Login' : 'Register'}
+
+        <p
+          onClick={() => setIsRegister(!isRegister)}
+          className="toggle-auth"
+        >
+          {isRegister ? "Loginga o'tish" : "Registerga o'tish"}
         </p>
       </div>
     </div>
