@@ -1,148 +1,309 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../services/supabaseClient";
+import {
+  FiUser,
+  FiPhone,
+  FiBookOpen,
+  FiUsers,
+  FiCalendar,
+  FiDollarSign,
+  FiCheckCircle,
+  FiSave,
+  FiX,
+  FiHome,
+} from "react-icons/fi";
 import "./AddStudents.css";
 
 export default function AddStudents({ activeBranch }) {
   const navigate = useNavigate();
   const branchId = activeBranch?.id;
 
+  // ================= STATE =================
   const [courses, setCourses] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [groups, setGroups] = useState([]);
 
+  const [loading, setLoading] = useState(false);
+  const [fetchLoading, setFetchLoading] = useState(false);
+  const [error, setError] = useState("");
+
   const [form, setForm] = useState({
     first_name: "",
     last_name: "",
-    phone: "",
+    phone: "+998 ",
+    parent_phone: "+998 ",
     course_id: "",
     teacher_id: "",
     group_id: "",
-    monthly_fee: 0,
-    teacher_percent: 0,
-    last_payment: "",
-    next_payment: "",
+
+    start_date: "",
+    arrived_date: "",
+    payment_date: "",
+    next_payment_date: "",
+
+    monthly_fee: "",
+    teacher_percent: "",
     paid: false,
   });
 
-  // ================= LOAD SELECT DATA =================
+  // ================= FORMATTERS =================
+
+  // 📞 PHONE (FIXED BACKSPACE +998)
+  const formatPhone = (value) => {
+    let digits = value.replace(/\D/g, "");
+
+    if (!digits.startsWith("998")) {
+      digits = "998" + digits;
+    }
+
+    digits = digits.slice(0, 12);
+
+    let result = "+998";
+
+    if (digits.length > 3) result += " " + digits.slice(3, 5);
+    if (digits.length > 5) result += " " + digits.slice(5, 8);
+    if (digits.length > 8) result += " " + digits.slice(8, 10);
+    if (digits.length > 10) result += " " + digits.slice(10, 12);
+
+    return result;
+  };
+
+  // 💰 MONEY
+  const formatMoney = (value) => {
+    let num = value.replace(/\D/g, "");
+    if (!num) return "";
+    return num.replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " so'm";
+  };
+
+  // 📊 PERCENT
+  const formatPercent = (value) => {
+    let num = value.replace(/\D/g, "");
+    if (!num) return "";
+    return num + "%";
+  };
+
+  const unformat = (value) => value.replace(/\D/g, "");
+
+  // ================= FETCH =================
   useEffect(() => {
     if (!branchId) return;
 
-    const load = async () => {
-      const [c, t, g] = await Promise.all([
-        supabase.from("courses").select("*").eq("branch_id", branchId),
-        supabase.from("teachers").select("*").eq("branch_id", branchId),
-        supabase.from("groups").select("*").eq("branch_id", branchId),
-      ]);
+    const fetchData = async () => {
+      try {
+        setFetchLoading(true);
 
-      setCourses(c.data || []);
-      setTeachers(t.data || []);
-      setGroups(g.data || []);
+        const [c, t, g] = await Promise.all([
+          supabase.from("courses").select("*").eq("branch_id", branchId),
+          supabase.from("teachers").select("*").eq("branch_id", branchId),
+          supabase.from("groups").select("*").eq("branch_id", branchId),
+        ]);
+
+        if (c.error) throw c.error;
+        if (t.error) throw t.error;
+        if (g.error) throw g.error;
+
+        setCourses(c.data || []);
+        setTeachers(t.data || []);
+        setGroups(g.data || []);
+      } catch (err) {
+        setError("❌ Data load error");
+      } finally {
+        setFetchLoading(false);
+      }
     };
 
-    load();
+    fetchData();
   }, [branchId]);
 
-  // ================= HANDLE =================
+  // ================= FILTER =================
+  const filteredTeachers = teachers.filter(
+    (t) => !form.course_id || t.course_id === form.course_id
+  );
+
+  const filteredGroups = groups.filter(
+    (g) =>
+      (!form.course_id || g.course_id === form.course_id) &&
+      (!form.teacher_id || g.teacher_id === form.teacher_id)
+  );
+
+  // ================= CHANGE =================
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
+    let newValue = value;
+
+    if (type !== "checkbox") {
+      if (name === "phone" || name === "parent_phone") {
+        newValue = formatPhone(value);
+      }
+
+      if (name === "monthly_fee") {
+        newValue = formatMoney(value);
+      }
+
+      if (name === "teacher_percent") {
+        newValue = formatPercent(value);
+      }
+    }
+
     setForm((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: type === "checkbox" ? checked : newValue,
     }));
+  };
+
+  // ================= VALIDATION =================
+  const validate = () => {
+    if (!form.first_name.trim()) return "First name required";
+    if (!form.last_name.trim()) return "Last name required";
+    if (unformat(form.phone).length < 12) return "Phone invalid";
+    if (!form.course_id) return "Course required";
+    return null;
   };
 
   // ================= SUBMIT =================
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const payload = {
-      ...form,
-      branch_id: branchId,
-      monthly_fee: Number(form.monthly_fee),
-      teacher_percent: Number(form.teacher_percent),
-    };
+    if (!branchId) return alert("Branch topilmadi!");
 
-    await supabase.from("students").insert([payload]);
+    const errMsg = validate();
+    if (errMsg) return alert(errMsg);
 
-    navigate("/dashboard/students");
+    try {
+      setLoading(true);
+
+      const payload = {
+        ...form,
+        branch_id: branchId,
+        phone: unformat(form.phone),
+        parent_phone: unformat(form.parent_phone),
+        monthly_fee: Number(unformat(form.monthly_fee)) || 0,
+        teacher_percent: Number(unformat(form.teacher_percent)) || 0,
+      };
+
+      const { error } = await supabase.from("students").insert([payload]);
+      if (error) throw error;
+
+      alert("✅ Student added successfully");
+      navigate(`/dashboard/${branchId}/students`);
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  // ================= UI =================
   return (
     <div className="add-student-page">
 
-      <h2>Add Student</h2>
+      {/* HEADER */}
+      <div className="branch-header-pro">
+        <FiHome />
+        <div>
+          <p>Active Branch</p>
+          <h3>{activeBranch?.name || "No branch selected"}</h3>
+        </div>
+      </div>
+
+      <h2>Add New Student</h2>
+
+      {error && <p className="error">{error}</p>}
+      {fetchLoading && <p>Loading...</p>}
 
       <form onSubmit={handleSubmit} className="add-form">
 
-        <input
-          name="first_name"
-          placeholder="First name"
-          onChange={handleChange}
-          required
-        />
+        {/* NAME */}
+        <div className="form-row">
+          <Input icon={<FiUser />} label="First Name" name="first_name" value={form.first_name} onChange={handleChange} />
+          <Input icon={<FiUser />} label="Last Name" name="last_name" value={form.last_name} onChange={handleChange} />
+        </div>
 
-        <input
-          name="last_name"
-          placeholder="Last name"
-          onChange={handleChange}
-          required
-        />
+        {/* PHONE */}
+        <div className="form-row">
+          <Input icon={<FiPhone />} label="Phone" name="phone" value={form.phone} onChange={handleChange} />
+          <Input icon={<FiPhone />} label="Parent Phone" name="parent_phone" value={form.parent_phone} onChange={handleChange} />
+        </div>
 
-        <input
-          name="phone"
-          placeholder="Phone"
-          onChange={handleChange}
-        />
+        {/* COURSE */}
+        <Select icon={<FiBookOpen />} label="Course" name="course_id" value={form.course_id} onChange={handleChange} options={courses} />
 
-        <select name="course_id" onChange={handleChange}>
-          <option value="">Course</option>
-          {courses.map((c) => (
-            <option key={c.id} value={c.id}>{c.name}</option>
-          ))}
-        </select>
+        {/* TEACHER + GROUP */}
+        <div className="form-row">
+          <Select icon={<FiUsers />} label="Teacher" name="teacher_id" value={form.teacher_id} onChange={handleChange} options={filteredTeachers} />
+          <Select icon={<FiUsers />} label="Group" name="group_id" value={form.group_id} onChange={handleChange} options={filteredGroups} />
+        </div>
 
-        <select name="teacher_id" onChange={handleChange}>
-          <option value="">Teacher</option>
-          {teachers.map((t) => (
-            <option key={t.id} value={t.id}>{t.name}</option>
-          ))}
-        </select>
+        {/* DATES */}
+        <div className="form-row">
+          <DateInput label="Start Date" name="start_date" value={form.start_date} onChange={handleChange} />
+          <DateInput label="Arrived Date" name="arrived_date" value={form.arrived_date} onChange={handleChange} />
+        </div>
 
-        <select name="group_id" onChange={handleChange}>
-          <option value="">Group</option>
-          {groups.map((g) => (
-            <option key={g.id} value={g.id}>{g.name}</option>
-          ))}
-        </select>
+        <div className="form-row">
+          <DateInput label="Payment Date" name="payment_date" value={form.payment_date} onChange={handleChange} />
+          <DateInput label="Next Payment Date" name="next_payment_date" value={form.next_payment_date} onChange={handleChange} />
+        </div>
 
-        <input
-          type="number"
-          name="monthly_fee"
-          placeholder="Monthly fee"
-          onChange={handleChange}
-        />
+        {/* MONEY */}
+        <div className="form-row">
+          <Input icon={<FiDollarSign />} label="Monthly Fee" name="monthly_fee" value={form.monthly_fee} onChange={handleChange} />
+          <Input icon={<FiDollarSign />} label="Teacher %" name="teacher_percent" value={form.teacher_percent} onChange={handleChange} />
+        </div>
 
-        <input
-          type="number"
-          name="teacher_percent"
-          placeholder="Teacher %"
-          onChange={handleChange}
-        />
-
-        <input type="date" name="last_payment" onChange={handleChange} />
-        <input type="date" name="next_payment" onChange={handleChange} />
-
-        <label>
-          <input type="checkbox" name="paid" onChange={handleChange} />
-          Paid
+        {/* CHECKBOX */}
+        <label className="checkbox">
+          <input type="checkbox" name="paid" checked={form.paid} onChange={handleChange} />
+          <FiCheckCircle /> Payment Completed
         </label>
 
-        <button type="submit">Save Student</button>
-      </form>
+        {/* ACTIONS */}
+        <div className="actions">
+          <button type="submit" disabled={loading}>
+            <FiSave /> {loading ? "Saving..." : "Save Student"}
+          </button>
 
+          <button type="button" onClick={() => navigate(-1)}>
+            <FiX /> Cancel
+          </button>
+        </div>
+
+      </form>
     </div>
   );
 }
+
+// ================= REUSABLE COMPONENTS =================
+
+const Input = ({ icon, label, ...props }) => (
+  <div className="input-group">
+    {icon}
+    <label>{label}</label>
+    <input {...props} />
+  </div>
+);
+
+const Select = ({ icon, label, options = [], ...props }) => (
+  <div className="input-group">
+    {icon}
+    <label>{label}</label>
+    <select {...props}>
+      <option value="">Select</option>
+      {options.map((o) => (
+        <option key={o.id} value={o.id}>
+          {o.name}
+        </option>
+      ))}
+    </select>
+  </div>
+);
+
+const DateInput = ({ label, ...props }) => (
+  <div className="input-group">
+    <FiCalendar />
+    <label>{label}</label>
+    <input type="date" {...props} />
+  </div>
+);

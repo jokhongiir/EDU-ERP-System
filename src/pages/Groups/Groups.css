@@ -1,69 +1,228 @@
+/* ================= ROOT ================= */
+:root {
+  --bg: #f6f7fb;
+  --card: #ffffff;
+  --text: #111827;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+
+  --primary: #376fff;
+  --primary-hover: #5a86ff;
+
+  --shadow: 0 10px 30px rgba(0,0,0,0.06);
+}
+
+/* ================= PAGE ================= */
+.groups {
+  padding: 0px;
+  background: var(--bg);
+  font-family: "Inter", sans-serif;
+  color: var(--text);
+}
+
+/* ================= HEADER ================= */
+.groups__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.groups__header h1 {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+/* BUTTON */
+.groups__header button {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.25s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.groups__header button:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+}
+
+/* ================= GRID ================= */
+.groups__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 18px;
+}
+
+/* ================= CARD ================= */
+.groups__card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  cursor: pointer;
+  transition: 0.25s ease;
+  box-shadow: var(--shadow);
+}
+
+.groups__card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+}
+
+.groups__card h3 {
+  font-size: 16px;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.groups__card p {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 6px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ================= MODAL ================= */
 .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 999;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.25);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  backdrop-filter: blur(6px);
+}
+
+/* BOX */
+.modal-box {
+  width: 430px;
+  background: var(--card);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.15);
+  animation: pop 0.2s ease;
+}
+
+/* ================= HEADER MODAL ================= */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.modal-header h2 {
+  font-size: 18px;
+}
+
+.modal-header svg {
+  cursor: pointer;
+  font-size: 20px;
+  color: var(--muted);
+}
+
+.modal-header svg:hover {
+  color: var(--text);
+}
+
+/* ================= FORM ================= */
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-form input,
+.modal-form select {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #f9fafb;
+  color: var(--text);
+  outline: none;
+  transition: 0.2s;
+}
+
+.modal-form input:focus,
+.modal-form select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(55,111,255,0.15);
+  background: #fff;
+}
+
+/* ================= BUTTONS ================= */
+.modal-form button {
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.modal-form button[type="submit"] {
+  background: var(--primary);
+  color: white;
+}
+
+.modal-form button[type="submit"]:hover {
+  background: var(--primary-hover);
+}
+
+.modal-form button[type="button"] {
+  background: #f3f4f6;
+  color: var(--text);
+}
+
+.modal-form button[type="button"]:hover {
+  background: #e5e7eb;
+}
+
+/* ================= DETAILS ================= */
+.details p {
+  margin: 8px 0;
+  font-size: 13px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ================= ANIMATION ================= */
+@keyframes pop {
+  from {
+    transform: scale(0.85);
+    opacity: 0;
   }
-  
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+  .groups {
+    padding: 15px;
+  }
+
   .modal-box {
-    width: 420px;
-    background: #0f172a;
-    color: #fff;
-    padding: 20px;
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-    animation: pop 0.2s ease;
+    width: 92%;
   }
-  
-  .modal-form {
-    display: flex;
+
+  .groups__header {
     flex-direction: column;
+    align-items: flex-start;
     gap: 10px;
   }
-  
-  .modal-form input,
-  .modal-form select {
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #334155;
-    background: #1e293b;
-    color: white;
-  }
-  
-  button {
-    padding: 10px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-  }
-  
-  button:hover {
-    opacity: 0.8;
-  }
-  
-  .groups__grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 15px;
-    margin-top: 20px;
-  }
-  
-  .groups__card {
-    background: #1e293b;
-    padding: 15px;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-  
-  .groups__card:hover {
-    transform: translateY(-3px);
-  }
-  
-  @keyframes pop {
-    from { transform: scale(0.9); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-  }
+}

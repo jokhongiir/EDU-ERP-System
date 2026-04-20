@@ -14,9 +14,8 @@
 
 /* PAGE */
 .students-page {
-  padding: 24px;
+  padding: 0px;
   background: var(--bg-main);
-  min-height: 100vh;
   font-family: "Inter", sans-serif;
 }
 

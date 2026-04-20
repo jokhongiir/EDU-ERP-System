@@ -1,196 +1,307 @@
-/* Teachers.css */
+/* ================= ROOT ================= */
 :root {
-  --primary: #4f46e5;
-  --primary-hover: #4338ca;
-  --bg-main: #f8fafc;
+  --primary: #376fff;
+  --primary-light: #5c84ff;
+  --bg: #f6f8fc;
   --white: #ffffff;
-  --text-dark: #1e293b;
-  --text-light: #64748b;
-  --border-color: #e2e8f0;
-  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --radius: 12px;
+  --border: #e6e9f2;
+  --text: #1a1d29;
+  --gray: #8a90a2;
+  --success: #22c55e;
+  --danger: #ef4444;
 }
 
+/* ================= PAGE ================= */
 .teachers {
-  padding: 24px;
-  background-color: var(--bg-main);
-  min-height: 100vh;
-  font-family: 'Inter', sans-serif;
+  padding: 0px;
+  background: var(--bg);
+  font-family: "Inter", sans-serif;
 }
 
-/* Header qismi */
+/* ================= HEADER ================= */
 .teachers__header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 25px;
 }
 
 .teachers__header h1 {
   font-size: 24px;
-  color: var(--text-dark);
-  font-weight: 700;
+  font-weight: 600;
+  color: var(--text);
 }
 
+/* BUTTON */
 .teachers__header button {
-  background-color: var(--primary);
-  color: white;
-  padding: 10px 20px;
-  border-radius: 8px;
+  background: var(--primary);
+  color: #fff;
   border: none;
+  padding: 12px 18px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  transition: 0.25s;
+  box-shadow: 0 6px 18px rgba(55, 111, 255, 0.25);
 }
 
 .teachers__header button:hover {
-  background-color: var(--primary-hover);
+  background: var(--primary-light);
   transform: translateY(-1px);
 }
 
-/* Jadval (Table) stili */
-.teachers__table-wrapper {
+/* ================= TABLE ================= */
+.teachers__table {
   background: var(--white);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  border-radius: 18px;
   overflow: hidden;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  text-align: left;
 }
 
+/* HEADER */
 thead {
-  background-color: #f1f5f9;
+  background: #f9faff;
 }
 
 th {
-  padding: 14px 20px;
+  padding: 15px;
+  text-align: left;
   font-size: 13px;
-  text-transform: uppercase;
-  color: var(--text-light);
+  color: var(--gray);
   font-weight: 600;
-  letter-spacing: 0.05em;
 }
 
+th svg {
+  margin-right: 6px;
+}
+
+/* BODY */
 td {
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border-color);
-  color: var(--text-dark);
-  font-size: 15px;
+  padding: 15px;
+  font-size: 14px;
+  color: var(--text);
 }
 
-tr:last-child td {
-  border-bottom: none;
+tbody tr {
+  transition: 0.2s;
 }
 
-tr:hover {
-  background-color: #f8fafc;
+tbody tr:hover {
+  background: #f5f8ff;
 }
 
-/* Status Badgelari */
-td:nth-child(6) {
-  font-weight: 600;
-  font-size: 13px;
-}
-
-/* Modal Stili */
-.teachers__modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(15, 23, 42, 0.5); /* Backdrop blur */
-  backdrop-filter: blur(4px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.teachers__modal-content {
-  background: var(--white);
-  padding: 32px;
-  border-radius: 16px;
-  width: 100%;
-  max-width: 450px;
-  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
-}
-
-.teachers__modal-content h2 {
-  margin-bottom: 20px;
-  font-size: 20px;
-  color: var(--text-dark);
-}
-
-/* Form elementlari */
-.teachers__form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.teachers__form input, 
-.teachers__form select {
-  padding: 12px;
-  border: 1.5px solid var(--border-color);
+/* ================= STATUS ================= */
+.paid {
+  background: #dcfce7;
+  color: var(--success);
+  padding: 6px 10px;
   border-radius: 8px;
-  font-size: 15px;
-  outline: none;
-  transition: border-color 0.2s;
+  font-size: 12px;
+  font-weight: 600;
 }
 
-.teachers__form input:focus, 
-.teachers__form select:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+.unpaid {
+  background: #fee2e2;
+  color: var(--danger);
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
 }
 
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+/* ================= ACTIONS ================= */
+.actions {
+  display: flex;
+  gap: 8px;
 }
 
-/* Amallar tugmasi (Edit/Delete) */
-td button {
-  padding: 6px 12px;
-  margin-right: 8px;
-  border-radius: 6px;
-  border: 1px solid var(--border-color);
-  background: white;
+.actions button {
+  border: none;
+  background: #f1f4ff;
+  padding: 8px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  transition: all 0.2s;
+  transition: 0.2s;
 }
 
-td button:first-child:hover {
-  background: #eff6ff;
-  color: var(--primary);
+.actions button:hover {
+  background: var(--primary);
+  color: white;
+}
+
+/* ================= MODAL ================= */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 9999;
+
+  backdrop-filter: blur(6px);
+  animation: fadeBg 0.2s ease;
+}
+
+@keyframes fadeBg {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* CONTENT */
+.modal__content {
+  background: var(--white);
+  width: 420px;
+  max-width: 95%;
+  border-radius: 18px;
+  padding: 25px;
+
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.15);
+
+  animation: modalPop 0.25s ease;
+}
+
+@keyframes modalPop {
+  from {
+    transform: scale(0.9) translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ================= MODAL HEADER ================= */
+.modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.modal__header h2 {
+  font-size: 18px;
+  color: var(--text);
+}
+
+.modal__header svg {
+  cursor: pointer;
+  font-size: 20px;
+  color: var(--gray);
+  transition: 0.2s;
+}
+
+.modal__header svg:hover {
+  color: var(--danger);
+}
+
+/* ================= INPUT ================= */
+.input {
+  position: relative;
+  margin-bottom: 15px;
+}
+
+.input svg {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  color: var(--gray);
+}
+
+.input input,
+.input select {
+  width: 100%;
+  padding: 11px 12px 11px 36px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #fafbff;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+/* FOCUS */
+.input input:focus,
+.input select:focus {
+  outline: none;
   border-color: var(--primary);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(55, 111, 255, 0.1);
 }
 
-td button:last-child:hover {
-  background: #fef2f2;
-  color: #ef4444;
-  border-color: #ef4444;
+/* ================= ROW ================= */
+.form-row {
+  display: flex;
+  gap: 10px;
 }
 
-/* Responsive */
+/* ================= CHECKBOX ================= */
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.checkbox input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+}
+
+/* ================= SUBMIT ================= */
+.submit {
+  width: 100%;
+  padding: 12px;
+  background: var(--primary);
+  color: white;
+  border-radius: 12px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.25s;
+  margin-top: 10px;
+}
+
+.submit:hover {
+  background: var(--primary-light);
+  transform: translateY(-1px);
+}
+
+/* ================= RESPONSIVE ================= */
 @media (max-width: 768px) {
+  .teachers {
+    padding: 15px;
+  }
+
   .teachers__header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: 10px;
   }
-  
-  .teachers__table-wrapper {
-    overflow-x: auto;
+
+  .modal__content {
+    width: 95%;
+  }
+
+  .form-row {
+    flex-direction: column;
   }
 }

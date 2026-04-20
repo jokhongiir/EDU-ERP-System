@@ -38,7 +38,7 @@ export default function Students({ activeBranch }) {
     fetchStudents();
   }, [branchId]);
 
-  // ================= DELETE =================
+  // ================= DELETE ================
   const deleteStudent = async (id) => {
     if (!window.confirm("Delete student?")) return;
 
