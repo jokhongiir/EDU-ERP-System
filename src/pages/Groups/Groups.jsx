@@ -8,13 +8,14 @@ import {
   FiUser,
   FiCalendar,
   FiClock,
+  FiEdit2,
+  FiTrash2,
 } from "react-icons/fi";
 import "./Groups.css";
 
 export default function Groups({ activeBranch }) {
   const branchId = activeBranch?.id;
 
-  // ================= STATE =================
   const [groups, setGroups] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [courses, setCourses] = useState([]);
@@ -23,6 +24,8 @@ export default function Groups({ activeBranch }) {
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState(null);
+  const [editId, setEditId] = useState(null);
+  const [error, setError] = useState("");
 
   const [form, setForm] = useState({
     name: "",
@@ -59,7 +62,7 @@ export default function Groups({ activeBranch }) {
       setCourses(c.data || []);
       setStudents(s.data || []);
     } catch (err) {
-      alert(err.message);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -68,45 +71,89 @@ export default function Groups({ activeBranch }) {
   // ================= CHANGE =================
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ================= CREATE =================
+  // ================= RESET =================
+  const resetForm = () => {
+    setForm({
+      name: "",
+      teacher_id: "",
+      course_id: "",
+      start_date: "",
+      start_time: "",
+      end_time: "",
+    });
+    setEditId(null);
+    setModalOpen(false);
+  };
+
+  // ================= OPEN EDIT =================
+  const handleEdit = (g) => {
+    setForm({
+      name: g.name || "",
+      teacher_id: g.teacher_id || "",
+      course_id: g.course_id || "",
+      start_date: g.start_date || "",
+      start_time: g.start_time || "",
+      end_time: g.end_time || "",
+    });
+
+    setEditId(g.id);
+    setModalOpen(true);
+  };
+
+  // ================= SUBMIT =================
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!form.name.trim()) {
+      return alert("Group name required");
+    }
 
     try {
       setLoading(true);
 
       const payload = {
-        ...form,
+        name: form.name.trim(),
         branch_id: branchId,
+
+        teacher_id: form.teacher_id || null,
+        course_id: form.course_id || null,
+
+        start_date: form.start_date || null,
+        start_time: form.start_time || null,
+        end_time: form.end_time || null,
       };
 
-      const { error } = await supabase.from("groups").insert([payload]);
+      let res;
 
-      if (error) throw error;
+      if (editId) {
+        res = await supabase
+          .from("groups")
+          .update(payload)
+          .eq("id", editId);
+      } else {
+        res = await supabase.from("groups").insert([payload]);
+      }
 
-      setForm({
-        name: "",
-        teacher_id: "",
-        course_id: "",
-        start_date: "",
-        start_time: "",
-        end_time: "",
-      });
+      if (res.error) throw res.error;
 
-      setModalOpen(false);
+      resetForm();
       fetchData();
     } catch (err) {
       alert(err.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  // ================= DELETE =================
+  const handleDelete = async (id) => {
+    if (!confirm("Delete this group?")) return;
+
+    await supabase.from("groups").delete().eq("id", id);
+    setGroups((prev) => prev.filter((g) => g.id !== id));
   };
 
   // ================= HELPERS =================
@@ -132,38 +179,48 @@ export default function Groups({ activeBranch }) {
         </button>
       </div>
 
-      {/* LOADING */}
-      {loading && <p className="loading">Loading...</p>}
+      {error && <p className="error">{error}</p>}
+      {loading && <p>Loading...</p>}
 
       {/* GRID */}
       <div className="groups__grid">
         {groups.map((g) => (
-          <div
-            key={g.id}
-            className="groups__card"
-            onClick={() => setSelectedGroup(g)}
-          >
-            <h3>{g.name}</h3>
+          <div key={g.id} className="groups__card">
 
-            <p><FiUser /> {getTeacher(g.teacher_id)}</p>
-            <p><FiBookOpen /> {getCourse(g.course_id)}</p>
-            <p><FiUsers /> {getStudentsCount(g.id)} students</p>
-            <p><FiCalendar /> {g.start_date}</p>
+            <div onClick={() => setSelectedGroup(g)}>
+              <h3>{g.name}</h3>
+
+              <p><FiUser /> {getTeacher(g.teacher_id)}</p>
+              <p><FiBookOpen /> {getCourse(g.course_id)}</p>
+              <p><FiUsers /> {getStudentsCount(g.id)}</p>
+              <p><FiCalendar /> {g.start_date || "—"}</p>
+            </div>
+
+            <div className="actions">
+              <button onClick={() => handleEdit(g)}>
+                <FiEdit2 />
+              </button>
+
+              <button onClick={() => handleDelete(g.id)}>
+                <FiTrash2 />
+              </button>
+            </div>
+
           </div>
         ))}
       </div>
 
-      {/* ================= CREATE MODAL ================= */}
+      {/* ================= MODAL ================= */}
       {modalOpen && (
         <div className="modal-overlay">
           <div className="modal-box">
 
             <div className="modal-header">
-              <h2>Create Group</h2>
-              <FiX onClick={() => setModalOpen(false)} />
+              <h2>{editId ? "Edit Group" : "Create Group"}</h2>
+              <FiX onClick={resetForm} />
             </div>
 
-            <form className="modal-form" onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit}>
 
               <input
                 name="name"
@@ -172,17 +229,12 @@ export default function Groups({ activeBranch }) {
                 onChange={handleChange}
               />
 
-              <select name="teacher_id" onChange={handleChange}>
-                <option value="">Select Teacher</option>
-                {teachers.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
-                  </option>
-                ))}
-              </select>
-
-              <select name="course_id" onChange={handleChange}>
-                <option value="">Select Course</option>
+              <select
+                name="course_id"
+                value={form.course_id}
+                onChange={handleChange}
+              >
+                <option value="">Course (optional)</option>
                 {courses.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
@@ -190,30 +242,25 @@ export default function Groups({ activeBranch }) {
                 ))}
               </select>
 
-              <input
-                type="date"
-                name="start_date"
-                value={form.start_date}
+              <select
+                name="teacher_id"
+                value={form.teacher_id}
                 onChange={handleChange}
-              />
+              >
+                <option value="">Teacher (optional)</option>
+                {teachers.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
 
-              <input
-                type="time"
-                name="start_time"
-                value={form.start_time}
-                onChange={handleChange}
-              />
+              <input type="date" name="start_date" value={form.start_date} onChange={handleChange} />
+              <input type="time" name="start_time" value={form.start_time} onChange={handleChange} />
+              <input type="time" name="end_time" value={form.end_time} onChange={handleChange} />
 
-              <input
-                type="time"
-                name="end_time"
-                value={form.end_time}
-                onChange={handleChange}
-              />
-
-              <button type="submit">Create</button>
-              <button type="button" onClick={() => setModalOpen(false)}>
-                Cancel
+              <button type="submit">
+                {editId ? "Update" : "Create"}
               </button>
 
             </form>
@@ -221,7 +268,7 @@ export default function Groups({ activeBranch }) {
         </div>
       )}
 
-      {/* ================= DETAILS MODAL ================= */}
+      {/* ================= DETAILS ================= */}
       {selectedGroup && (
         <div className="modal-overlay">
           <div className="modal-box">
@@ -232,18 +279,11 @@ export default function Groups({ activeBranch }) {
             </div>
 
             <div className="details">
-
-              <p><FiUser /> Teacher: {getTeacher(selectedGroup.teacher_id)}</p>
-              <p><FiBookOpen /> Course: {getCourse(selectedGroup.course_id)}</p>
-              <p><FiCalendar /> Date: {selectedGroup.start_date}</p>
-              <p>
-                <FiClock /> Time: {selectedGroup.start_time} - {selectedGroup.end_time}
-              </p>
-
-              <p>
-                <FiUsers /> Students: {getStudentsCount(selectedGroup.id)}
-              </p>
-
+              <p><FiUser /> {getTeacher(selectedGroup.teacher_id)}</p>
+              <p><FiBookOpen /> {getCourse(selectedGroup.course_id)}</p>
+              <p><FiCalendar /> {selectedGroup.start_date || "—"}</p>
+              <p><FiClock /> {selectedGroup.start_time} - {selectedGroup.end_time}</p>
+              <p><FiUsers /> {getStudentsCount(selectedGroup.id)}</p>
             </div>
 
           </div>

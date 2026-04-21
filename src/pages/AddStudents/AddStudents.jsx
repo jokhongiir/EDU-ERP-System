@@ -19,7 +19,6 @@ export default function AddStudents({ activeBranch }) {
   const navigate = useNavigate();
   const branchId = activeBranch?.id;
 
-  // ================= STATE =================
   const [courses, setCourses] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [groups, setGroups] = useState([]);
@@ -36,12 +35,10 @@ export default function AddStudents({ activeBranch }) {
     course_id: "",
     teacher_id: "",
     group_id: "",
-
     start_date: "",
     arrived_date: "",
     payment_date: "",
     next_payment_date: "",
-
     monthly_fee: "",
     teacher_percent: "",
     paid: false,
@@ -49,43 +46,26 @@ export default function AddStudents({ activeBranch }) {
 
   // ================= FORMATTERS =================
 
-  // 📞 PHONE (FIXED BACKSPACE +998)
   const formatPhone = (value) => {
     let digits = value.replace(/\D/g, "");
-
-    if (!digits.startsWith("998")) {
-      digits = "998" + digits;
-    }
-
+    if (!digits.startsWith("998")) digits = "998" + digits;
     digits = digits.slice(0, 12);
 
-    let result = "+998";
+    let res = "+998";
+    if (digits.length > 3) res += " " + digits.slice(3, 5);
+    if (digits.length > 5) res += " " + digits.slice(5, 8);
+    if (digits.length > 8) res += " " + digits.slice(8, 10);
+    if (digits.length > 10) res += " " + digits.slice(10, 12);
 
-    if (digits.length > 3) result += " " + digits.slice(3, 5);
-    if (digits.length > 5) result += " " + digits.slice(5, 8);
-    if (digits.length > 8) result += " " + digits.slice(8, 10);
-    if (digits.length > 10) result += " " + digits.slice(10, 12);
-
-    return result;
+    return res;
   };
 
-  // 💰 MONEY
-  const formatMoney = (value) => {
-    let num = value.replace(/\D/g, "");
-    if (!num) return "";
-    return num.replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " so'm";
-  };
+  const unformat = (v = "") => v.replace(/\D/g, "");
 
-  // 📊 PERCENT
-  const formatPercent = (value) => {
-    let num = value.replace(/\D/g, "");
-    if (!num) return "";
-    return num + "%";
-  };
-
-  const unformat = (value) => value.replace(/\D/g, "");
+  const cleanDate = (v) => (v ? v : null);
 
   // ================= FETCH =================
+
   useEffect(() => {
     if (!branchId) return;
 
@@ -99,15 +79,15 @@ export default function AddStudents({ activeBranch }) {
           supabase.from("groups").select("*").eq("branch_id", branchId),
         ]);
 
-        if (c.error) throw c.error;
-        if (t.error) throw t.error;
-        if (g.error) throw g.error;
+        if (c.error || t.error || g.error) {
+          throw c.error || t.error || g.error;
+        }
 
         setCourses(c.data || []);
         setTeachers(t.data || []);
         setGroups(g.data || []);
       } catch (err) {
-        setError("❌ Data load error");
+        setError(err.message);
       } finally {
         setFetchLoading(false);
       }
@@ -117,6 +97,7 @@ export default function AddStudents({ activeBranch }) {
   }, [branchId]);
 
   // ================= FILTER =================
+
   const filteredTeachers = teachers.filter(
     (t) => !form.course_id || t.course_id === form.course_id
   );
@@ -128,6 +109,7 @@ export default function AddStudents({ activeBranch }) {
   );
 
   // ================= CHANGE =================
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
@@ -138,12 +120,9 @@ export default function AddStudents({ activeBranch }) {
         newValue = formatPhone(value);
       }
 
-      if (name === "monthly_fee") {
-        newValue = formatMoney(value);
-      }
-
-      if (name === "teacher_percent") {
-        newValue = formatPercent(value);
+      // 👉 IMPORTANT: DB uchun number
+      if (name === "monthly_fee" || name === "teacher_percent") {
+        newValue = value.replace(/\D/g, "");
       }
     }
 
@@ -154,6 +133,7 @@ export default function AddStudents({ activeBranch }) {
   };
 
   // ================= VALIDATION =================
+
   const validate = () => {
     if (!form.first_name.trim()) return "First name required";
     if (!form.last_name.trim()) return "Last name required";
@@ -163,30 +143,46 @@ export default function AddStudents({ activeBranch }) {
   };
 
   // ================= SUBMIT =================
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!branchId) return alert("Branch topilmadi!");
+    if (!branchId) return alert("Branch not found!");
 
-    const errMsg = validate();
-    if (errMsg) return alert(errMsg);
+    const err = validate();
+    if (err) return alert(err);
 
     try {
       setLoading(true);
 
       const payload = {
-        ...form,
         branch_id: branchId,
+        first_name: form.first_name,
+        last_name: form.last_name,
         phone: unformat(form.phone),
         parent_phone: unformat(form.parent_phone),
-        monthly_fee: Number(unformat(form.monthly_fee)) || 0,
-        teacher_percent: Number(unformat(form.teacher_percent)) || 0,
+
+        course_id: form.course_id || null,
+        teacher_id: form.teacher_id || null,
+        group_id: form.group_id || null,
+
+        start_date: cleanDate(form.start_date),
+        arrived_date: cleanDate(form.arrived_date),
+        payment_date: cleanDate(form.payment_date),
+        next_payment_date: cleanDate(form.next_payment_date),
+
+        monthly_fee: Number(form.monthly_fee) || 0,
+        teacher_percent: Number(form.teacher_percent) || 0,
+
+        paid: form.paid,
       };
 
       const { error } = await supabase.from("students").insert([payload]);
+
       if (error) throw error;
 
-      alert("✅ Student added successfully");
+      alert("✅ Student successfully added");
+
       navigate(`/dashboard/${branchId}/students`);
     } catch (err) {
       alert(err.message);
@@ -196,73 +192,65 @@ export default function AddStudents({ activeBranch }) {
   };
 
   // ================= UI =================
+
   return (
     <div className="add-student-page">
 
-      {/* HEADER */}
       <div className="branch-header-pro">
         <FiHome />
         <div>
           <p>Active Branch</p>
-          <h3>{activeBranch?.name || "No branch selected"}</h3>
+          <h3>{activeBranch?.name || "No branch"}</h3>
         </div>
       </div>
 
-      <h2>Add New Student</h2>
+      <h2>Add Student</h2>
 
       {error && <p className="error">{error}</p>}
       {fetchLoading && <p>Loading...</p>}
 
       <form onSubmit={handleSubmit} className="add-form">
 
-        {/* NAME */}
         <div className="form-row">
-          <Input icon={<FiUser />} label="First Name" name="first_name" value={form.first_name} onChange={handleChange} />
-          <Input icon={<FiUser />} label="Last Name" name="last_name" value={form.last_name} onChange={handleChange} />
-        </div>
-
-        {/* PHONE */}
-        <div className="form-row">
-          <Input icon={<FiPhone />} label="Phone" name="phone" value={form.phone} onChange={handleChange} />
-          <Input icon={<FiPhone />} label="Parent Phone" name="parent_phone" value={form.parent_phone} onChange={handleChange} />
-        </div>
-
-        {/* COURSE */}
-        <Select icon={<FiBookOpen />} label="Course" name="course_id" value={form.course_id} onChange={handleChange} options={courses} />
-
-        {/* TEACHER + GROUP */}
-        <div className="form-row">
-          <Select icon={<FiUsers />} label="Teacher" name="teacher_id" value={form.teacher_id} onChange={handleChange} options={filteredTeachers} />
-          <Select icon={<FiUsers />} label="Group" name="group_id" value={form.group_id} onChange={handleChange} options={filteredGroups} />
-        </div>
-
-        {/* DATES */}
-        <div className="form-row">
-          <DateInput label="Start Date" name="start_date" value={form.start_date} onChange={handleChange} />
-          <DateInput label="Arrived Date" name="arrived_date" value={form.arrived_date} onChange={handleChange} />
+          <Input icon={<FiUser />} name="first_name" value={form.first_name} onChange={handleChange} placeholder="First Name" />
+          <Input icon={<FiUser />} name="last_name" value={form.last_name} onChange={handleChange} placeholder="Last Name" />
         </div>
 
         <div className="form-row">
-          <DateInput label="Payment Date" name="payment_date" value={form.payment_date} onChange={handleChange} />
-          <DateInput label="Next Payment Date" name="next_payment_date" value={form.next_payment_date} onChange={handleChange} />
+          <Input icon={<FiPhone />} name="phone" value={form.phone} onChange={handleChange} />
+          <Input icon={<FiPhone />} name="parent_phone" value={form.parent_phone} onChange={handleChange} />
         </div>
 
-        {/* MONEY */}
+        <Select icon={<FiBookOpen />} name="course_id" value={form.course_id} onChange={handleChange} options={courses} />
+
         <div className="form-row">
-          <Input icon={<FiDollarSign />} label="Monthly Fee" name="monthly_fee" value={form.monthly_fee} onChange={handleChange} />
-          <Input icon={<FiDollarSign />} label="Teacher %" name="teacher_percent" value={form.teacher_percent} onChange={handleChange} />
+          <Select icon={<FiUsers />} name="teacher_id" value={form.teacher_id} onChange={handleChange} options={filteredTeachers} />
+          <Select icon={<FiUsers />} name="group_id" value={form.group_id} onChange={handleChange} options={filteredGroups} />
         </div>
 
-        {/* CHECKBOX */}
+        <div className="form-row">
+          <DateInput name="start_date" value={form.start_date} onChange={handleChange} />
+          <DateInput name="arrived_date" value={form.arrived_date} onChange={handleChange} />
+        </div>
+
+        <div className="form-row">
+          <DateInput name="payment_date" value={form.payment_date} onChange={handleChange} />
+          <DateInput name="next_payment_date" value={form.next_payment_date} onChange={handleChange} />
+        </div>
+
+        <div className="form-row">
+          <Input icon={<FiDollarSign />} name="monthly_fee" value={form.monthly_fee} onChange={handleChange} />
+          <Input icon={<FiDollarSign />} name="teacher_percent" value={form.teacher_percent} onChange={handleChange} />
+        </div>
+
         <label className="checkbox">
           <input type="checkbox" name="paid" checked={form.paid} onChange={handleChange} />
-          <FiCheckCircle /> Payment Completed
+          <FiCheckCircle /> Paid
         </label>
 
-        {/* ACTIONS */}
         <div className="actions">
           <button type="submit" disabled={loading}>
-            <FiSave /> {loading ? "Saving..." : "Save Student"}
+            <FiSave /> {loading ? "Saving..." : "Save"}
           </button>
 
           <button type="button" onClick={() => navigate(-1)}>
@@ -275,21 +263,19 @@ export default function AddStudents({ activeBranch }) {
   );
 }
 
-// ================= REUSABLE COMPONENTS =================
+// ================= COMPONENTS =================
 
-const Input = ({ icon, label, ...props }) => (
+const Input = (p) => (
   <div className="input-group">
-    {icon}
-    <label>{label}</label>
-    <input {...props} />
+    {p.icon}
+    <input {...p} />
   </div>
 );
 
-const Select = ({ icon, label, options = [], ...props }) => (
+const Select = ({ icon, options, ...p }) => (
   <div className="input-group">
     {icon}
-    <label>{label}</label>
-    <select {...props}>
+    <select {...p}>
       <option value="">Select</option>
       {options.map((o) => (
         <option key={o.id} value={o.id}>
@@ -300,10 +286,9 @@ const Select = ({ icon, label, options = [], ...props }) => (
   </div>
 );
 
-const DateInput = ({ label, ...props }) => (
+const DateInput = (p) => (
   <div className="input-group">
     <FiCalendar />
-    <label>{label}</label>
-    <input type="date" {...props} />
+    <input type="date" {...p} />
   </div>
 );
