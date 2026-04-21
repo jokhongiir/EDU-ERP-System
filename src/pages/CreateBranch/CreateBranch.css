@@ -1,4 +1,33 @@
-.branch-container { display: flex; justify-content: center; align-items: center; height: 100vh; background: #0f172a; }
-.branch-box { background: #1e293b; padding: 40px; border-radius: 12px; color: white; width: 350px; }
-.branch-box input { width: 100%; padding: 12px; margin-top: 15px; border-radius: 8px; border: none; }
-.branch-box button { width: 100%; margin-top: 15px; padding: 12px; background: #2563eb; border: none; border-radius: 8px; color: white; }
+.branch-container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f8fafc;
+}
+
+.branch-box {
+  width: 360px;
+  padding: 24px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+}
+
+.branch-box input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  margin: 12px 0;
+}
+
+.branch-box button {
+  width: 100%;
+  padding: 10px;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}

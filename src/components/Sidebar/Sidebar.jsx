@@ -1,11 +1,26 @@
-import { NavLink } from "react-router-dom";
-import { LayoutDashboard, Users, GraduationCap, BookOpen, CreditCard, LogOut } from "lucide-react";
+import { NavLink, useNavigate } from "react-router-dom";
+import {
+  LayoutDashboard,
+  Users,
+  GraduationCap,
+  BookOpen,
+  CreditCard,
+  LogOut,
+} from "lucide-react";
+import { supabase } from "../../services/supabaseClient";
 import "./Sidebar.css";
 
-export default function Sidebar({ collapsed, mobileOpen, activeBranch, logout, setMobileOpen }) {
+export default function Sidebar({
+  collapsed,
+  mobileOpen,
+  activeBranch,
+  setMobileOpen,
+}) {
+  const navigate = useNavigate();
+
   const menu = [
     { name: "Dashboard", icon: LayoutDashboard, path: "" },
-    { name: "Students", icon: Users, path: "students" }, 
+    { name: "Students", icon: Users, path: "students" },
     { name: "Teachers", icon: GraduationCap, path: "teachers" },
     { name: "Courses", icon: BookOpen, path: "courses" },
     { name: "Groups", icon: BookOpen, path: "groups" },
@@ -13,35 +28,60 @@ export default function Sidebar({ collapsed, mobileOpen, activeBranch, logout, s
     { name: "Payments", icon: CreditCard, path: "payments" },
   ];
 
+  const basePath = activeBranch ? `/dashboard/${activeBranch.id}` : "";
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      navigate("/login");
+      setMobileOpen(false);
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
+
   return (
-    <aside className={`sidebar ${collapsed ? "collapsed" : ""} ${mobileOpen ? "mobile-active" : ""}`}>
-      <div className="sidebar-header">
-        <h2 className="logo">{collapsed ? "ERP" : "EDU ERP"}</h2>
+    <aside
+      className={`erpSidebar ${collapsed ? "isCollapsed" : ""} ${
+        mobileOpen ? "isMobileOpen" : ""
+      }`}
+    >
+      {/* HEADER */}
+      <div className="erpSidebar__header">
+        <div className="erpSidebar__logo">
+          <span className="erpSidebar__dot" />
+          {!collapsed && <h2>Edu ERP</h2>}
+        </div>
       </div>
 
-      <nav className="menu">
+      {/* NAVIGATION */}
+      <nav className="erpSidebar__nav">
         {menu.map((item, idx) => {
           const Icon = item.icon;
-          const path = activeBranch ? `/dashboard/${activeBranch.id}/${item.path}` : "#";
 
           return (
             <NavLink
               key={idx}
-              to={path}
-              className={({ isActive }) => (isActive ? "menu-item active" : "menu-item")}
+              to={`${basePath}/${item.path}`}
+              className={({ isActive }) =>
+                isActive
+                  ? "erpSidebar__link isActive"
+                  : "erpSidebar__link"
+              }
               onClick={() => setMobileOpen(false)}
             >
-              <Icon className="menu-icon" />
-              <span className="menu-text">{item.name}</span>
+              <Icon className="erpSidebar__icon" />
+              {!collapsed && <span>{item.name}</span>}
             </NavLink>
           );
         })}
       </nav>
 
-      <div className="sidebar-footer">
-        <button className="logout" onClick={logout}>
-          <LogOut className="menu-icon" />
-          <span className="menu-text">Logout</span>
+      {/* FOOTER */}
+      <div className="erpSidebar__footer">
+        <button className="erpSidebar__logout" onClick={handleLogout}>
+          <LogOut className="erpSidebar__icon" />
+          {!collapsed && <span>Sign out</span>}
         </button>
       </div>
     </aside>

@@ -1,6 +1,13 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../../services/supabaseClient";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import "./DashboardHome.css";
 
 export default function DashboardHome({ activeBranch }) {
@@ -37,6 +44,7 @@ export default function DashboardHome({ activeBranch }) {
           .from("students")
           .select("*", { count: "exact", head: true })
           .eq("course_id", c.id);
+
         return { name: c.name, students: count || 0 };
       })
     );
@@ -50,33 +58,49 @@ export default function DashboardHome({ activeBranch }) {
   }, [fetchStats]);
 
   return (
-    <div className="dashboard-home">
-      <h1>Dashboard - {activeBranch?.name || "Loading..."}</h1>
+    <div className="dash">
 
-      <div className="stats">
+      {/* HEADER */}
+      <div className="dash__header">
+        <h1>Dashboard Overview</h1>
+        <p>{activeBranch?.name || "Select a branch"}</p>
+      </div>
+
+      {/* STATS */}
+      <div className="dash__grid">
         {["students", "teachers", "courses", "groups"].map((key) => (
-          <div className="card" key={key}>
-            <p>{key.charAt(0).toUpperCase() + key.slice(1)}</p>
-            <h2>{loading ? "..." : stats[key]}</h2>
+          <div className="dash__card" key={key}>
+            <span className="dash__label">
+              {key.toUpperCase()}
+            </span>
+            <h2 className="dash__value">
+              {loading ? "..." : stats[key]}
+            </h2>
           </div>
         ))}
       </div>
 
-      <div className="chart">
-        <h3>Course Analytics</h3>
+      {/* CHART */}
+      <div className="dash__chart">
+        <div className="dash__chart-header">
+          <h3>Course Analytics</h3>
+          <span>Students per course</span>
+        </div>
+
         {loading ? (
-          <div className="skeleton-chart"></div>
+          <div className="dash__skeleton" />
         ) : (
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={320}>
             <BarChart data={courseProgress}>
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="students" fill="#376fff" />
+              <Bar dataKey="students" fill="#3b82f6" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         )}
       </div>
+
     </div>
   );
 }

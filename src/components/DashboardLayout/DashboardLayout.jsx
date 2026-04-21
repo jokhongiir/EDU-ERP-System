@@ -3,45 +3,77 @@ import Navbar from "../Navbar/Navbar";
 import Sidebar from "../Sidebar/Sidebar";
 import "./DashboardLayout.css";
 
-export default function DashboardLayout({ children, branches, activeBranch, setActiveBranch, centerName, logout }) {
+export default function DashboardLayout({
+  children,
+  branches,
+  activeBranch,
+  setActiveBranch,
+  centerName,
+  logout,
+}) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  const toggleSidebar = () => {
-    if (window.innerWidth <= 1024) setMobileOpen(prev => !prev);
-    else setSidebarCollapsed(prev => !prev);
+  const handleToggleSidebar = () => {
+    if (window.innerWidth <= 1024) {
+      setMobileSidebarOpen((prev) => !prev);
+    } else {
+      setSidebarCollapsed((prev) => !prev);
+    }
   };
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth > 1024) setMobileOpen(false);
+      if (window.innerWidth > 1024) {
+        setMobileSidebarOpen(false);
+      }
     };
+
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   return (
-    <div className="dashboard-layout">
+    <div className="erp-layout">
+
+      {/* SIDEBAR */}
       <Sidebar
         collapsed={sidebarCollapsed}
-        mobileOpen={mobileOpen}
+        mobileOpen={mobileSidebarOpen}
         activeBranch={activeBranch}
-        branches={branches}
-        setActiveBranch={setActiveBranch}
+        setMobileOpen={setMobileSidebarOpen}
         logout={logout}
-        setMobileOpen={setMobileOpen}
       />
-      {mobileOpen && <div className="overlay" onClick={() => setMobileOpen(false)}></div>}
 
-      <div className={`main-content ${sidebarCollapsed ? "collapsed" : ""}`}>
+      {/* OVERLAY (mobile) */}
+      {mobileSidebarOpen && (
+        <div
+          className="erp-layout__overlay"
+          onClick={() => setMobileSidebarOpen(false)}
+        />
+      )}
+
+      {/* MAIN AREA */}
+      <div
+        className={`erp-layout__main ${
+          sidebarCollapsed ? "is-collapsed" : ""
+        }`}
+      >
+
+        {/* NAVBAR */}
         <Navbar
           activeBranch={activeBranch}
           branches={branches}
           setActiveBranch={setActiveBranch}
           centerName={centerName}
-          toggleSidebar={toggleSidebar}
+          toggleSidebar={handleToggleSidebar}
         />
-        <div className="content-area">{children}</div>
+
+        {/* CONTENT */}
+        <main className="erp-layout__content">
+          {children}
+        </main>
+
       </div>
     </div>
   );
