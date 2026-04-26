@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../services/supabaseClient";
 import {
   FiPlus,
@@ -6,72 +6,78 @@ import {
   FiUsers,
   FiLayers,
   FiTrash2,
-  FiX
+  FiX,
 } from "react-icons/fi";
 import "./Courses.css";
 
 export default function Courses({ activeBranch }) {
+  // ================= STATE =================
   const [courses, setCourses] = useState([]);
   const [groups, setGroups] = useState([]);
   const [teachers, setTeachers] = useState([]);
 
   const [loading, setLoading] = useState(false);
 
+  const [createOpen, setCreateOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState(null);
-  const [createModal, setCreateModal] = useState(false);
 
   const [courseName, setCourseName] = useState("");
 
+  const branchId = activeBranch?.id;
+
   // ================= FETCH =================
-  useEffect(() => {
-    if (!activeBranch?.id) return;
-    fetchData();
-  }, [activeBranch]);
-
   const fetchData = async () => {
-    try {
-      setLoading(true);
+    if (!branchId) return;
 
-      const [c, g, t] = await Promise.all([
-        supabase.from("courses").select("*").eq("branch_id", activeBranch.id),
-        supabase.from("groups").select("*").eq("branch_id", activeBranch.id),
-        supabase.from("teachers").select("*").eq("branch_id", activeBranch.id),
+    setLoading(true);
+
+    try {
+      const [coursesRes, groupsRes, teachersRes] = await Promise.all([
+        supabase.from("courses").select("*").eq("branch_id", branchId),
+        supabase.from("groups").select("*").eq("branch_id", branchId),
+        supabase.from("teachers").select("*").eq("branch_id", branchId),
       ]);
 
-      if (c.error) throw c.error;
-      if (g.error) throw g.error;
-      if (t.error) throw t.error;
+      if (coursesRes.error) throw coursesRes.error;
+      if (groupsRes.error) throw groupsRes.error;
+      if (teachersRes.error) throw teachersRes.error;
 
-      setCourses(c.data || []);
-      setGroups(g.data || []);
-      setTeachers(t.data || []);
+      setCourses(coursesRes.data || []);
+      setGroups(groupsRes.data || []);
+      setTeachers(teachersRes.data || []);
     } catch (err) {
-      alert(err.message);
+      console.error(err);
+      alert("Failed to load data");
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchData();
+  }, [branchId]);
+
   // ================= CREATE =================
-  const handleCreate = async () => {
+  const handleCreate = async (e) => {
+    e?.preventDefault();
+
     if (!courseName.trim()) return;
 
     try {
       setLoading(true);
 
-      const { error } = await supabase.from("courses").insert([
-        {
-          name: courseName,
-          branch_id: activeBranch.id,
-        },
-      ]);
+      const { error } = await supabase.from("courses").insert({
+        name: courseName,
+        branch_id: branchId,
+      });
 
       if (error) throw error;
 
       setCourseName("");
-      setCreateModal(false);
-      await fetchData();
+      setCreateOpen(false);
+      fetchData();
     } catch (err) {
+      console.error(err);
       alert(err.message);
     } finally {
       setLoading(false);
@@ -80,14 +86,20 @@ export default function Courses({ activeBranch }) {
 
   // ================= DELETE =================
   const handleDelete = async (id) => {
-    if (!confirm("Delete this course?")) return;
+    const confirmDelete = confirm("Delete this course?");
+    if (!confirmDelete) return;
 
-    await supabase.from("courses").delete().eq("id", id);
-    setCourses((prev) => prev.filter((c) => c.id !== id));
+    try {
+      await supabase.from("courses").delete().eq("id", id);
+
+      setCourses((prev) => prev.filter((c) => c.id !== id));
+    } catch (err) {
+      console.error(err);
+      alert("Delete failed");
+    }
   };
 
   // ================= HELPERS =================
-
   const getGroupsCount = (courseId) =>
     groups.filter((g) => g.course_id === courseId).length;
 
@@ -97,29 +109,44 @@ export default function Courses({ activeBranch }) {
   const getTeachersByCourse = (courseId) =>
     teachers.filter((t) => t.course_id === courseId);
 
+  // ================= MEMOIZED UI DATA =================
+  const sortedCourses = useMemo(() => {
+    return [...courses].sort((a, b) => a.name.localeCompare(b.name));
+  }, [courses]);
+
   // ================= UI =================
   return (
     <div className="courses">
 
       {/* HEADER */}
       <div className="courses__header">
-        <h1>Courses</h1>
+        <div>
+          <h2>{activeBranch?.name || "Branch"} • Courses</h2>
+          <p className="courses__sub">Manage all your courses</p>
+        </div>
 
-        <button onClick={() => setCreateModal(true)}>
+        <button onClick={() => setCreateOpen(true)}>
           <FiPlus /> Add Course
         </button>
       </div>
 
       {/* LOADING */}
-      {loading && <p>Loading...</p>}
+      {loading && <div className="courses__loading">Loading...</div>}
+
+      {/* EMPTY STATE */}
+      {!loading && sortedCourses.length === 0 && (
+        <div className="courses__empty">
+          <FiBookOpen size={40} />
+          <p>No courses found</p>
+        </div>
+      )}
 
       {/* GRID */}
       <div className="courses__grid">
-        {courses.map((c) => (
+        {sortedCourses.map((c) => (
           <div key={c.id} className="courses__card">
 
             <div onClick={() => setSelectedCourse(c)}>
-
               <div className="card__icon">
                 <FiBookOpen />
               </div>
@@ -127,10 +154,13 @@ export default function Courses({ activeBranch }) {
               <h3>{c.name}</h3>
 
               <div className="card__stats">
-                <span><FiLayers /> {getGroupsCount(c.id)} groups</span>
-                <span><FiUsers /> {getTeachersCount(c.id)} teachers</span>
+                <span>
+                  <FiLayers /> {getGroupsCount(c.id)} groups
+                </span>
+                <span>
+                  <FiUsers /> {getTeachersCount(c.id)} teachers
+                </span>
               </div>
-
             </div>
 
             <button
@@ -145,24 +175,26 @@ export default function Courses({ activeBranch }) {
       </div>
 
       {/* ================= CREATE MODAL ================= */}
-      {createModal && (
+      {createOpen && (
         <div className="modal">
           <div className="modal__content">
 
             <div className="modal__header">
-              <h2>Create Course</h2>
-              <FiX onClick={() => setCreateModal(false)} />
+              <h3>Create Course</h3>
+              <FiX onClick={() => setCreateOpen(false)} />
             </div>
 
-            <input
-              placeholder="Course name..."
-              value={courseName}
-              onChange={(e) => setCourseName(e.target.value)}
-            />
+            <form onSubmit={handleCreate}>
+              <input
+                placeholder="Course name..."
+                value={courseName}
+                onChange={(e) => setCourseName(e.target.value)}
+              />
 
-            <button onClick={handleCreate} className="submit">
-              Create Course
-            </button>
+              <button type="submit" className="submit">
+                Create Course
+              </button>
+            </form>
 
           </div>
         </div>
@@ -174,7 +206,7 @@ export default function Courses({ activeBranch }) {
           <div className="modal__content">
 
             <div className="modal__header">
-              <h2>{selectedCourse.name}</h2>
+              <h3>{selectedCourse.name}</h3>
               <FiX onClick={() => setSelectedCourse(null)} />
             </div>
 
@@ -188,13 +220,17 @@ export default function Courses({ activeBranch }) {
                 <strong>Teachers:</strong> {getTeachersCount(selectedCourse.id)}
               </p>
 
-              <h3>Teacher List:</h3>
+              <h4>Teachers List</h4>
 
-              <ul>
-                {getTeachersByCourse(selectedCourse.id).map((t) => (
-                  <li key={t.id}>{t.name}</li>
-                ))}
-              </ul>
+              {getTeachersByCourse(selectedCourse.id).length === 0 ? (
+                <p>No teachers assigned</p>
+              ) : (
+                <ul>
+                  {getTeachersByCourse(selectedCourse.id).map((t) => (
+                    <li key={t.id}>{t.name}</li>
+                  ))}
+                </ul>
+              )}
 
             </div>
 
