@@ -2,23 +2,19 @@
 :root {
   --primary: #376fff;
   --primary-dark: #1a5bff;
-  --bg: #f4f7ff;
-  --white: #ffffff;
+  --bg: #f5f7ff;
+  --card: #ffffff;
   --text: #0f172a;
   --muted: #6b7280;
-  --border: #e5e7eb;
-  --green: #16a34a;
-  --red: #ef4444;
+  --border: #e6eaf2;
+  --success: #16a34a;
+  --danger: #ef4444;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 }
 
-/* ================= CONTAINER ================= */
+/* ================= BASE ================= */
 .teachers {
-  padding: 24px;
-  background: var(--bg);
-  min-height: 100vh;
-  color: var(--text);
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: Inter, sans-serif;
 }
 
 /* ================= HEADER ================= */
@@ -26,26 +22,36 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
+  background: var(--card);
+  padding: 18px 20px;
+  border-radius: 14px;
+  box-shadow: var(--shadow);
 }
 
 .teachers__header h2 {
-  font-size: 26px;
+  font-size: 20px;
   font-weight: 700;
+}
+
+.teachers__sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 4px;
 }
 
 .teachers__header button {
   background: var(--primary);
-  color: white;
+  color: #fff;
   border: none;
-  padding: 10px 16px;
+  padding: 10px 14px;
   border-radius: 10px;
-  cursor: pointer;
   display: flex;
-  gap: 6px;
   align-items: center;
+  gap: 8px;
+  cursor: pointer;
   transition: 0.2s;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .teachers__header button:hover {
@@ -58,11 +64,11 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: var(--white);
+  background: var(--card);
   padding: 10px 14px;
   border-radius: 12px;
   box-shadow: var(--shadow);
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .teachers__search input {
@@ -74,7 +80,7 @@
 
 /* ================= TABLE ================= */
 .teachers__table {
-  background: var(--white);
+  background: var(--card);
   border-radius: 14px;
   overflow: hidden;
   box-shadow: var(--shadow);
@@ -92,7 +98,7 @@
 .teachers__table th {
   text-align: left;
   padding: 14px;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--muted);
   font-weight: 600;
 }
@@ -103,18 +109,23 @@
   font-size: 14px;
 }
 
-.teachers__table tr:hover {
-  background: #f9fbff;
+/* row hover */
+.teachers__table tbody tr {
+  transition: 0.2s;
+}
+
+.teachers__table tbody tr:hover {
+  background: #f8faff;
 }
 
 /* ================= STATUS ================= */
 .paid {
-  color: var(--green);
+  color: var(--success);
   font-weight: 600;
 }
 
 .unpaid {
-  color: var(--red);
+  color: var(--danger);
   font-weight: 600;
 }
 
@@ -123,63 +134,81 @@
   border: none;
   background: transparent;
   cursor: pointer;
-  margin-right: 8px;
-  font-size: 16px;
+  padding: 6px;
+  border-radius: 8px;
   transition: 0.2s;
+  margin-right: 6px;
 }
 
 .teachers__table button:hover {
-  transform: scale(1.2);
+  background: #eef2ff;
 }
 
 /* ================= MODAL ================= */
 .modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.4);
+  background: rgba(15, 23, 42, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
-  padding: 20px;
+  z-index: 999;
+  backdrop-filter: blur(6px);
 }
 
 .modal__box {
-  background: var(--white);
-  width: 100%;
-  max-width: 420px;
+  width: 420px;
+  background: var(--card);
   border-radius: 16px;
-  padding: 20px;
+  padding: 18px;
   box-shadow: var(--shadow);
-  animation: fadeIn 0.2s ease;
+  animation: pop 0.2s ease-in-out;
 }
 
-@keyframes fadeIn {
+@keyframes pop {
   from {
-    transform: translateY(20px);
+    transform: scale(0.9);
     opacity: 0;
   }
   to {
-    transform: translateY(0);
+    transform: scale(1);
     opacity: 1;
   }
 }
 
-.modal__box h3 {
-  margin-bottom: 16px;
-  font-size: 20px;
-  font-weight: 700;
+.modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.modal__header button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
 }
 
 /* ================= FORM ================= */
-.modal__box form {
+.form {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.modal__box input,
-.modal__box select {
+.form__group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form__group label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.form__group input,
+.form__group select {
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -188,56 +217,72 @@
   transition: 0.2s;
 }
 
-.modal__box input:focus,
-.modal__box select:focus {
+.form__group input:focus,
+.form__group select:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(55, 111, 255, 0.1);
+  box-shadow: 0 0 0 3px rgba(55, 111, 255, 0.15);
 }
 
-/* ================= CHECKBOX ================= */
-.modal__box label {
+/* checkbox */
+.checkbox {
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 14px;
 }
 
-/* ================= BUTTONS ================= */
-.modal__box button {
-  padding: 10px;
+/* save button */
+.save-btn {
+  background: var(--primary);
+  color: white;
   border: none;
-  border-radius: 10px;
+  padding: 12px;
+  border-radius: 12px;
   cursor: pointer;
   font-weight: 600;
   transition: 0.2s;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
 }
 
-.modal__box button[type="submit"] {
-  background: var(--primary);
-  color: white;
-}
-
-.modal__box button[type="submit"]:hover {
+.save-btn:hover {
   background: var(--primary-dark);
 }
 
-.modal__box button[type="button"] {
-  background: #e5e7eb;
+/* ================= VIEW GRID ================= */
+.view__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
-/* ================= DELETE MODAL ================= */
-.modal__box p {
-  margin-bottom: 16px;
-  font-weight: 500;
+.view__card {
+  background: #f8faff;
+  padding: 12px;
+  border-radius: 12px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }
 
 /* ================= RESPONSIVE ================= */
 @media (max-width: 768px) {
+  .teachers__header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
   .teachers__table {
     overflow-x: auto;
   }
 
-  .teachers__header h2 {
-    font-size: 20px;
+  .modal__box {
+    width: 95%;
+  }
+
+  .view__grid {
+    grid-template-columns: 1fr;
   }
 }

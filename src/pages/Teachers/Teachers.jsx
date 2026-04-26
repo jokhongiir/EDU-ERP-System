@@ -1,21 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../services/supabaseClient";
+import "./Teachers.css";
+
 import {
   FiPlus,
-  FiEdit2,
+  FiEdit,
   FiTrash2,
   FiX,
+  FiSearch,
+  FiSave,
   FiUser,
   FiPhone,
   FiBookOpen,
-  FiCalendar,
-  FiCheckCircle,
-  FiDollarSign,
   FiUsers,
-  FiSearch,
-  FiSave,
+  FiDollarSign,
+  FiCheckCircle,
 } from "react-icons/fi";
-import "./Teachers.css";
 
 export default function Teachers({ activeBranch }) {
   const branchId = activeBranch?.id;
@@ -23,7 +23,6 @@ export default function Teachers({ activeBranch }) {
   // ================= STATE =================
   const [teachers, setTeachers] = useState([]);
   const [courses, setCourses] = useState([]);
-  const [groups, setGroups] = useState([]);
   const [students, setStudents] = useState([]);
 
   const [loading, setLoading] = useState(false);
@@ -31,42 +30,21 @@ export default function Teachers({ activeBranch }) {
 
   // MODALS
   const [modalOpen, setModalOpen] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [deleteId, setDeleteId] = useState(null);
+  const [viewOpen, setViewOpen] = useState(false);
+  const [viewData, setViewData] = useState(null);
+
+  const [editId, setEditId] = useState(null);
 
   // FORM
-  const [editId, setEditId] = useState(null);
   const [form, setForm] = useState({
     name: "",
-    phone: "+998 ",
+    phone: "",
     course_id: "",
     salary_paid: false,
     last_payment: "",
     next_payment: "",
   });
-
-  // ================= NOTIFY (simple) =================
-  const notify = (msg) => alert(msg);
-
-  // ================= FORMAT =================
-  const onlyDigits = (v = "") => v.toString().replace(/\D/g, "");
-
-  const formatPhone = (value = "") => {
-    let d = onlyDigits(value);
-    if (!d.startsWith("998")) d = "998" + d;
-    d = d.slice(0, 12);
-
-    let res = "+998";
-    if (d.length > 3) res += " " + d.slice(3, 5);
-    if (d.length > 5) res += " " + d.slice(5, 8);
-    if (d.length > 8) res += " " + d.slice(8, 10);
-    if (d.length > 10) res += " " + d.slice(10, 12);
-    return res;
-  };
-
-  const unformat = (v = "") => v.replace(/\D/g, "");
-
-  const formatMoney = (n = 0) =>
-    Number(n || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " so'm";
 
   // ================= FETCH =================
   const fetchData = async () => {
@@ -74,16 +52,14 @@ export default function Teachers({ activeBranch }) {
 
     setLoading(true);
 
-    const [t, c, g, s] = await Promise.all([
+    const [t, c, s] = await Promise.all([
       supabase.from("teachers").select("*").eq("branch_id", branchId),
       supabase.from("courses").select("*").eq("branch_id", branchId),
-      supabase.from("groups").select("*").eq("branch_id", branchId),
       supabase.from("students").select("*").eq("branch_id", branchId),
     ]);
 
     setTeachers(t.data || []);
     setCourses(c.data || []);
-    setGroups(g.data || []);
     setStudents(s.data || []);
 
     setLoading(false);
@@ -94,34 +70,40 @@ export default function Teachers({ activeBranch }) {
   }, [branchId]);
 
   // ================= HELPERS =================
-  const getCourse = (id) => courses.find((c) => c.id === id)?.name || "—";
+  const getCourseName = (id) => courses.find((c) => c.id === id)?.name || "—";
 
-  const getGroupsCount = (id) =>
-    groups.filter((g) => g.teacher_id === id).length;
+  const getStudentsCount = (id) =>
+    students.filter((s) => s.teacher_id === id).length;
 
   const getIncome = (id) =>
     students
       .filter((s) => s.teacher_id === id && s.paid)
-      .reduce((sum, s) => sum + ((s.monthly_fee || 0) * (s.teacher_percent || 0)) / 100, 0);
+      .reduce(
+        (sum, s) =>
+          sum + ((s.monthly_fee || 0) * (s.teacher_percent || 0)) / 100,
+        0,
+      );
 
-  // ================= HANDLE =================
+  // ================= VIEW =================
+  const openView = (t) => {
+    setViewData(t);
+    setViewOpen(true);
+  };
+
+  // ================= INPUT =================
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
-    let val = value;
-
-    if (name === "phone") val = formatPhone(value);
-
     setForm((p) => ({
       ...p,
-      [name]: type === "checkbox" ? checked : val,
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
-  const reset = () => {
+  const resetForm = () => {
     setForm({
       name: "",
-      phone: "+998 ",
+      phone: "",
       course_id: "",
       salary_paid: false,
       last_payment: "",
@@ -131,85 +113,85 @@ export default function Teachers({ activeBranch }) {
     setModalOpen(false);
   };
 
-  const handleEdit = (t) => {
+  // ================= EDIT =================
+  const openEdit = (t) => {
     setForm({
       name: t.name || "",
-      phone: formatPhone(t.phone || ""),
+      phone: t.phone || "",
       course_id: t.course_id || "",
       salary_paid: t.salary_paid || false,
       last_payment: t.last_payment || "",
       next_payment: t.next_payment || "",
     });
+
     setEditId(t.id);
     setModalOpen(true);
   };
 
+  // ================= SAVE =================
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!form.name.trim()) return notify("Name required");
+    if (!form.name.trim()) return alert("Name required");
 
     setLoading(true);
 
     const payload = {
       branch_id: branchId,
       name: form.name,
-      phone: unformat(form.phone),
+      phone: form.phone,
       course_id: form.course_id || null,
       salary_paid: form.salary_paid,
       last_payment: form.last_payment || null,
       next_payment: form.next_payment || null,
     };
 
-    let res;
-
     if (editId) {
-      res = await supabase
-        .from("teachers")
-        .update(payload)
-        .eq("id", editId);
+      await supabase.from("teachers").update(payload).eq("id", editId);
     } else {
-      res = await supabase.from("teachers").insert(payload);
+      await supabase.from("teachers").insert(payload);
     }
 
     setLoading(false);
-
-    if (res.error) return notify(res.error.message);
-
-    notify(editId ? "Updated" : "Created");
-    reset();
+    resetForm();
     fetchData();
   };
 
+  // ================= DELETE =================
   const handleDelete = async () => {
-    await supabase.from("teachers").delete().eq("id", confirmDelete);
-    setConfirmDelete(null);
+    await supabase.from("teachers").delete().eq("id", deleteId);
+    setDeleteId(null);
     fetchData();
   };
 
   // ================= FILTER =================
   const filtered = useMemo(() => {
     return teachers.filter((t) =>
-      t.name.toLowerCase().includes(search.toLowerCase())
+      t.name.toLowerCase().includes(search.toLowerCase()),
     );
   }, [teachers, search]);
 
   // ================= UI =================
   return (
     <div className="teachers">
-
-      {/* HEADER */}
       <div className="teachers__header">
-        <h2>Teachers</h2>
+        <div>
+          <h2>{activeBranch?.name || "Branch"} • Teachers</h2>
+          <p className="teachers__sub">Manage all teachers in your branch</p>
+        </div>
+
         <button onClick={() => setModalOpen(true)}>
-          <FiPlus /> Add
+          <FiPlus /> Add Teacher
         </button>
       </div>
-
       {/* SEARCH */}
       <div className="teachers__search">
         <FiSearch />
-        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search..." />
+        <input
+          placeholder="Search teacher..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
       </div>
 
       {/* TABLE */}
@@ -221,7 +203,7 @@ export default function Teachers({ activeBranch }) {
               <th>Name</th>
               <th>Phone</th>
               <th>Course</th>
-              <th>Groups</th>
+              <th>Students</th>
               <th>Income</th>
               <th>Status</th>
               <th>Actions</th>
@@ -230,17 +212,28 @@ export default function Teachers({ activeBranch }) {
 
           <tbody>
             {filtered.map((t, i) => (
-              <tr key={t.id}>
+              <tr
+                key={t.id}
+                onClick={() => openView(t)}
+                style={{ cursor: "pointer" }}
+              >
                 <td>{i + 1}</td>
                 <td>{t.name}</td>
-                <td>{formatPhone(t.phone)}</td>
-                <td>{getCourse(t.course_id)}</td>
-                <td>{getGroupsCount(t.id)}</td>
-                <td>{formatMoney(getIncome(t.id))}</td>
-                <td>{t.salary_paid ? "Paid" : "Unpaid"}</td>
-                <td>
-                  <button onClick={() => handleEdit(t)}><FiEdit2 /></button>
-                  <button onClick={() => setConfirmDelete(t.id)}><FiTrash2 /></button>
+                <td>{t.phone}</td>
+                <td>{getCourseName(t.course_id)}</td>
+                <td>{getStudentsCount(t.id)}</td>
+                <td>{getIncome(t.id).toFixed(0)} so'm</td>
+                <td className={t.salary_paid ? "paid" : "unpaid"}>
+                  {t.salary_paid ? "Paid" : "Unpaid"}
+                </td>
+
+                <td onClick={(e) => e.stopPropagation()}>
+                  <button onClick={() => openEdit(t)}>
+                    <FiEdit />
+                  </button>
+                  <button onClick={() => setDeleteId(t.id)}>
+                    <FiTrash2 />
+                  </button>
                 </td>
               </tr>
             ))}
@@ -248,53 +241,177 @@ export default function Teachers({ activeBranch }) {
         </table>
       </div>
 
-      {/* MODAL */}
+      {/* ================= VIEW MODAL ================= */}
+      {viewOpen && viewData && (
+        <div className="modal">
+          <div className="modal__box view">
+            <div className="modal__header">
+              <h3>Teacher Details</h3>
+              <button onClick={() => setViewOpen(false)}>
+                <FiX />
+              </button>
+            </div>
+
+            <div className="view__grid">
+              <div className="view__card">
+                <FiUser />
+                <div>
+                  <p>Name</p>
+                  <h4>{viewData.name}</h4>
+                </div>
+              </div>
+
+              <div className="view__card">
+                <FiPhone />
+                <div>
+                  <p>Phone</p>
+                  <h4>{viewData.phone}</h4>
+                </div>
+              </div>
+
+              <div className="view__card">
+                <FiBookOpen />
+                <div>
+                  <p>Course</p>
+                  <h4>{getCourseName(viewData.course_id)}</h4>
+                </div>
+              </div>
+
+              <div className="view__card">
+                <FiUsers />
+                <div>
+                  <p>Students</p>
+                  <h4>{getStudentsCount(viewData.id)}</h4>
+                </div>
+              </div>
+
+              <div className="view__card">
+                <FiDollarSign />
+                <div>
+                  <p>Income</p>
+                  <h4>{getIncome(viewData.id).toFixed(0)} so'm</h4>
+                </div>
+              </div>
+
+              <div className="view__card">
+                <FiCheckCircle />
+                <div>
+                  <p>Status</p>
+                  <h4 className={viewData.salary_paid ? "paid" : "unpaid"}>
+                    {viewData.salary_paid ? "Paid" : "Unpaid"}
+                  </h4>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= FORM MODAL ================= */}
       {modalOpen && (
         <div className="modal">
           <div className="modal__box">
-
-            <h3>{editId ? "Edit" : "Add"} Teacher</h3>
-
-            <form onSubmit={handleSubmit}>
-              <input name="name" value={form.name} onChange={handleChange} placeholder="Name" />
-              <input name="phone" value={form.phone} onChange={handleChange} />
-
-              <select name="course_id" value={form.course_id} onChange={handleChange}>
-                <option value="">Select Course</option>
-                {courses.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-
-              <input type="date" name="last_payment" value={form.last_payment} onChange={handleChange} />
-              <input type="date" name="next_payment" value={form.next_payment} onChange={handleChange} />
-
-              <label>
-                <input type="checkbox" name="salary_paid" checked={form.salary_paid} onChange={handleChange} /> Paid
-              </label>
-
-              <button type="submit" disabled={loading}>
-                <FiSave /> Save
+            <div className="modal__header">
+              <h3>{editId ? "Edit Teacher" : "Add Teacher"}</h3>
+              <button onClick={resetForm}>
+                <FiX />
               </button>
+            </div>
 
-              <button type="button" onClick={reset}><FiX /> Cancel</button>
+            <form onSubmit={handleSubmit} className="form">
+              {/* NAME */}
+              <div className="form__group">
+                <label>Teacher Name</label>
+                <input
+                  name="name"
+                  value={form.name}
+                  onChange={handleChange}
+                  placeholder="Enter teacher name"
+                />
+              </div>
+
+              {/* PHONE */}
+              <div className="form__group">
+                <label>Phone Number</label>
+                <input
+                  name="phone"
+                  value={form.phone}
+                  onChange={handleChange}
+                  placeholder="+998 90 123 45 67"
+                />
+              </div>
+
+              {/* COURSE */}
+              <div className="form__group">
+                <label>Course</label>
+                <select
+                  name="course_id"
+                  value={form.course_id}
+                  onChange={handleChange}
+                >
+                  <option value="">Select course</option>
+                  {courses.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* LAST PAYMENT */}
+              <div className="form__group">
+                <label>Last Payment Date</label>
+                <input
+                  type="date"
+                  name="last_payment"
+                  value={form.last_payment}
+                  onChange={handleChange}
+                />
+              </div>
+
+              {/* NEXT PAYMENT */}
+              <div className="form__group">
+                <label>Next Payment Date</label>
+                <input
+                  type="date"
+                  name="next_payment"
+                  value={form.next_payment}
+                  onChange={handleChange}
+                />
+              </div>
+
+              {/* STATUS */}
+              <div className="form__group checkbox">
+                <label>
+                  <input
+                    type="checkbox"
+                    name="salary_paid"
+                    checked={form.salary_paid}
+                    onChange={handleChange}
+                  />
+                  Salary Paid
+                </label>
+              </div>
+
+              {/* BUTTON */}
+              <button type="submit" className="save-btn">
+                <FiSave /> Save Teacher
+              </button>
             </form>
-
           </div>
         </div>
       )}
 
       {/* DELETE */}
-      {confirmDelete && (
+      {deleteId && (
         <div className="modal">
           <div className="modal__box">
             <p>Delete teacher?</p>
             <button onClick={handleDelete}>Yes</button>
-            <button onClick={() => setConfirmDelete(null)}>No</button>
+            <button onClick={() => setDeleteId(null)}>No</button>
           </div>
         </div>
       )}
-
     </div>
   );
 }
