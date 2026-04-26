@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../services/supabaseClient";
+
 import {
   FiUser,
   FiPhone,
@@ -12,19 +13,60 @@ import {
   FiSave,
   FiX,
   FiHome,
+  FiClipboard,
+  FiUserCheck,
+  FiTrendingUp,
+  FiCreditCard,
 } from "react-icons/fi";
+
 import "./AddStudents.css";
 
-export default function AddStudents({ activeBranch }) {
+// ================= HELPERS =================
+const onlyDigits = (v = "") => v.toString().replace(/\D/g, "");
+
+const formatPhone = (value) => {
+  let d = onlyDigits(value);
+  if (!d.startsWith("998")) d = "998" + d;
+  d = d.slice(0, 12);
+
+  let res = "+998";
+  if (d.length > 3) res += " " + d.slice(3, 5);
+  if (d.length > 5) res += " " + d.slice(5, 8);
+  if (d.length > 8) res += " " + d.slice(8, 10);
+  if (d.length > 10) res += " " + d.slice(10, 12);
+
+  return res;
+};
+
+const formatMoney = (value) => {
+  const num = onlyDigits(value);
+  if (!num) return "";
+  return num.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+};
+
+const formatPercent = (value) => {
+  const num = onlyDigits(value);
+  if (!num) return "";
+  return num + "%";
+};
+
+// ================= MAIN =================
+export default function AddStudents({
+  activeBranch,
+  editStudent = null,   // 👈 EDIT MODE
+  onFinish,
+}) {
   const navigate = useNavigate();
   const branchId = activeBranch?.id;
 
-  // ================= DATA STATE =================
+  // ================= MODE =================
+  const isEdit = !!editStudent;
+
+  // ================= DATA =================
   const [courses, setCourses] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [groups, setGroups] = useState([]);
 
-  // ================= UI STATE =================
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
   const [error, setError] = useState("");
@@ -39,7 +81,6 @@ export default function AddStudents({ activeBranch }) {
     teacher_id: "",
     group_id: "",
     start_date: "",
-    arrived_date: "",
     payment_date: "",
     next_payment_date: "",
     monthly_fee: "",
@@ -47,211 +88,244 @@ export default function AddStudents({ activeBranch }) {
     paid: false,
   });
 
-  // ================= HELPERS =================
-  const onlyDigits = (v = "") => v.toString().replace(/\D/g, "");
+  // ================= LOAD EDIT DATA =================
+  useEffect(() => {
+    if (editStudent) {
+      setForm({
+        first_name: editStudent.first_name || "",
+        last_name: editStudent.last_name || "",
+        phone: editStudent.phone ? "+998 " + editStudent.phone : "+998 ",
+        parent_phone: editStudent.parent_phone ? "+998 " + editStudent.parent_phone : "+998 ",
+        course_id: editStudent.course_id || "",
+        teacher_id: editStudent.teacher_id || "",
+        group_id: editStudent.group_id || "",
+        start_date: editStudent.start_date || "",
+        payment_date: editStudent.payment_date || "",
+        next_payment_date: editStudent.next_payment_date || "",
+        monthly_fee: editStudent.monthly_fee?.toString() || "",
+        teacher_percent: editStudent.teacher_percent?.toString() || "",
+        paid: editStudent.paid || false,
+      });
+    }
+  }, [editStudent]);
 
-  const formatPhone = (value) => {
-    let d = onlyDigits(value);
-    if (!d.startsWith("998")) d = "998" + d;
-    d = d.slice(0, 12);
-
-    let res = "+998";
-    if (d.length > 3) res += " " + d.slice(3, 5);
-    if (d.length > 5) res += " " + d.slice(5, 8);
-    if (d.length > 8) res += " " + d.slice(8, 10);
-    if (d.length > 10) res += " " + d.slice(10, 12);
-
-    return res;
-  };
-
-  // ================= FETCH DATA =================
+  // ================= FETCH =================
   useEffect(() => {
     if (!branchId) return;
 
     const load = async () => {
-      try {
-        setFetching(true);
-        setError("");
+      setFetching(true);
 
-        const [c, t, g] = await Promise.all([
-          supabase.from("courses").select("*").eq("branch_id", branchId),
-          supabase.from("teachers").select("*").eq("branch_id", branchId),
-          supabase.from("groups").select("*").eq("branch_id", branchId),
-        ]);
+      const [c, t, g] = await Promise.all([
+        supabase.from("courses").select("*").eq("branch_id", branchId),
+        supabase.from("teachers").select("*").eq("branch_id", branchId),
+        supabase.from("groups").select("*").eq("branch_id", branchId),
+      ]);
 
-        if (c.error || t.error || g.error)
-          throw c.error || t.error || g.error;
+      setCourses(c.data || []);
+      setTeachers(t.data || []);
+      setGroups(g.data || []);
 
-        setCourses(c.data || []);
-        setTeachers(t.data || []);
-        setGroups(g.data || []);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setFetching(false);
-      }
+      setFetching(false);
     };
 
     load();
   }, [branchId]);
 
-  // ================= FILTER LOGIC (SMART) =================
-  const filteredTeachers = useMemo(() => {
-    if (!form.course_id) return teachers;
-    return teachers.filter((t) => t.course_id === form.course_id);
-  }, [teachers, form.course_id]);
+  // ================= FILTER =================
+// ================= FILTER =================
+const filteredTeachers = useMemo(() => {
+  if (!form.course_id) return teachers;
+  return teachers.filter((t) => t.course_id === form.course_id);
+}, [teachers, form.course_id]);
 
-  const filteredGroups = useMemo(() => {
-    return groups.filter((g) => {
-      const byCourse = !form.course_id || g.course_id === form.course_id;
-      const byTeacher = !form.teacher_id || g.teacher_id === form.teacher_id;
-      return byCourse && byTeacher;
-    });
-  }, [groups, form.course_id, form.teacher_id]);
+const filteredGroups = useMemo(() => {
+  return groups.filter((g) => {
+    return (
+      (!form.course_id || g.course_id === form.course_id) &&
+      (!form.teacher_id || g.teacher_id === form.teacher_id)
+    );
+  });
+}, [groups, form.course_id, form.teacher_id]);
 
-  // ================= HANDLE CHANGE =================
+  // ================= HANDLE =================
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
-    let newValue = value;
+    let val = value;
 
-    if (type !== "checkbox") {
-      if (name === "phone" || name === "parent_phone") {
-        newValue = formatPhone(value);
-      }
-    }
+    if (name === "phone" || name === "parent_phone") val = formatPhone(value);
+    if (name === "monthly_fee") val = formatMoney(value);
+    if (name === "teacher_percent") val = formatPercent(value);
 
     setForm((p) => ({
       ...p,
-      [name]: type === "checkbox" ? checked : newValue,
+      [name]: type === "checkbox" ? checked : val,
     }));
   };
 
   // ================= VALIDATION =================
   const validate = () => {
-    if (!form.first_name.trim()) return "First name is required";
-    if (!form.last_name.trim()) return "Last name is required";
-    if (onlyDigits(form.phone).length < 12) return "Phone number invalid";
+    if (!form.first_name.trim()) return "First name required";
+    if (!form.last_name.trim()) return "Last name required";
+    if (onlyDigits(form.phone).length < 12) return "Phone invalid";
     return null;
   };
 
-  // ================= SUBMIT =================
+  // ================= SUBMIT (ADD + EDIT) =================
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!branchId) return alert("Branch not selected");
 
     const err = validate();
     if (err) return alert(err);
 
-    try {
-      setLoading(true);
+    setLoading(true);
 
-      const payload = {
-        branch_id: branchId,
-        first_name: form.first_name.trim(),
-        last_name: form.last_name.trim(),
+    const payload = {
+      branch_id: branchId,
+      first_name: form.first_name.trim(),
+      last_name: form.last_name.trim(),
+      phone: onlyDigits(form.phone),
+      parent_phone: onlyDigits(form.parent_phone),
+      course_id: form.course_id || null,
+      teacher_id: form.teacher_id || null,
+      group_id: form.group_id || null,
+      start_date: form.start_date || null,
+      payment_date: form.payment_date || null,
+      next_payment_date: form.next_payment_date || null,
+      monthly_fee: Number(onlyDigits(form.monthly_fee)) || 0,
+      teacher_percent: Number(onlyDigits(form.teacher_percent)) || 0,
+      paid: form.paid,
+    };
 
-        phone: onlyDigits(form.phone),
-        parent_phone: onlyDigits(form.parent_phone),
+    let result;
 
-        course_id: form.course_id || null,
-        teacher_id: form.teacher_id || null,
-        group_id: form.group_id || null,
-
-        start_date: form.start_date || null,
-        arrived_date: form.arrived_date || null,
-        payment_date: form.payment_date || null,
-        next_payment_date: form.next_payment_date || null,
-
-        monthly_fee: Number(onlyDigits(form.monthly_fee)) || 0,
-        teacher_percent: Number(onlyDigits(form.teacher_percent)) || 0,
-
-        paid: form.paid,
-      };
-
-      const { error } = await supabase.from("students").insert(payload);
-
-      if (error) throw error;
-
-      alert("Student created successfully 🚀");
-
-      navigate(`/dashboard/${branchId}/students`);
-    } catch (err) {
-      alert(err.message);
-    } finally {
-      setLoading(false);
+    if (isEdit) {
+      result = await supabase
+        .from("students")
+        .update(payload)
+        .eq("id", editStudent.id);
+    } else {
+      result = await supabase.from("students").insert(payload);
     }
+
+    setLoading(false);
+
+    if (result.error) return alert(result.error.message);
+
+    if (onFinish) return onFinish();
+    navigate(`/dashboard/${branchId}/students`);
   };
 
   // ================= UI =================
+  if (!branchId) return <div>No branch selected</div>;
+
   return (
-    <div className="add-student-page">
+    <div className="add-page">
 
       {/* HEADER */}
-      <div className="branch-header-pro">
+      <div className="header">
         <FiHome />
         <div>
           <p>Active Branch</p>
-          <h3>{activeBranch?.name || "No branch selected"}</h3>
+          <h3>{activeBranch?.name}</h3>
         </div>
       </div>
 
-      <h2>Create New Student</h2>
+      <h2>
+        <FiUserCheck />
+        {isEdit ? " Edit Student" : " Create New Student"}
+      </h2>
 
-      {error && <div className="error">{error}</div>}
-      {fetching && <p>Loading data...</p>}
+      {fetching && <p>Loading...</p>}
 
-      <form className="add-form" onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="form">
 
-        {/* NAME */}
-        <div className="form-row">
-          <Input icon={<FiUser />} name="first_name" placeholder="First Name" value={form.first_name} onChange={handleChange} />
-          <Input icon={<FiUser />} name="last_name" placeholder="Last Name" value={form.last_name} onChange={handleChange} />
+        {/* PERSONAL */}
+        <div className="section">
+          <h4><FiUser /> Personal Info</h4>
+
+          <div className="grid">
+
+            <Field label="First Name">
+              <Input icon={<FiUserCheck />} name="first_name" value={form.first_name} onChange={handleChange} />
+            </Field>
+
+            <Field label="Last Name">
+              <Input icon={<FiUser />} name="last_name" value={form.last_name} onChange={handleChange} />
+            </Field>
+
+            <Field label="Student Phone">
+              <Input icon={<FiPhone />} name="phone" value={form.phone} onChange={handleChange} />
+            </Field>
+
+            <Field label="Parent Phone">
+              <Input icon={<FiPhone />} name="parent_phone" value={form.parent_phone} onChange={handleChange} />
+            </Field>
+
+          </div>
         </div>
 
-        {/* PHONE */}
-        <div className="form-row">
-          <Input icon={<FiPhone />} name="phone" placeholder="Student Phone" value={form.phone} onChange={handleChange} />
-          <Input icon={<FiPhone />} name="parent_phone" placeholder="Parent Phone" value={form.parent_phone} onChange={handleChange} />
-        </div>
+        {/* EDUCATION */}
+        <div className="section">
+          <h4><FiBookOpen /> Education</h4>
 
-        {/* COURSE */}
-        <Select icon={<FiBookOpen />} name="course_id" value={form.course_id} onChange={handleChange} options={courses} />
+          <div className="grid">
 
-        {/* TEACHER / GROUP */}
-        <div className="form-row">
-          <Select icon={<FiUsers />} name="teacher_id" value={form.teacher_id} onChange={handleChange} options={filteredTeachers} />
-          <Select icon={<FiUsers />} name="group_id" value={form.group_id} onChange={handleChange} options={filteredGroups} />
-        </div>
+            <Field label="Course">
+              <Select icon={<FiBookOpen />} name="course_id" value={form.course_id} onChange={handleChange} options={courses} />
+            </Field>
 
-        {/* DATES */}
-        <div className="form-row">
-          <DateInput name="start_date" value={form.start_date} onChange={handleChange} />
-          <DateInput name="arrived_date" value={form.arrived_date} onChange={handleChange} />
-        </div>
+            <Field label="Teacher">
+              <Select icon={<FiUsers />} name="teacher_id" value={form.teacher_id} onChange={handleChange} options={filteredTeachers} />
+            </Field>
 
-        <div className="form-row">
-          <DateInput name="payment_date" value={form.payment_date} onChange={handleChange} />
-          <DateInput name="next_payment_date" value={form.next_payment_date} onChange={handleChange} />
-        </div>
+            <Field label="Group">
+              <Select icon={<FiClipboard />} name="group_id" value={form.group_id} onChange={handleChange} options={filteredGroups} />
+            </Field>
 
-        {/* MONEY */}
-        <div className="form-row">
-          <Input icon={<FiDollarSign />} name="monthly_fee" placeholder="Monthly Fee" value={form.monthly_fee} onChange={handleChange} />
-          <Input icon={<FiDollarSign />} name="teacher_percent" placeholder="Teacher Percent" value={form.teacher_percent} onChange={handleChange} />
+            <Field label="Start Date">
+              <DateInput name="start_date" value={form.start_date} onChange={handleChange} />
+            </Field>
+
+          </div>
         </div>
 
         {/* PAYMENT */}
-        <label className="checkbox">
-          <input type="checkbox" name="paid" checked={form.paid} onChange={handleChange} />
-          <FiCheckCircle /> Payment Completed
-        </label>
+        <div className="section">
+          <h4><FiCreditCard /> Payment</h4>
+
+          <div className="grid">
+
+            <Field label="Payment Date">
+              <DateInput name="payment_date" value={form.payment_date} onChange={handleChange} />
+            </Field>
+
+            <Field label="Next Payment Date">
+              <DateInput name="next_payment_date" value={form.next_payment_date} onChange={handleChange} />
+            </Field>
+
+            <Field label="Monthly Fee">
+              <Input icon={<FiTrendingUp />} name="monthly_fee" value={form.monthly_fee} onChange={handleChange} />
+            </Field>
+
+            <Field label="Teacher %">
+              <Input icon={<FiDollarSign />} name="teacher_percent" value={form.teacher_percent} onChange={handleChange} />
+            </Field>
+
+          </div>
+
+          <label className="checkbox">
+            <input type="checkbox" name="paid" checked={form.paid} onChange={handleChange} />
+            <FiCheckCircle /> Paid
+          </label>
+        </div>
 
         {/* ACTIONS */}
         <div className="actions">
           <button type="submit" disabled={loading}>
-            <FiSave /> {loading ? "Saving..." : "Create Student"}
+            <FiSave />
+            {loading ? "Saving..." : isEdit ? "Update Student" : "Create Student"}
           </button>
 
           <button type="button" onClick={() => navigate(-1)}>
@@ -266,29 +340,34 @@ export default function AddStudents({ activeBranch }) {
 
 /* ================= UI COMPONENTS ================= */
 
+const Field = ({ label, children }) => (
+  <div className="field">
+    <label>{label}</label>
+    {children}
+  </div>
+);
+
 const Input = ({ icon, ...props }) => (
-  <div className="input-group">
+  <div className="input">
     {icon}
     <input {...props} />
   </div>
 );
 
 const Select = ({ icon, options, ...props }) => (
-  <div className="input-group">
+  <div className="input">
     {icon}
     <select {...props}>
-      <option value="">Select option</option>
+      <option value="">Select</option>
       {options.map((o) => (
-        <option key={o.id} value={o.id}>
-          {o.name}
-        </option>
+        <option key={o.id} value={o.id}>{o.name}</option>
       ))}
     </select>
   </div>
 );
 
 const DateInput = (props) => (
-  <div className="input-group">
+  <div className="input">
     <FiCalendar />
     <input type="date" {...props} />
   </div>

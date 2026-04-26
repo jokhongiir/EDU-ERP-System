@@ -1,38 +1,41 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../services/supabaseClient";
 import {
   FiPlus,
   FiEdit2,
   FiTrash2,
+  FiX,
   FiUser,
   FiPhone,
   FiBookOpen,
   FiCalendar,
   FiCheckCircle,
-  FiX,
   FiDollarSign,
+  FiUsers,
+  FiSearch,
+  FiSave,
 } from "react-icons/fi";
 import "./Teachers.css";
 
 export default function Teachers({ activeBranch }) {
   const branchId = activeBranch?.id;
 
+  // ================= STATE =================
   const [teachers, setTeachers] = useState([]);
   const [courses, setCourses] = useState([]);
   const [groups, setGroups] = useState([]);
   const [students, setStudents] = useState([]);
 
   const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
 
   // MODALS
   const [modalOpen, setModalOpen] = useState(false);
-  const [editId, setEditId] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
-  // NOTIFICATION MODAL
-  const [notify, setNotify] = useState({ show: false, type: "", message: "" });
-
-  const [formData, setFormData] = useState({
+  // FORM
+  const [editId, setEditId] = useState(null);
+  const [form, setForm] = useState({
     name: "",
     phone: "+998 ",
     course_id: "",
@@ -41,70 +44,57 @@ export default function Teachers({ activeBranch }) {
     next_payment: "",
   });
 
-  // ================= NOTIFY =================
-  const showNotify = (type, message) => {
-    setNotify({ show: true, type, message });
-
-    setTimeout(() => {
-      setNotify({ show: false, type: "", message: "" });
-    }, 2500);
-  };
+  // ================= NOTIFY (simple) =================
+  const notify = (msg) => alert(msg);
 
   // ================= FORMAT =================
-  const formatPhone = (value) => {
-    let digits = value.replace(/\D/g, "");
-    if (!digits.startsWith("998")) digits = "998" + digits;
-    digits = digits.slice(0, 12);
+  const onlyDigits = (v = "") => v.toString().replace(/\D/g, "");
+
+  const formatPhone = (value = "") => {
+    let d = onlyDigits(value);
+    if (!d.startsWith("998")) d = "998" + d;
+    d = d.slice(0, 12);
 
     let res = "+998";
-    if (digits.length > 3) res += " " + digits.slice(3, 5);
-    if (digits.length > 5) res += " " + digits.slice(5, 8);
-    if (digits.length > 8) res += " " + digits.slice(8, 10);
-    if (digits.length > 10) res += " " + digits.slice(10, 12);
-
+    if (d.length > 3) res += " " + d.slice(3, 5);
+    if (d.length > 5) res += " " + d.slice(5, 8);
+    if (d.length > 8) res += " " + d.slice(8, 10);
+    if (d.length > 10) res += " " + d.slice(10, 12);
     return res;
   };
 
   const unformat = (v = "") => v.replace(/\D/g, "");
 
-  const formatMoney = (num = 0) =>
-    num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " so'm";
+  const formatMoney = (n = 0) =>
+    Number(n || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " so'm";
 
   // ================= FETCH =================
-  useEffect(() => {
+  const fetchData = async () => {
     if (!branchId) return;
+
+    setLoading(true);
+
+    const [t, c, g, s] = await Promise.all([
+      supabase.from("teachers").select("*").eq("branch_id", branchId),
+      supabase.from("courses").select("*").eq("branch_id", branchId),
+      supabase.from("groups").select("*").eq("branch_id", branchId),
+      supabase.from("students").select("*").eq("branch_id", branchId),
+    ]);
+
+    setTeachers(t.data || []);
+    setCourses(c.data || []);
+    setGroups(g.data || []);
+    setStudents(s.data || []);
+
+    setLoading(false);
+  };
+
+  useEffect(() => {
     fetchData();
   }, [branchId]);
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-
-      const [t, c, g, s] = await Promise.all([
-        supabase.from("teachers").select("*").eq("branch_id", branchId),
-        supabase.from("courses").select("*").eq("branch_id", branchId),
-        supabase.from("groups").select("*").eq("branch_id", branchId),
-        supabase.from("students").select("*").eq("branch_id", branchId),
-      ]);
-
-      if (t.error || c.error || g.error || s.error) {
-        throw t.error || c.error || g.error || s.error;
-      }
-
-      setTeachers(t.data || []);
-      setCourses(c.data || []);
-      setGroups(g.data || []);
-      setStudents(s.data || []);
-    } catch (err) {
-      showNotify("error", err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // ================= HELPERS =================
-  const getCourse = (id) =>
-    courses.find((c) => c.id === id)?.name || "—";
+  const getCourse = (id) => courses.find((c) => c.id === id)?.name || "—";
 
   const getGroupsCount = (id) =>
     groups.filter((g) => g.teacher_id === id).length;
@@ -112,25 +102,24 @@ export default function Teachers({ activeBranch }) {
   const getIncome = (id) =>
     students
       .filter((s) => s.teacher_id === id && s.paid)
-      .reduce((sum, s) => sum + (s.monthly_fee * s.teacher_percent) / 100, 0);
+      .reduce((sum, s) => sum + ((s.monthly_fee || 0) * (s.teacher_percent || 0)) / 100, 0);
 
-  // ================= CHANGE =================
+  // ================= HANDLE =================
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
-    let newValue = value;
+    let val = value;
 
-    if (name === "phone") newValue = formatPhone(value);
+    if (name === "phone") val = formatPhone(value);
 
-    setFormData((p) => ({
+    setForm((p) => ({
       ...p,
-      [name]: type === "checkbox" ? checked : newValue,
+      [name]: type === "checkbox" ? checked : val,
     }));
   };
 
-  // ================= RESET =================
   const reset = () => {
-    setFormData({
+    setForm({
       name: "",
       phone: "+998 ",
       course_id: "",
@@ -138,14 +127,12 @@ export default function Teachers({ activeBranch }) {
       last_payment: "",
       next_payment: "",
     });
-
     setEditId(null);
     setModalOpen(false);
   };
 
-  // ================= EDIT =================
   const handleEdit = (t) => {
-    setFormData({
+    setForm({
       name: t.name || "",
       phone: formatPhone(t.phone || ""),
       course_id: t.course_id || "",
@@ -153,63 +140,59 @@ export default function Teachers({ activeBranch }) {
       last_payment: t.last_payment || "",
       next_payment: t.next_payment || "",
     });
-
     setEditId(t.id);
     setModalOpen(true);
   };
 
-  // ================= SUBMIT =================
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.name.trim())
-      return showNotify("error", "Name required");
+    if (!form.name.trim()) return notify("Name required");
 
-    try {
-      setLoading(true);
+    setLoading(true);
 
-      const payload = {
-        ...formData,
-        branch_id: branchId,
-        phone: unformat(formData.phone),
-      };
+    const payload = {
+      branch_id: branchId,
+      name: form.name,
+      phone: unformat(form.phone),
+      course_id: form.course_id || null,
+      salary_paid: form.salary_paid,
+      last_payment: form.last_payment || null,
+      next_payment: form.next_payment || null,
+    };
 
-      let res;
+    let res;
 
-      if (editId) {
-        res = await supabase
-          .from("teachers")
-          .update(payload)
-          .eq("id", editId);
-      } else {
-        res = await supabase.from("teachers").insert([payload]);
-      }
-
-      if (res.error) throw res.error;
-
-      showNotify("success", editId ? "Updated" : "Created");
-      reset();
-      fetchData();
-    } catch (err) {
-      showNotify("error", err.message);
-    } finally {
-      setLoading(false);
+    if (editId) {
+      res = await supabase
+        .from("teachers")
+        .update(payload)
+        .eq("id", editId);
+    } else {
+      res = await supabase.from("teachers").insert(payload);
     }
+
+    setLoading(false);
+
+    if (res.error) return notify(res.error.message);
+
+    notify(editId ? "Updated" : "Created");
+    reset();
+    fetchData();
   };
 
-  // ================= DELETE =================
   const handleDelete = async () => {
-    try {
-      await supabase.from("teachers").delete().eq("id", confirmDelete);
-
-      setTeachers((p) => p.filter((t) => t.id !== confirmDelete));
-      setConfirmDelete(null);
-
-      showNotify("success", "Deleted");
-    } catch (err) {
-      showNotify("error", err.message);
-    }
+    await supabase.from("teachers").delete().eq("id", confirmDelete);
+    setConfirmDelete(null);
+    fetchData();
   };
+
+  // ================= FILTER =================
+  const filtered = useMemo(() => {
+    return teachers.filter((t) =>
+      t.name.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [teachers, search]);
 
   // ================= UI =================
   return (
@@ -217,10 +200,16 @@ export default function Teachers({ activeBranch }) {
 
       {/* HEADER */}
       <div className="teachers__header">
-        <h1>Teachers</h1>
+        <h2>Teachers</h2>
         <button onClick={() => setModalOpen(true)}>
-          <FiPlus /> Add Teacher
+          <FiPlus /> Add
         </button>
+      </div>
+
+      {/* SEARCH */}
+      <div className="teachers__search">
+        <FiSearch />
+        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search..." />
       </div>
 
       {/* TABLE */}
@@ -240,7 +229,7 @@ export default function Teachers({ activeBranch }) {
           </thead>
 
           <tbody>
-            {teachers.map((t, i) => (
+            {filtered.map((t, i) => (
               <tr key={t.id}>
                 <td>{i + 1}</td>
                 <td>{t.name}</td>
@@ -248,21 +237,10 @@ export default function Teachers({ activeBranch }) {
                 <td>{getCourse(t.course_id)}</td>
                 <td>{getGroupsCount(t.id)}</td>
                 <td>{formatMoney(getIncome(t.id))}</td>
-
+                <td>{t.salary_paid ? "Paid" : "Unpaid"}</td>
                 <td>
-                  <span className={t.salary_paid ? "paid" : "unpaid"}>
-                    {t.salary_paid ? "Paid" : "Unpaid"}
-                  </span>
-                </td>
-
-                <td>
-                  <button onClick={() => handleEdit(t)}>
-                    <FiEdit2 />
-                  </button>
-
-                  <button onClick={() => setConfirmDelete(t.id)}>
-                    <FiTrash2 />
-                  </button>
+                  <button onClick={() => handleEdit(t)}><FiEdit2 /></button>
+                  <button onClick={() => setConfirmDelete(t.id)}><FiTrash2 /></button>
                 </td>
               </tr>
             ))}
@@ -270,63 +248,50 @@ export default function Teachers({ activeBranch }) {
         </table>
       </div>
 
-      {/* ================= MODAL ================= */}
+      {/* MODAL */}
       {modalOpen && (
         <div className="modal">
-          <div className="modal__content">
+          <div className="modal__box">
 
-            <div className="modal__header">
-              <h2>{editId ? "Edit" : "Add"} Teacher</h2>
-              <FiX onClick={reset} />
-            </div>
+            <h3>{editId ? "Edit" : "Add"} Teacher</h3>
 
             <form onSubmit={handleSubmit}>
+              <input name="name" value={form.name} onChange={handleChange} placeholder="Name" />
+              <input name="phone" value={form.phone} onChange={handleChange} />
 
-              <input name="name" value={formData.name} onChange={handleChange} placeholder="Name" />
-
-              <input name="phone" value={formData.phone} onChange={handleChange} />
-
-              <select name="course_id" value={formData.course_id} onChange={handleChange}>
-                <option value="">Optional Course</option>
+              <select name="course_id" value={form.course_id} onChange={handleChange}>
+                <option value="">Select Course</option>
                 {courses.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
 
-              <input type="date" name="last_payment" value={formData.last_payment} onChange={handleChange} />
-              <input type="date" name="next_payment" value={formData.next_payment} onChange={handleChange} />
+              <input type="date" name="last_payment" value={form.last_payment} onChange={handleChange} />
+              <input type="date" name="next_payment" value={form.next_payment} onChange={handleChange} />
 
               <label>
-                <input type="checkbox" name="salary_paid" checked={formData.salary_paid} onChange={handleChange} />
-                Salary Paid
+                <input type="checkbox" name="salary_paid" checked={form.salary_paid} onChange={handleChange} /> Paid
               </label>
 
               <button type="submit" disabled={loading}>
-                {loading ? "Saving..." : "Save"}
+                <FiSave /> Save
               </button>
 
+              <button type="button" onClick={reset}><FiX /> Cancel</button>
             </form>
 
           </div>
         </div>
       )}
 
-      {/* DELETE CONFIRM */}
+      {/* DELETE */}
       {confirmDelete && (
         <div className="modal">
-          <div className="modal__content">
-            <h3>Delete teacher?</h3>
-
+          <div className="modal__box">
+            <p>Delete teacher?</p>
             <button onClick={handleDelete}>Yes</button>
             <button onClick={() => setConfirmDelete(null)}>No</button>
           </div>
-        </div>
-      )}
-
-      {/* NOTIFY */}
-      {notify.show && (
-        <div className={`notify ${notify.type}`}>
-          {notify.message}
         </div>
       )}
 
