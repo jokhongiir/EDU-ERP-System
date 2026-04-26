@@ -1,0 +1,249 @@
+/* ================= ROOT ================= */
+.courses {
+  padding: 24px;
+  background: #f6f8ff;
+  min-height: 100vh;
+  font-family: Inter, system-ui, sans-serif;
+  color: #0f172a;
+}
+
+/* ================= HEADER ================= */
+.courses__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.courses__header h2 {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.courses__sub {
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+/* Add button */
+.courses__header button {
+  background: linear-gradient(135deg, #376fff, #1a5bff);
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s ease;
+  box-shadow: 0 8px 20px rgba(55, 111, 255, 0.2);
+}
+
+.courses__header button:hover {
+  transform: translateY(-2px);
+}
+
+/* ================= LOADING ================= */
+.courses__loading {
+  padding: 20px;
+  text-align: center;
+  color: #64748b;
+}
+
+/* ================= EMPTY ================= */
+.courses__empty {
+  margin-top: 60px;
+  text-align: center;
+  color: #94a3b8;
+}
+
+.courses__empty p {
+  margin-top: 10px;
+  font-size: 15px;
+}
+
+/* ================= GRID ================= */
+.courses__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
+  margin-top: 20px;
+}
+
+/* ================= CARD ================= */
+.courses__card {
+  background: white;
+  border-radius: 16px;
+  padding: 18px;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+  transition: 0.25s ease;
+  cursor: pointer;
+  overflow: hidden;
+  border: 1px solid #eef2ff;
+}
+
+.courses__card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.10);
+}
+
+/* ICON */
+.card__icon {
+  width: 42px;
+  height: 42px;
+  background: linear-gradient(135deg, #376fff, #1a5bff);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  margin-bottom: 10px;
+}
+
+/* TITLE */
+.courses__card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+/* STATS */
+.card__stats {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: #475569;
+}
+
+.card__stats span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* DELETE BUTTON */
+.delete-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: none;
+  background: #fff;
+  color: #ef4444;
+  padding: 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.delete-btn:hover {
+  background: #ef4444;
+  color: white;
+}
+
+/* ================= MODAL ================= */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  backdrop-filter: blur(6px);
+}
+
+.modal__content {
+  background: white;
+  width: 420px;
+  border-radius: 16px;
+  padding: 20px;
+  animation: fadeIn 0.25s ease;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+
+/* HEADER */
+.modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.modal__header h3 {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.modal__header svg {
+  cursor: pointer;
+  font-size: 18px;
+  color: #64748b;
+}
+
+/* INPUT */
+.modal__content input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  outline: none;
+  margin-bottom: 12px;
+  transition: 0.2s;
+}
+
+.modal__content input:focus {
+  border-color: #376fff;
+  box-shadow: 0 0 0 3px rgba(55, 111, 255, 0.2);
+}
+
+/* BUTTON */
+.submit {
+  width: 100%;
+  background: linear-gradient(135deg, #376fff, #1a5bff);
+  border: none;
+  padding: 10px;
+  color: white;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.submit:hover {
+  transform: translateY(-2px);
+}
+
+/* ================= DETAILS ================= */
+.course-details {
+  margin-top: 10px;
+}
+
+.course-details p {
+  font-size: 14px;
+  margin: 6px 0;
+}
+
+.course-details ul {
+  margin-top: 10px;
+  padding-left: 18px;
+  font-size: 14px;
+  color: #334155;
+}
+
+/* ================= ANIMATION ================= */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
