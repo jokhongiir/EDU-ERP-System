@@ -6,7 +6,7 @@ import {
   FiSearch,
   FiX,
   FiCheckCircle,
-  FiDollarSign,
+  FiCreditCard,
   FiEdit2,
   FiSave,
   FiUser,
@@ -22,8 +22,13 @@ export default function Payments({ activeBranch }) {
 
   const [editOpen, setEditOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-
   const [editData, setEditData] = useState(null);
+
+  // ================= FORMAT UZS =================
+  const formatSum = (value) => {
+    if (!value) return "0 so'm";
+    return new Intl.NumberFormat("uz-UZ").format(value) + " so'm";
+  };
 
   // ================= FETCH =================
   const fetchData = async () => {
@@ -50,12 +55,43 @@ export default function Payments({ activeBranch }) {
     fetchData();
   }, [branchId]);
 
-  // ================= OPEN EDIT =================
+  // ================= TOGGLE PAYMENT =================
+  const togglePayment = async (student) => {
+    const newPaid = !student.paid;
+
+    // optimistic UI
+    setStudents((prev) =>
+      prev.map((s) =>
+        s.id === student.id ? { ...s, paid: newPaid } : s
+      )
+    );
+
+    const { error } = await supabase
+      .from("students")
+      .update({
+        paid: newPaid,
+        payment_date: newPaid
+          ? new Date().toISOString().slice(0, 10)
+          : null,
+      })
+      .eq("id", student.id);
+
+    if (error) {
+      alert(error.message);
+
+      // rollback
+      setStudents((prev) =>
+        prev.map((s) =>
+          s.id === student.id ? { ...s, paid: student.paid } : s
+        )
+      );
+    }
+  };
+
+  // ================= EDIT =================
   const openEdit = (student) => {
     setEditData({
       id: student.id,
-      first_name: student.first_name,
-      last_name: student.last_name,
       monthly_fee: student.monthly_fee || 0,
       paid: student.paid || false,
       payment_date: student.payment_date || "",
@@ -65,7 +101,6 @@ export default function Payments({ activeBranch }) {
     setEditOpen(true);
   };
 
-  // ================= HANDLE CHANGE =================
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
@@ -75,7 +110,6 @@ export default function Payments({ activeBranch }) {
     }));
   };
 
-  // ================= SAVE =================
   const handleSave = async () => {
     if (!editData?.id) return;
 
@@ -126,7 +160,7 @@ export default function Payments({ activeBranch }) {
       <div className="payments__header">
         <div>
           <h2>{activeBranch?.name || "Branch"} • Payments</h2>
-          <p className="payments__sub">Manage student payments</p>
+          <p>Professional payment management system</p>
         </div>
       </div>
 
@@ -140,13 +174,13 @@ export default function Payments({ activeBranch }) {
         />
       </div>
 
-      {/* LOADING */}
+      {/* TABLE */}
       {loading ? (
         <div className="payments__empty">Loading...</div>
       ) : filtered.length === 0 ? (
         <div className="payments__empty">
           <FiUser size={40} />
-          <p>No payments found</p>
+          <p>No students found</p>
         </div>
       ) : (
         <table className="payments__table">
@@ -174,7 +208,8 @@ export default function Payments({ activeBranch }) {
                 <td>{s.courses?.name || "-"}</td>
 
                 <td>
-                  <FiDollarSign /> {s.monthly_fee || 0}
+                  <FiCreditCard style={{ marginRight: 6 }} />
+                  {formatSum(s.monthly_fee)}
                 </td>
 
                 <td>
@@ -193,9 +228,21 @@ export default function Payments({ activeBranch }) {
 
                 <td>
                   <div className="payments__actions">
+
+                    {/* EDIT */}
                     <button onClick={() => openEdit(s)}>
                       <FiEdit2 />
                     </button>
+
+                    {/* PAY / UNPAY */}
+                    <button
+                      onClick={() => togglePayment(s)}
+                      className={s.paid ? "btn-unpay" : "btn-pay"}
+                    >
+                      <FiCreditCard />
+                      {s.paid ? "Unpay" : "Pay"}
+                    </button>
+
                   </div>
                 </td>
               </tr>
@@ -204,7 +251,7 @@ export default function Payments({ activeBranch }) {
         </table>
       )}
 
-      {/* ================= EDIT MODAL ================= */}
+      {/* ================= MODAL ================= */}
       {editOpen && editData && (
         <div className="modal">
           <div className="modal__box">
@@ -218,17 +265,21 @@ export default function Payments({ activeBranch }) {
 
             <div className="modal__form">
 
+              {/* MONTHLY FEE */}
               <div className="form__group">
-                <label>Monthly Fee</label>
+                <label>Oylik to‘lov (so'm)</label>
                 <input
                   name="monthly_fee"
                   value={editData.monthly_fee}
                   onChange={handleChange}
+                  type="number"
+                  placeholder="500000"
                 />
               </div>
 
+              {/* PAYMENT DATE */}
               <div className="form__group">
-                <label>Payment Date</label>
+                <label>To‘lov sanasi</label>
                 <input
                   type="date"
                   name="payment_date"
@@ -237,8 +288,9 @@ export default function Payments({ activeBranch }) {
                 />
               </div>
 
+              {/* NEXT PAYMENT */}
               <div className="form__group">
-                <label>Next Payment</label>
+                <label>Keyingi to‘lov sanasi</label>
                 <input
                   type="date"
                   name="next_payment_date"
@@ -247,15 +299,16 @@ export default function Payments({ activeBranch }) {
                 />
               </div>
 
+              {/* PAID */}
               <div className="form__group">
-                <label>
+                <label className="checkbox">
                   <input
                     type="checkbox"
                     name="paid"
                     checked={editData.paid}
                     onChange={handleChange}
                   />
-                  Mark as Paid
+                  To‘lov qilindi
                 </label>
               </div>
 

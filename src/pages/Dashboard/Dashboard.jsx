@@ -11,6 +11,7 @@ import DashboardHome from "./DashboardHome";
 import CoursesPage from "../Courses/Courses";
 import GroupsPage from "../Groups/Groups";
 import PaymentsPage from "../Payments/Payments"
+import AttendancePage from "../Attendance/Attendance"
 
 import { supabase } from "../../services/supabaseClient";
 import "./Dashboard.css";
@@ -102,6 +103,10 @@ export default function Dashboard({ centerName, setCenterName }) {
         <Route
           path="payments"
           element={<PaymentsPage activeBranch={activeBranch} />}
+        />
+        <Route
+          path="attendance"
+          element={<AttendancePage activeBranch={activeBranch} />}
         />
 
         <Route path="*" element={<div>Page not found</div>} />

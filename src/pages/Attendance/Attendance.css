@@ -1,0 +1,232 @@
+/* ================= ROOT ================= */
+:root {
+  --primary: #376fff;
+  --primary-dark: #1a5bff;
+  --bg: #f5f7ff;
+  --white: #ffffff;
+  --text: #0f172a;
+  --muted: #64748b;
+  --border: #e6eaf2;
+  --success: #22c55e;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+  --radius: 14px;
+}
+
+/* ================= PAGE WRAPPER ================= */
+.attendance {
+  font-family: Inter, sans-serif;
+}
+
+/* ================= HEADER ================= */
+.attendance__header {
+  background: var(--white);
+  padding: 16px 18px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+}
+
+.attendance__header h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.attendance__header p {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* ================= GROUPS ================= */
+.attendance__groups {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.groupCard {
+  background: var(--white);
+  padding: 12px 14px;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: 0.2s;
+  min-width: 160px;
+}
+
+.groupCard:hover {
+  transform: translateY(-2px);
+}
+
+.groupCard.active {
+  border: 2px solid var(--primary);
+}
+
+.groupCard h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.groupCard small {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ================= TOP BAR ================= */
+.attendance__topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--white);
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 12px;
+}
+
+.attendance__topbar h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* ================= BUTTONS ================= */
+.actions button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border: none;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  background: #f1f5ff;
+  color: var(--primary);
+  transition: 0.2s;
+}
+
+.actions button:hover {
+  background: var(--primary);
+  color: white;
+}
+
+/* SAVE BUTTON (small, right, no stretch) */
+.saveBtn {
+  background: var(--primary);
+  color: white;
+  padding: 7px 12px;
+  border: none;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.saveBtn:hover {
+  background: var(--primary-dark);
+}
+
+.saveBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ================= TABLE WRAPPER ================= */
+.attendance__tableWrapper {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* ================= TABLE ================= */
+.attendance__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* HEADER */
+.attendance__table thead {
+  background: #eef3ff;
+}
+
+.attendance__table th {
+  font-size: 12px;
+  padding: 10px;
+  color: var(--muted);
+  font-weight: 600;
+  text-align: center;
+}
+
+/* BODY */
+.attendance__table td {
+  padding: 10px;
+  font-size: 13px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+/* student column */
+.student {
+  text-align: left !important;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* progress */
+.progress {
+  font-weight: 700;
+  color: var(--primary);
+}
+
+/* checkbox */
+.attendance__table input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+/* ================= LOADING / EMPTY ================= */
+.loading,
+.empty {
+  background: var(--white);
+  padding: 40px;
+  text-align: center;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  color: var(--muted);
+  margin-top: 12px;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 900px) {
+  .attendance__table {
+    font-size: 11px;
+  }
+
+  .actions {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .groupCard {
+    min-width: 140px;
+  }
+}

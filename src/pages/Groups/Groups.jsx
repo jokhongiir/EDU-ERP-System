@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../services/supabaseClient";
+import "./Groups.css";
+
 import {
   FiPlus,
   FiX,
@@ -13,8 +15,6 @@ import {
   FiSearch,
 } from "react-icons/fi";
 
-import "./Groups.css";
-
 export default function Groups({ activeBranch }) {
   const branchId = activeBranch?.id;
 
@@ -27,13 +27,10 @@ export default function Groups({ activeBranch }) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // ================= FILTER STATES =================
   const [search, setSearch] = useState("");
   const [filterCourse, setFilterCourse] = useState("");
   const [filterTeacher, setFilterTeacher] = useState("");
-  const [filterDate, setFilterDate] = useState("");
 
-  // ================= MODAL =================
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [editId, setEditId] = useState(null);
@@ -46,6 +43,7 @@ export default function Groups({ activeBranch }) {
     start_date: "",
     start_time: "",
     end_time: "",
+    schedule_type: "all", // 👈 odd/even/all
   });
 
   // ================= FETCH =================
@@ -54,24 +52,19 @@ export default function Groups({ activeBranch }) {
 
     setLoading(true);
 
-    try {
-      const [g, t, c, s] = await Promise.all([
-        supabase.from("groups").select("*").eq("branch_id", branchId),
-        supabase.from("teachers").select("*").eq("branch_id", branchId),
-        supabase.from("courses").select("*").eq("branch_id", branchId),
-        supabase.from("students").select("*").eq("branch_id", branchId),
-      ]);
+    const [g, t, c, s] = await Promise.all([
+      supabase.from("groups").select("*").eq("branch_id", branchId),
+      supabase.from("teachers").select("*").eq("branch_id", branchId),
+      supabase.from("courses").select("*").eq("branch_id", branchId),
+      supabase.from("students").select("*").eq("branch_id", branchId),
+    ]);
 
-      setGroups(g.data || []);
-      setTeachers(t.data || []);
-      setCourses(c.data || []);
-      setStudents(s.data || []);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to load data");
-    } finally {
-      setLoading(false);
-    }
+    setGroups(g.data || []);
+    setTeachers(t.data || []);
+    setCourses(c.data || []);
+    setStudents(s.data || []);
+
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -88,7 +81,13 @@ export default function Groups({ activeBranch }) {
   const getStudentsCount = (groupId) =>
     students.filter((s) => s.group_id === groupId).length;
 
-  // ================= FORM =================
+  const getScheduleLabel = (type) => {
+    if (type === "odd") return "Odd Days";
+    if (type === "even") return "Even Days";
+    return "Every Day";
+  };
+
+  // ================= FORM CHANGE =================
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((p) => ({ ...p, [name]: value }));
@@ -102,12 +101,13 @@ export default function Groups({ activeBranch }) {
       start_date: "",
       start_time: "",
       end_time: "",
+      schedule_type: "all",
     });
     setEditId(null);
     setModalOpen(false);
   };
 
-  // ================= CREATE / UPDATE =================
+  // ================= SAVE =================
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -116,34 +116,30 @@ export default function Groups({ activeBranch }) {
     setSaving(true);
 
     const payload = {
-      name: form.name.trim(),
+      name: form.name,
       branch_id: branchId,
       teacher_id: form.teacher_id || null,
       course_id: form.course_id || null,
       start_date: form.start_date || null,
       start_time: form.start_time || null,
       end_time: form.end_time || null,
+      schedule_type: form.schedule_type,
     };
 
-    try {
-      if (editId) {
-        await supabase.from("groups").update(payload).eq("id", editId);
-      } else {
-        await supabase.from("groups").insert(payload);
-      }
-
-      resetForm();
-      fetchData();
-    } catch (err) {
-      alert(err.message);
-    } finally {
-      setSaving(false);
+    if (editId) {
+      await supabase.from("groups").update(payload).eq("id", editId);
+    } else {
+      await supabase.from("groups").insert(payload);
     }
+
+    setSaving(false);
+    resetForm();
+    fetchData();
   };
 
   // ================= DELETE =================
   const handleDelete = async (id) => {
-    const ok = window.confirm("⚠️ Delete this group?");
+    const ok = confirm("Delete this group?");
     if (!ok) return;
 
     await supabase.from("groups").delete().eq("id", id);
@@ -159,6 +155,7 @@ export default function Groups({ activeBranch }) {
       start_date: g.start_date || "",
       start_time: g.start_time || "",
       end_time: g.end_time || "",
+      schedule_type: g.schedule_type || "all",
     });
 
     setEditId(g.id);
@@ -167,15 +164,12 @@ export default function Groups({ activeBranch }) {
 
   // ================= FILTER =================
   const filteredGroups = useMemo(() => {
-    return groups.filter((g) => {
-      return (
-        g.name.toLowerCase().includes(search.toLowerCase()) &&
-        (filterCourse ? g.course_id === filterCourse : true) &&
-        (filterTeacher ? g.teacher_id === filterTeacher : true) &&
-        (filterDate ? g.start_date === filterDate : true)
-      );
-    });
-  }, [groups, search, filterCourse, filterTeacher, filterDate]);
+    return groups.filter((g) =>
+      g.name.toLowerCase().includes(search.toLowerCase()) &&
+      (filterCourse ? g.course_id === filterCourse : true) &&
+      (filterTeacher ? g.teacher_id === filterTeacher : true)
+    );
+  }, [groups, search, filterCourse, filterTeacher]);
 
   // ================= UI =================
   return (
@@ -185,7 +179,7 @@ export default function Groups({ activeBranch }) {
       <div className="groups__header">
         <div>
           <h2>{activeBranch?.name || "Branch"} • Groups</h2>
-          <p className="groups__sub">Manage students, teachers and schedules</p>
+          <p>Professional schedule & group management</p>
         </div>
 
         <button onClick={() => setModalOpen(true)}>
@@ -219,30 +213,7 @@ export default function Groups({ activeBranch }) {
           ))}
         </select>
 
-        <button
-          className="reset-btn"
-          onClick={() => {
-            setSearch("");
-            setFilterCourse("");
-            setFilterTeacher("");
-            setFilterDate("");
-          }}
-        >
-          Reset
-        </button>
-
       </div>
-
-      {/* LOADING */}
-      {loading && <div className="groups__loading">Loading...</div>}
-
-      {/* EMPTY */}
-      {!loading && filteredGroups.length === 0 && (
-        <div className="groups__empty">
-          <FiUsers size={42} />
-          <p>No groups found</p>
-        </div>
-      )}
 
       {/* GRID */}
       <div className="groups__grid">
@@ -256,6 +227,7 @@ export default function Groups({ activeBranch }) {
               <p><FiBookOpen /> {getCourse(g.course_id)}</p>
               <p><FiUsers /> {getStudentsCount(g.id)} students</p>
               <p><FiCalendar /> {g.start_date || "—"}</p>
+              <p>📅 {getScheduleLabel(g.schedule_type)}</p>
             </div>
 
             <div className="groups__actions">
@@ -290,14 +262,14 @@ export default function Groups({ activeBranch }) {
                 onChange={handleChange}
               />
 
-              <select name="course_id" value={form.course_id} onChange={handleChange}>
+              <select name="course_id" onChange={handleChange} value={form.course_id}>
                 <option value="">Course</option>
                 {courses.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
 
-              <select name="teacher_id" value={form.teacher_id} onChange={handleChange}>
+              <select name="teacher_id" onChange={handleChange} value={form.teacher_id}>
                 <option value="">Teacher</option>
                 {teachers.map((t) => (
                   <option key={t.id} value={t.id}>{t.name}</option>
@@ -307,6 +279,13 @@ export default function Groups({ activeBranch }) {
               <input type="date" name="start_date" value={form.start_date} onChange={handleChange} />
               <input type="time" name="start_time" value={form.start_time} onChange={handleChange} />
               <input type="time" name="end_time" value={form.end_time} onChange={handleChange} />
+
+              {/* SCHEDULE */}
+              <select name="schedule_type" value={form.schedule_type} onChange={handleChange}>
+                <option value="all">Every Day</option>
+                <option value="odd">Odd Days</option>
+                <option value="even">Even Days</option>
+              </select>
 
               <button disabled={saving}>
                 {saving ? "Saving..." : editId ? "Update" : "Create"}
@@ -331,8 +310,9 @@ export default function Groups({ activeBranch }) {
             <div className="details">
               <p><FiUser /> {getTeacher(selectedGroup.teacher_id)}</p>
               <p><FiBookOpen /> {getCourse(selectedGroup.course_id)}</p>
-              <p><FiCalendar /> {selectedGroup.start_date || "—"}</p>
+              <p><FiCalendar /> {selectedGroup.start_date}</p>
               <p><FiClock /> {selectedGroup.start_time} - {selectedGroup.end_time}</p>
+              <p>📅 {getScheduleLabel(selectedGroup.schedule_type)}</p>
               <p><FiUsers /> {getStudentsCount(selectedGroup.id)} students</p>
             </div>
 

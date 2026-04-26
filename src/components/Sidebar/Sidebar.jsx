@@ -26,6 +26,7 @@ export default function Sidebar({
     { name: "Groups", icon: BookOpen, path: "groups" },
     { name: "Add Students", icon: BookOpen, path: "addstudents" },
     { name: "Payments", icon: CreditCard, path: "payments" },
+    { name: "Attendance", icon: CreditCard, path: "attendance" },
   ];
 
   const basePath = activeBranch ? `/dashboard/${activeBranch.id}` : "";
