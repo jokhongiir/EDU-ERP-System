@@ -1,0 +1,213 @@
+/* ================= BASE ================= */
+.dash {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  color: #0f172a;
+}
+
+/* ================= HEADER ================= */
+.dash__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.dash__header h1 {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.dash__header p {
+  color: #64748b;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+/* ================= REFRESH BUTTON ================= */
+.refresh-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  padding: 10px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: 0.25s;
+  font-weight: 500;
+}
+
+.refresh-btn:hover {
+  background: #f1f5f9;
+  transform: translateY(-2px);
+}
+
+.refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* ================= ERROR ================= */
+.dash__error {
+  background: #fee2e2;
+  color: #b91c1c;
+  padding: 12px 16px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+/* ================= STATS GRID ================= */
+.dash__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+/* ================= CARD ================= */
+.dash__card {
+  background: #ffffff;
+  border: 1px solid #eef2f7;
+  border-radius: 16px;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.05);
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.dash__card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 18px 35px rgba(15, 23, 42, 0.1);
+}
+
+/* glowing hover effect */
+.dash__card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(59,130,246,0.1), transparent);
+  opacity: 0;
+  transition: 0.3s;
+}
+
+.dash__card:hover::before {
+  opacity: 1;
+}
+
+/* ================= ICON ================= */
+.dash__icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 18px;
+}
+
+/* ================= TEXT ================= */
+.dash__label {
+  font-size: 12px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.dash__value {
+  font-size: 24px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+/* ================= CHART ================= */
+.dash__chart {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 20px;
+  border: 1px solid #eef2f7;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.05);
+}
+
+.dash__chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.dash__chart-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.dash__chart-header span {
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* ================= SKELETON ================= */
+.skeleton {
+  height: 90px;
+  border-radius: 16px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 37%, #f1f5f9 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+.dash__skeleton {
+  width: 100%;
+  height: 320px;
+  border-radius: 16px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 37%, #f1f5f9 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 1024px) {
+  .dash__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .dash {
+    padding: 16px;
+  }
+
+  .dash__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dash__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}

@@ -10,6 +10,7 @@ import TeachersPage from "../Teachers/Teachers";
 import DashboardHome from "./DashboardHome";
 import CoursesPage from "../Courses/Courses";
 import GroupsPage from "../Groups/Groups";
+import PaymentsPage from "../Payments/Payments"
 
 import { supabase } from "../../services/supabaseClient";
 import "./Dashboard.css";
@@ -97,6 +98,10 @@ export default function Dashboard({ centerName, setCenterName }) {
         <Route
           path="groups"
           element={<GroupsPage activeBranch={activeBranch} />}
+        />
+        <Route
+          path="payments"
+          element={<PaymentsPage activeBranch={activeBranch} />}
         />
 
         <Route path="*" element={<div>Page not found</div>} />
