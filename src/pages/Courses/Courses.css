@@ -1,8 +1,5 @@
 /* ================= ROOT ================= */
 .courses {
-  padding: 24px;
-  background: #f6f8ff;
-  min-height: 100vh;
   font-family: Inter, system-ui, sans-serif;
   color: #0f172a;
 }

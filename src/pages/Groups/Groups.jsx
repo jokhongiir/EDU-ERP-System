@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../services/supabaseClient";
 import {
   FiPlus,
@@ -10,23 +10,35 @@ import {
   FiClock,
   FiEdit2,
   FiTrash2,
+  FiSearch,
 } from "react-icons/fi";
+
 import "./Groups.css";
 
 export default function Groups({ activeBranch }) {
   const branchId = activeBranch?.id;
 
+  // ================= STATE =================
   const [groups, setGroups] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [courses, setCourses] = useState([]);
   const [students, setStudents] = useState([]);
 
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  // ================= FILTER STATES =================
+  const [search, setSearch] = useState("");
+  const [filterCourse, setFilterCourse] = useState("");
+  const [filterTeacher, setFilterTeacher] = useState("");
+  const [filterDate, setFilterDate] = useState("");
+
+  // ================= MODAL =================
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [editId, setEditId] = useState(null);
-  const [error, setError] = useState("");
 
+  // ================= FORM =================
   const [form, setForm] = useState({
     name: "",
     teacher_id: "",
@@ -37,15 +49,12 @@ export default function Groups({ activeBranch }) {
   });
 
   // ================= FETCH =================
-  useEffect(() => {
-    if (!branchId) return;
-    fetchData();
-  }, [branchId]);
-
   const fetchData = async () => {
-    try {
-      setLoading(true);
+    if (!branchId) return;
 
+    setLoading(true);
+
+    try {
       const [g, t, c, s] = await Promise.all([
         supabase.from("groups").select("*").eq("branch_id", branchId),
         supabase.from("teachers").select("*").eq("branch_id", branchId),
@@ -53,28 +62,38 @@ export default function Groups({ activeBranch }) {
         supabase.from("students").select("*").eq("branch_id", branchId),
       ]);
 
-      if (g.error || t.error || c.error || s.error) {
-        throw g.error || t.error || c.error || s.error;
-      }
-
       setGroups(g.data || []);
       setTeachers(t.data || []);
       setCourses(c.data || []);
       setStudents(s.data || []);
     } catch (err) {
-      setError(err.message);
+      console.error(err);
+      alert("Failed to load data");
     } finally {
       setLoading(false);
     }
   };
 
-  // ================= CHANGE =================
+  useEffect(() => {
+    fetchData();
+  }, [branchId]);
+
+  // ================= HELPERS =================
+  const getTeacher = (id) =>
+    teachers.find((t) => t.id === id)?.name || "—";
+
+  const getCourse = (id) =>
+    courses.find((c) => c.id === id)?.name || "—";
+
+  const getStudentsCount = (groupId) =>
+    students.filter((s) => s.group_id === groupId).length;
+
+  // ================= FORM =================
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((p) => ({ ...p, [name]: value }));
   };
 
-  // ================= RESET =================
   const resetForm = () => {
     setForm({
       name: "",
@@ -88,7 +107,50 @@ export default function Groups({ activeBranch }) {
     setModalOpen(false);
   };
 
-  // ================= OPEN EDIT =================
+  // ================= CREATE / UPDATE =================
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!form.name.trim()) return alert("Group name required");
+
+    setSaving(true);
+
+    const payload = {
+      name: form.name.trim(),
+      branch_id: branchId,
+      teacher_id: form.teacher_id || null,
+      course_id: form.course_id || null,
+      start_date: form.start_date || null,
+      start_time: form.start_time || null,
+      end_time: form.end_time || null,
+    };
+
+    try {
+      if (editId) {
+        await supabase.from("groups").update(payload).eq("id", editId);
+      } else {
+        await supabase.from("groups").insert(payload);
+      }
+
+      resetForm();
+      fetchData();
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ================= DELETE =================
+  const handleDelete = async (id) => {
+    const ok = window.confirm("⚠️ Delete this group?");
+    if (!ok) return;
+
+    await supabase.from("groups").delete().eq("id", id);
+    setGroups((prev) => prev.filter((g) => g.id !== id));
+  };
+
+  // ================= EDIT =================
   const handleEdit = (g) => {
     setForm({
       name: g.name || "",
@@ -103,68 +165,17 @@ export default function Groups({ activeBranch }) {
     setModalOpen(true);
   };
 
-  // ================= SUBMIT =================
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!form.name.trim()) {
-      return alert("Group name required");
-    }
-
-    try {
-      setLoading(true);
-
-      const payload = {
-        name: form.name.trim(),
-        branch_id: branchId,
-
-        teacher_id: form.teacher_id || null,
-        course_id: form.course_id || null,
-
-        start_date: form.start_date || null,
-        start_time: form.start_time || null,
-        end_time: form.end_time || null,
-      };
-
-      let res;
-
-      if (editId) {
-        res = await supabase
-          .from("groups")
-          .update(payload)
-          .eq("id", editId);
-      } else {
-        res = await supabase.from("groups").insert([payload]);
-      }
-
-      if (res.error) throw res.error;
-
-      resetForm();
-      fetchData();
-    } catch (err) {
-      alert(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ================= DELETE =================
-  const handleDelete = async (id) => {
-    if (!confirm("Delete this group?")) return;
-
-    await supabase.from("groups").delete().eq("id", id);
-    setGroups((prev) => prev.filter((g) => g.id !== id));
-  };
-
-  // ================= HELPERS =================
-  const getTeacher = (id) =>
-    teachers.find((t) => t.id === id)?.name || "—";
-
-  const getCourse = (id) =>
-    courses.find((c) => c.id === id)?.name || "—";
-
-  const getStudentsCount = (groupId) =>
-    students.filter((s) => s.group_id === groupId).length;
+  // ================= FILTER =================
+  const filteredGroups = useMemo(() => {
+    return groups.filter((g) => {
+      return (
+        g.name.toLowerCase().includes(search.toLowerCase()) &&
+        (filterCourse ? g.course_id === filterCourse : true) &&
+        (filterTeacher ? g.teacher_id === filterTeacher : true) &&
+        (filterDate ? g.start_date === filterDate : true)
+      );
+    });
+  }, [groups, search, filterCourse, filterTeacher, filterDate]);
 
   // ================= UI =================
   return (
@@ -172,19 +183,70 @@ export default function Groups({ activeBranch }) {
 
       {/* HEADER */}
       <div className="groups__header">
-        <h1>Groups</h1>
+        <div>
+          <h2>{activeBranch?.name || "Branch"} • Groups</h2>
+          <p className="groups__sub">Manage students, teachers and schedules</p>
+        </div>
 
         <button onClick={() => setModalOpen(true)}>
-          <FiPlus /> Create Group
+          <FiPlus /> New Group
         </button>
       </div>
 
-      {error && <p className="error">{error}</p>}
-      {loading && <p>Loading...</p>}
+      {/* FILTERS */}
+      <div className="groups__filters">
+
+        <div className="filter">
+          <FiSearch />
+          <input
+            placeholder="Search group..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+
+        <select value={filterCourse} onChange={(e) => setFilterCourse(e.target.value)}>
+          <option value="">All Courses</option>
+          {courses.map((c) => (
+            <option key={c.id} value={c.id}>{c.name}</option>
+          ))}
+        </select>
+
+        <select value={filterTeacher} onChange={(e) => setFilterTeacher(e.target.value)}>
+          <option value="">All Teachers</option>
+          {teachers.map((t) => (
+            <option key={t.id} value={t.id}>{t.name}</option>
+          ))}
+        </select>
+
+        <button
+          className="reset-btn"
+          onClick={() => {
+            setSearch("");
+            setFilterCourse("");
+            setFilterTeacher("");
+            setFilterDate("");
+          }}
+        >
+          Reset
+        </button>
+
+      </div>
+
+      {/* LOADING */}
+      {loading && <div className="groups__loading">Loading...</div>}
+
+      {/* EMPTY */}
+      {!loading && filteredGroups.length === 0 && (
+        <div className="groups__empty">
+          <FiUsers size={42} />
+          <p>No groups found</p>
+        </div>
+      )}
 
       {/* GRID */}
       <div className="groups__grid">
-        {groups.map((g) => (
+        {filteredGroups.map((g) => (
           <div key={g.id} className="groups__card">
 
             <div onClick={() => setSelectedGroup(g)}>
@@ -192,15 +254,14 @@ export default function Groups({ activeBranch }) {
 
               <p><FiUser /> {getTeacher(g.teacher_id)}</p>
               <p><FiBookOpen /> {getCourse(g.course_id)}</p>
-              <p><FiUsers /> {getStudentsCount(g.id)}</p>
+              <p><FiUsers /> {getStudentsCount(g.id)} students</p>
               <p><FiCalendar /> {g.start_date || "—"}</p>
             </div>
 
-            <div className="actions">
+            <div className="groups__actions">
               <button onClick={() => handleEdit(g)}>
                 <FiEdit2 />
               </button>
-
               <button onClick={() => handleDelete(g.id)}>
                 <FiTrash2 />
               </button>
@@ -210,13 +271,13 @@ export default function Groups({ activeBranch }) {
         ))}
       </div>
 
-      {/* ================= MODAL ================= */}
+      {/* MODAL */}
       {modalOpen && (
-        <div className="modal-overlay">
-          <div className="modal-box">
+        <div className="modal">
+          <div className="modal__content">
 
-            <div className="modal-header">
-              <h2>{editId ? "Edit Group" : "Create Group"}</h2>
+            <div className="modal__header">
+              <h3>{editId ? "Edit Group" : "Create Group"}</h3>
               <FiX onClick={resetForm} />
             </div>
 
@@ -229,29 +290,17 @@ export default function Groups({ activeBranch }) {
                 onChange={handleChange}
               />
 
-              <select
-                name="course_id"
-                value={form.course_id}
-                onChange={handleChange}
-              >
-                <option value="">Course (optional)</option>
+              <select name="course_id" value={form.course_id} onChange={handleChange}>
+                <option value="">Course</option>
                 {courses.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
+                  <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
 
-              <select
-                name="teacher_id"
-                value={form.teacher_id}
-                onChange={handleChange}
-              >
-                <option value="">Teacher (optional)</option>
+              <select name="teacher_id" value={form.teacher_id} onChange={handleChange}>
+                <option value="">Teacher</option>
                 {teachers.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
-                  </option>
+                  <option key={t.id} value={t.id}>{t.name}</option>
                 ))}
               </select>
 
@@ -259,22 +308,23 @@ export default function Groups({ activeBranch }) {
               <input type="time" name="start_time" value={form.start_time} onChange={handleChange} />
               <input type="time" name="end_time" value={form.end_time} onChange={handleChange} />
 
-              <button type="submit">
-                {editId ? "Update" : "Create"}
+              <button disabled={saving}>
+                {saving ? "Saving..." : editId ? "Update" : "Create"}
               </button>
 
             </form>
+
           </div>
         </div>
       )}
 
-      {/* ================= DETAILS ================= */}
+      {/* DETAILS */}
       {selectedGroup && (
-        <div className="modal-overlay">
-          <div className="modal-box">
+        <div className="modal">
+          <div className="modal__content">
 
-            <div className="modal-header">
-              <h2>{selectedGroup.name}</h2>
+            <div className="modal__header">
+              <h3>{selectedGroup.name}</h3>
               <FiX onClick={() => setSelectedGroup(null)} />
             </div>
 
@@ -283,7 +333,7 @@ export default function Groups({ activeBranch }) {
               <p><FiBookOpen /> {getCourse(selectedGroup.course_id)}</p>
               <p><FiCalendar /> {selectedGroup.start_date || "—"}</p>
               <p><FiClock /> {selectedGroup.start_time} - {selectedGroup.end_time}</p>
-              <p><FiUsers /> {getStudentsCount(selectedGroup.id)}</p>
+              <p><FiUsers /> {getStudentsCount(selectedGroup.id)} students</p>
             </div>
 
           </div>
