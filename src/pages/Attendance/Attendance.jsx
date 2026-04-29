@@ -300,7 +300,7 @@ export default function Attendance({ activeBranch }) {
               {selectedGroup?.schedule_type === "odd"
                 ? "Odd Days"
                 : selectedGroup?.schedule_type === "even"
-                  ? "Even Days"
+                  ? "Even Day"
                   : "Every Day"}
             </span>
         </div>
