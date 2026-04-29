@@ -11,6 +11,11 @@ import {
   FiHome,
   FiLayers,
   FiClock,
+  FiCheckCircle,
+  FiXCircle,
+  FiRepeat,
+  FiSun,
+  FiMoon,
 } from "react-icons/fi";
 
 const MAX_LESSONS = 12;
@@ -18,55 +23,90 @@ const MAX_LESSONS = 12;
 export default function Attendance({ activeBranch }) {
   const branchId = activeBranch?.id;
 
-  const [groups, setGroups] = useState([]);
-  const [students, setStudents] = useState([]);
-  const [selectedGroup, setSelectedGroup] = useState(null);
+  // ================= STATE =================
+  const [state, setState] = useState({
+    groups: [],
+    students: [],
+    selectedGroup: null,
+    attendanceMap: {},
+    originalAttendanceMap: {},
+    isLoading: false,
+    isSaving: false,
+    currentMonth: new Date().getMonth(),
+    currentYear: new Date().getFullYear(),
+  });
 
-  const [attendance, setAttendance] = useState({});
-  const [initialAttendance, setInitialAttendance] = useState({});
+  const {
+    groups,
+    students,
+    selectedGroup,
+    attendanceMap,
+    originalAttendanceMap,
+    isLoading,
+    isSaving,
+    currentMonth,
+    currentYear,
+  } = state;
 
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const cycleKey = useMemo(
+    () => `${currentYear}-${currentMonth + 1}`,
+    [currentYear, currentMonth],
+  );
 
-  const [month, setMonth] = useState(new Date().getMonth());
-  const [year, setYear] = useState(new Date().getFullYear());
+  // ================= MODAL =================
+  const [modal, setModal] = useState({
+    open: false,
+    message: "",
+    type: "success",
+  });
 
-  const cycleKey = useMemo(() => `${year}-${month + 1}`, [year, month]);
+  const showModal = (message, type = "success") => {
+    setModal({ open: true, message, type });
+    setTimeout(
+      () => setModal({ open: false, message: "", type: "success" }),
+      2000,
+    );
+  };
+
+  const updateState = (payload) =>
+    setState((prev) => ({ ...prev, ...payload }));
 
   // ================= LOAD GROUPS =================
-  useEffect(() => {
+  const fetchGroups = useCallback(async () => {
     if (!branchId) return;
 
-    const load = async () => {
-      const { data } = await supabase
-        .from("groups")
-        .select("*")
-        .eq("branch_id", branchId);
+    const { data } = await supabase
+      .from("groups")
+      .select("*")
+      .eq("branch_id", branchId);
 
-      setGroups(data || []);
-    };
-
-    load();
+    updateState({ groups: data || [] });
   }, [branchId]);
 
+  useEffect(() => {
+    fetchGroups();
+  }, [fetchGroups]);
+
   // ================= LOAD STUDENTS =================
-  const loadStudents = useCallback(async (groupId) => {
+  const fetchStudents = useCallback(async (groupId) => {
     const { data } = await supabase
       .from("students")
       .select("id, first_name, last_name")
       .eq("group_id", groupId)
       .eq("paid", true);
 
-    setStudents(data || []);
+    updateState({ students: data || [] });
   }, []);
 
   // ================= LOAD ATTENDANCE =================
-  const loadAttendance = useCallback(async (groupId) => {
+  const fetchAttendance = useCallback(async (groupId, month, year) => {
+    const key = `${year}-${month + 1}`;
+
     const { data } = await supabase
       .from("attendance")
       .select("*")
       .eq("group_id", groupId)
-      .like("lesson_key", `${cycleKey}%`);
+      .like("lesson_key", `${key}%`);
 
     const map = {};
 
@@ -75,148 +115,137 @@ export default function Attendance({ activeBranch }) {
       map[row.student_id][row.lesson_key] = row.present;
     });
 
-    setAttendance(map);
-    setInitialAttendance(map);
-  }, [cycleKey]);
+    updateState({
+      attendanceMap: map,
+      originalAttendanceMap: map,
+    });
+  }, []);
 
   // ================= SELECT GROUP =================
   const handleSelectGroup = async (group) => {
-    setSelectedGroup(group);
-    setLoading(true);
+    updateState({
+      selectedGroup: group,
+      isLoading: true,
+      attendanceMap: {},
+      originalAttendanceMap: {},
+    });
 
     await Promise.all([
-      loadStudents(group.id),
-      loadAttendance(group.id),
+      fetchStudents(group.id),
+      fetchAttendance(group.id, currentMonth, currentYear),
     ]);
 
-    setLoading(false);
+    updateState({ isLoading: false });
   };
 
-  // ================= AUTO RESET =================
-  useEffect(() => {
-    if (!selectedGroup) return;
+  // ================= CHANGE MONTH =================
+  const changeMonth = async (direction) => {
+    let newMonth = currentMonth + direction;
+    let newYear = currentYear;
 
-    const reload = async () => {
-      setLoading(true);
-      setAttendance({});
-      setInitialAttendance({});
-      await loadAttendance(selectedGroup.id);
-      setLoading(false);
-    };
+    if (newMonth > 11) {
+      newMonth = 0;
+      newYear++;
+    }
 
-    reload();
-  }, [month, year]);
+    if (newMonth < 0) {
+      newMonth = 11;
+      newYear--;
+    }
 
-  // ================= LESSON GENERATOR (ODD / EVEN) =================
+    updateState({
+      currentMonth: newMonth,
+      currentYear: newYear,
+      attendanceMap: {},
+      originalAttendanceMap: {},
+      isLoading: true,
+    });
+
+    if (selectedGroup) {
+      await fetchAttendance(selectedGroup.id, newMonth, newYear);
+    }
+
+    updateState({ isLoading: false });
+  };
+
+  // ================= LESSONS =================
   const lessons = useMemo(() => {
     if (!selectedGroup) return [];
 
     const type = selectedGroup.lesson_days || "odd";
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const days = [];
 
-    const lessonDays = [];
-
-    for (let d = 1; d <= daysInMonth; d++) {
-      if (type === "odd" && d % 2 === 1) lessonDays.push(d);
-      if (type === "even" && d % 2 === 0) lessonDays.push(d);
+    for (let i = 1; i <= daysInMonth; i++) {
+      if (type === "odd" && i % 2 === 1) days.push(i);
+      if (type === "even" && i % 2 === 0) days.push(i);
     }
 
-    const limited = lessonDays.slice(0, MAX_LESSONS);
-
-    return limited.map((day, i) => ({
-      index: i + 1,
+    return days.slice(0, MAX_LESSONS).map((day, index) => ({
+      key: `${cycleKey}-L${index + 1}`,
+      index: index + 1,
       day,
-      key: `${cycleKey}-L${i + 1}`,
     }));
-  }, [cycleKey, selectedGroup]);
+  }, [selectedGroup, cycleKey, currentMonth, currentYear]);
 
-  // ================= MONTH CONTROL =================
-  const changeMonth = (dir) => {
-    setMonth((prev) => {
-      let next = prev + dir;
-
-      if (next > 11) {
-        setYear((y) => y + 1);
-        return 0;
-      }
-      if (next < 0) {
-        setYear((y) => y - 1);
-        return 11;
-      }
-      return next;
-    });
-  };
-
-  // ================= TOGGLE =================
+  // ================= TOGGLE ATTENDANCE =================
   const toggleAttendance = (studentId, lessonKey) => {
-    const studentLessons = attendance?.[studentId] || {};
-    const presentCount = Object.values(studentLessons).filter(Boolean).length;
+    const studentData = attendanceMap?.[studentId] || {};
 
-    const isChecked = studentLessons[lessonKey];
-
-    if (!isChecked && presentCount >= MAX_LESSONS) {
-      alert("Max 12 lessons reached!");
-      return;
-    }
-
-    setAttendance((prev) => ({
-      ...prev,
-      [studentId]: {
-        ...prev[studentId],
-        [lessonKey]: !isChecked,
+    updateState({
+      attendanceMap: {
+        ...attendanceMap,
+        [studentId]: {
+          ...studentData,
+          [lessonKey]: !studentData[lessonKey],
+        },
       },
-    }));
+    });
   };
 
   // ================= SAVE =================
   const saveAttendance = async () => {
-    setSaving(true);
+    updateState({ isSaving: true });
 
     const rows = [];
 
-    for (const studentId in attendance) {
-      for (const lessonKey in attendance[studentId]) {
-        const current = attendance[studentId][lessonKey];
-        const initial = initialAttendance?.[studentId]?.[lessonKey];
-
-        if (current !== initial) {
+    Object.entries(attendanceMap).forEach(([studentId, lessons]) => {
+      Object.entries(lessons).forEach(([key, value]) => {
+        if (value !== originalAttendanceMap?.[studentId]?.[key]) {
           rows.push({
             student_id: studentId,
             group_id: selectedGroup.id,
-            lesson_key: lessonKey,
-            present: current,
+            lesson_key: key,
+            present: value,
           });
         }
-      }
-    }
+      });
+    });
 
-    if (rows.length === 0) {
-      alert("No changes");
-      setSaving(false);
+    if (!rows.length) {
+      updateState({ isSaving: false });
+      showModal("No changes detected", "error");
       return;
     }
 
-    const { error } = await supabase
-      .from("attendance")
-      .upsert(rows, {
-        onConflict: "student_id,lesson_key",
-      });
+    const { error } = await supabase.from("attendance").upsert(rows, {
+      onConflict: "student_id,lesson_key",
+    });
 
     if (error) {
-      console.error(error);
-      alert("Error saving");
+      showModal("Something went wrong", "error");
     } else {
-      alert("Saved 🚀");
-      setInitialAttendance(attendance);
+      updateState({ originalAttendanceMap: attendanceMap });
+      showModal("Saved successfully ✔", "success");
     }
 
-    setSaving(false);
+    updateState({ isSaving: false });
   };
 
   // ================= STATS =================
   const getStats = (studentId) => {
-    const data = attendance?.[studentId] || {};
+    const data = attendanceMap?.[studentId] || {};
     const present = Object.values(data).filter(Boolean).length;
 
     return {
@@ -225,65 +254,95 @@ export default function Attendance({ activeBranch }) {
     };
   };
 
+  // ================= UI =================
   return (
     <div className="attendance">
-
-      {/* INFO */}
-      <div className="infoPanel">
-        <div className="infoCard"><FiHome /> {activeBranch?.name || "-"}</div>
-        <div className="infoCard"><FiLayers /> {selectedGroup?.name || "Select Group"}</div>
-        <div className="infoCard"><FiClock /> 12 lessons</div>
-        <div className="infoCard">
-          <FiCalendar /> {year}/{month + 1}
+      {modal.open && (
+        <div className="modalOverlay">
+          <div className={`modalBox ${modal.type}`}>
+            {modal.type === "success" ? <FiCheckCircle /> : <FiXCircle />}
+            <p>{modal.message}</p>
+          </div>
         </div>
-        <div className="infoCard">
-          <FiCalendar />
-          {selectedGroup?.lesson_days === "even" ? "Even Days" : "Odd Days"}
+      )}
+
+      <div className="infoPanel">
+        <div>
+          <FiHome /> {activeBranch?.name}
+        </div>
+
+        <div>
+          <FiLayers /> {selectedGroup?.name || "Group"}
+        </div>
+
+        <div>
+          <FiClock /> {MAX_LESSONS} Lessons
+        </div>
+
+        <div>
+          <FiCalendar /> {currentYear}/{currentMonth + 1}
+        </div>
+
+        {/* ✅ SCHEDULE CARD */}
+        <div className={`scheduleCard ${selectedGroup?.schedule_type}`}>
+          <div className="scheduleIcon">
+            {selectedGroup?.schedule_type === "odd" ? (
+              <FiMoon />
+            ) : selectedGroup?.schedule_type === "even" ? (
+              <FiSun />
+            ) : (
+              <FiRepeat />
+            )}
+          </div>
+
+        
+            <span className="value">
+              {selectedGroup?.schedule_type === "odd"
+                ? "Odd Days"
+                : selectedGroup?.schedule_type === "even"
+                  ? "Even Days"
+                  : "Every Day"}
+            </span>
         </div>
       </div>
 
-      {/* GROUPS */}
       <div className="groups">
-        {groups.map((g) => (
+        {groups.map((group) => (
           <div
-            key={g.id}
-            className={`group ${selectedGroup?.id === g.id ? "active" : ""}`}
-            onClick={() => handleSelectGroup(g)}
+            key={group.id}
+            className={`groupCard ${
+              selectedGroup?.id === group.id ? "active" : ""
+            }`}
+            onClick={() => handleSelectGroup(group)}
           >
-            {g.name}
+            <FiLayers /> {group.name}
           </div>
         ))}
       </div>
 
-      {/* MONTH */}
       {selectedGroup && (
         <div className="monthBar">
           <button onClick={() => changeMonth(-1)}>
             <FiChevronLeft />
           </button>
 
-          <h3>{year} / {month + 1}</h3>
+          <h3>
+            {currentYear}/{currentMonth + 1}
+          </h3>
 
           <button onClick={() => changeMonth(1)}>
             <FiChevronRight />
           </button>
 
-          <button onClick={saveAttendance} disabled={saving}>
-            <FiDatabase />
-            {saving ? "Saving..." : "Save"}
+          <button onClick={saveAttendance} disabled={isSaving}>
+            <FiDatabase /> {isSaving ? "Saving..." : "Save"}
           </button>
         </div>
       )}
 
-      {/* LOADING */}
-      {loading && (
-        <div className="loading">
-          <FiLoader className="spin" />
-        </div>
-      )}
+      {isLoading && <FiLoader className="spin" />}
 
-      {/* TABLE */}
-      {selectedGroup && !loading && (
+      {selectedGroup && !isLoading && (
         <div className="tableWrap">
           <table>
             <thead>
@@ -291,13 +350,7 @@ export default function Attendance({ activeBranch }) {
                 <th>Student</th>
 
                 {lessons.map((l) => (
-                  <th key={l.key}>
-                    L{l.index}
-                    <br />
-                    <span style={{ fontSize: 10, color: "#6b7280" }}>
-                      {l.day}-day
-                    </span>
-                  </th>
+                  <th key={l.key}>L{l.index}</th>
                 ))}
 
                 <th>%</th>
@@ -310,23 +363,22 @@ export default function Attendance({ activeBranch }) {
 
                 return (
                   <tr key={s.id}>
-                    <td>{s.first_name} {s.last_name}</td>
+                    <td>
+                      {s.first_name} {s.last_name}
+                    </td>
 
                     {lessons.map((l) => (
                       <td key={l.key}>
                         <input
                           type="checkbox"
-                          checked={!!attendance?.[s.id]?.[l.key]}
-                          onChange={() =>
-                            toggleAttendance(s.id, l.key)
-                          }
+                          checked={!!attendanceMap?.[s.id]?.[l.key]}
+                          onChange={() => toggleAttendance(s.id, l.key)}
                         />
                       </td>
                     ))}
 
                     <td>
-                      {stats.present}/{MAX_LESSONS} <br />
-                      <b>{stats.percent}%</b>
+                      {stats.present}/{MAX_LESSONS}
                     </td>
                   </tr>
                 );
