@@ -1,20 +1,23 @@
 /* ================= ROOT ================= */
 :root {
-  --primary: #376fff;
-  --primary-dark: #1a5bff;
-  --bg: #f5f7ff;
-  --white: #ffffff;
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --bg: #f4f6fb;
+  --card: #ffffff;
   --text: #0f172a;
   --muted: #64748b;
-  --border: #e6eaf2;
-  --success: #22c55e;
-  --danger: #ef4444;
-  --shadow: 0 12px 35px rgba(15, 23, 42, 0.08);
-  --radius: 14px;
+  --border: #e5e7eb;
+  --success: #16a34a;
+  --danger: #dc2626;
+  --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
 }
 
 /* ================= PAGE ================= */
 .students {
+  padding: 24px;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
   font-family: Inter, sans-serif;
 }
 
@@ -23,38 +26,36 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--white);
-  padding: 18px 20px;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .students__header h2 {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
-  color: var(--text);
 }
 
 .students__sub {
   font-size: 13px;
   color: var(--muted);
-  margin-top: 3px;
+  margin-top: 4px;
 }
 
+/* ================= BUTTON ================= */
 .primary-btn {
-  background: var(--primary);
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
   color: white;
   border: none;
   padding: 10px 16px;
-  border-radius: 10px;
+  border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: 0.2s;
+  transition: 0.25s ease;
+  box-shadow: var(--shadow);
 }
 
 .primary-btn:hover {
-  background: var(--primary-dark);
+  transform: translateY(-2px);
+  opacity: 0.95;
 }
 
 /* ================= SEARCH ================= */
@@ -62,11 +63,12 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: var(--white);
+  background: var(--card);
   padding: 12px 14px;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  margin-bottom: 18px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  margin-bottom: 16px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.04);
 }
 
 .students__search input {
@@ -74,20 +76,21 @@
   outline: none;
   width: 100%;
   font-size: 14px;
+  background: transparent;
 }
 
 /* ================= TABLE ================= */
 .students__table {
   width: 100%;
   border-collapse: collapse;
-  background: var(--white);
-  border-radius: var(--radius);
+  background: var(--card);
+  border-radius: 14px;
   overflow: hidden;
   box-shadow: var(--shadow);
 }
 
 .students__table thead {
-  background: #eef3ff;
+  background: #f8fafc;
 }
 
 .students__table th {
@@ -100,90 +103,86 @@
 
 .students__table td {
   padding: 14px;
-  font-size: 14px;
-  color: var(--text);
   border-top: 1px solid var(--border);
+  font-size: 14px;
 }
 
 .students__table tbody tr {
+  transition: 0.2s ease;
   cursor: pointer;
-  transition: 0.2s;
 }
 
 .students__table tbody tr:hover {
-  background: #f7f9ff;
+  background: #f1f5ff;
 }
 
 /* ================= STATUS ================= */
 .status {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
-  padding: 5px 10px;
-  border-radius: 999px;
   font-weight: 600;
+  font-size: 13px;
 }
 
 .status.paid {
-  background: rgba(34, 197, 94, 0.12);
   color: var(--success);
 }
 
 .status.unpaid {
-  background: rgba(239, 68, 68, 0.12);
   color: var(--danger);
 }
 
-/* ================= BUTTONS ================= */
+/* ================= ACTION BUTTONS ================= */
 .students__table button {
   border: none;
-  background: transparent;
-  cursor: pointer;
-  padding: 6px;
+  background: #f1f5f9;
+  padding: 6px 8px;
   border-radius: 8px;
+  cursor: pointer;
+  margin-right: 6px;
   transition: 0.2s;
 }
 
 .students__table button:hover {
-  background: #eef2ff;
+  transform: scale(1.05);
+  background: #e2e8f0;
 }
 
 /* ================= EMPTY / LOADING ================= */
 .students__empty,
 .students__loading {
   text-align: center;
-  padding: 60px;
-  background: var(--white);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  padding: 40px;
   color: var(--muted);
 }
 
-/* ================= MODAL ================= */
+/* ================= MODAL OVERLAY (IMPORTANT FIX) ================= */
 .modal {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.55);
+  background: rgba(2, 6, 23, 0.65);
+  backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 9999; /* 🔥 NAVBAR USTIGA CHIQARADI */
 }
 
+/* ================= MODAL BOX ================= */
 .modal__box {
-  width: 600px;
+  width: 520px;
   max-width: 95%;
-  background: var(--white);
+  background: var(--card);
   border-radius: 18px;
   padding: 20px;
   box-shadow: var(--shadow);
-  animation: pop 0.2s ease;
+  animation: pop 0.25s ease;
 }
 
 @keyframes pop {
   from {
-    transform: scale(0.95);
+    transform: scale(0.9);
     opacity: 0;
   }
   to {
@@ -207,61 +206,59 @@
 
 .modal__header button {
   border: none;
-  background: transparent;
+  background: #f1f5f9;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
   cursor: pointer;
+  transition: 0.2s;
 }
 
-/* ================= FORM GRID (🔥 2 COLUMNS HERE) ================= */
+.modal__header button:hover {
+  background: #e2e8f0;
+  transform: rotate(90deg);
+}
+
+/* ================= FORM ================= */
 .modal__form {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
 
-/* full width item */
-.form__group.full {
-  grid-column: span 2;
+.form__group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-/* ================= FORM GROUP ================= */
+.form__group.full {
+  grid-column: 1 / -1;
+}
+
 .form__group label {
   font-size: 12px;
   color: var(--muted);
-  margin-bottom: 5px;
-  display: block;
 }
 
 .form__group input,
 .form__group select {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
+  padding: 10px;
   border-radius: 10px;
-  font-size: 14px;
+  border: 1px solid var(--border);
   outline: none;
-  transition: 0.2s;
-  background: #fff;
+  font-size: 14px;
 }
 
 .form__group input:focus,
 .form__group select:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(55, 111, 255, 0.15);
 }
 
-/* ================= CHECKBOX ================= */
-.checkbox {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-}
-
-/* ================= MODAL ACTIONS ================= */
+/* ================= SAVE BUTTON ================= */
 .modal__actions {
   margin-top: 16px;
-  display: flex;
-  justify-content: flex-end;
+  text-align: right;
 }
 
 .modal__actions button {
@@ -269,90 +266,71 @@
   color: white;
   border: none;
   padding: 10px 16px;
-  border-radius: 10px;
-  font-weight: 600;
+  border-radius: 12px;
   cursor: pointer;
-  display: flex;
-  gap: 6px;
-  align-items: center;
+  font-weight: 600;
+  transition: 0.2s;
 }
 
 .modal__actions button:hover {
   background: var(--primary-dark);
+  transform: translateY(-2px);
 }
 
-/* ================= VIEW MODAL (STUDENT DETAILS) ================= */
-.view__box {
-  width: 720px;
-}
-
-/* grid 2 columns */
+/* ================= VIEW GRID ================= */
 .view__grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr 1fr;
   gap: 14px;
 }
 
-.view__column {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
 .view__field {
-  background: #f8faff;
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
+  background: #f8fafc;
+  padding: 10px;
+  border-radius: 10px;
 }
 
 .view__field label {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
 }
 
 .view__value {
-  font-size: 14px;
   font-weight: 600;
-  color: var(--text);
-  margin-top: 3px;
+  margin-top: 4px;
 }
 
 .view__badge {
   display: inline-block;
   padding: 6px 10px;
-  border-radius: 999px;
+  border-radius: 10px;
   font-size: 12px;
   font-weight: 600;
 }
 
 .view__badge.paid {
-  background: rgba(34, 197, 94, 0.12);
+  background: #dcfce7;
   color: var(--success);
 }
 
 .view__badge.unpaid {
-  background: rgba(239, 68, 68, 0.12);
+  background: #fee2e2;
   color: var(--danger);
 }
 
 /* ================= RESPONSIVE ================= */
 @media (max-width: 768px) {
-  .modal__form {
-    grid-template-columns: 1fr; /* mobile stack */
-  }
-
-  .view__grid {
-    grid-template-columns: 1fr;
-  }
-
-  .modal__box {
-    width: 92%;
-  }
-
   .students__header {
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
+  }
+
+  .modal__form {
+    grid-template-columns: 1fr;
+  }
+
+  .view__grid {
+    grid-template-columns: 1fr;
   }
 }

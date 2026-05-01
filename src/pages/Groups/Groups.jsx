@@ -173,40 +173,41 @@ export default function Groups({ activeBranch }) {
 
   // ================= UI =================
   return (
-    <div className="groups">
+    <div className="groups-container">
 
       {/* HEADER */}
-      <div className="groups__header">
-        <div>
-          <h2>{activeBranch?.name || "Branch"} • Groups</h2>
-          <p>Professional schedule & group management</p>
+      <div className="groups-top-bar">
+        <div className="groups-titles">
+          <h2 className="groups-main-title">{activeBranch?.name || "Branch"} • Groups</h2>
+          <p className="groups-sub-title">Professional schedule & group management</p>
         </div>
 
-        <button onClick={() => setModalOpen(true)}>
+        <button className="add-group-btn" onClick={() => setModalOpen(true)}>
           <FiPlus /> New Group
         </button>
       </div>
 
       {/* FILTERS */}
-      <div className="groups__filters">
+      <div className="groups-filter-wrapper">
 
-        <div className="filter">
-          <FiSearch />
+        <div className="search-input-box">
+          <FiSearch className="search-icon" />
           <input
+            className="filter-field-input"
             placeholder="Search group..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
 
-        <select value={filterCourse} onChange={(e) => setFilterCourse(e.target.value)}>
+        <select className="filter-select-dropdown" value={filterCourse} onChange={(e) => setFilterCourse(e.target.value)}>
           <option value="">All Courses</option>
           {courses.map((c) => (
             <option key={c.id} value={c.id}>{c.name}</option>
           ))}
         </select>
 
-        <select value={filterTeacher} onChange={(e) => setFilterTeacher(e.target.value)}>
+        <select className="filter-select-dropdown" value={filterTeacher} onChange={(e) => setFilterTeacher(e.target.value)}>
           <option value="">All Teachers</option>
           {teachers.map((t) => (
             <option key={t.id} value={t.id}>{t.name}</option>
@@ -216,25 +217,25 @@ export default function Groups({ activeBranch }) {
       </div>
 
       {/* GRID */}
-      <div className="groups__grid">
+      <div className="groups-main-grid">
         {filteredGroups.map((g) => (
-          <div key={g.id} className="groups__card">
+          <div key={g.id} className="group-item-card">
 
-            <div onClick={() => setSelectedGroup(g)}>
-              <h3>{g.name}</h3>
+            <div className="group-card-info" onClick={() => setSelectedGroup(g)}>
+              <h3 className="group-card-name">{g.name}</h3>
 
-              <p><FiUser /> {getTeacher(g.teacher_id)}</p>
-              <p><FiBookOpen /> {getCourse(g.course_id)}</p>
-              <p><FiUsers /> {getStudentsCount(g.id)} students</p>
-              <p><FiCalendar /> {g.start_date || "—"}</p>
-              <p>📅 {getScheduleLabel(g.schedule_type)}</p>
+              <p className="group-detail-item"><FiUser /> {getTeacher(g.teacher_id)}</p>
+              <p className="group-detail-item"><FiBookOpen /> {getCourse(g.course_id)}</p>
+              <p className="group-detail-item"><FiUsers /> {getStudentsCount(g.id)} students</p>
+              <p className="group-detail-item"><FiCalendar /> {g.start_date || "—"}</p>
+              <p className="group-detail-item"><FiCalendar />{getScheduleLabel(g.schedule_type)}</p>
             </div>
 
-            <div className="groups__actions">
-              <button onClick={() => handleEdit(g)}>
+            <div className="group-card-actions">
+              <button className="action-btn edit-action" onClick={() => handleEdit(g)}>
                 <FiEdit2 />
               </button>
-              <button onClick={() => handleDelete(g.id)}>
+              <button className="action-btn delete-action" onClick={() => handleDelete(g.id)}>
                 <FiTrash2 />
               </button>
             </div>
@@ -245,49 +246,50 @@ export default function Groups({ activeBranch }) {
 
       {/* MODAL */}
       {modalOpen && (
-        <div className="modal">
-          <div className="modal__content">
+        <div className="app-modal-overlay">
+          <div className="app-modal-box">
 
-            <div className="modal__header">
-              <h3>{editId ? "Edit Group" : "Create Group"}</h3>
-              <FiX onClick={resetForm} />
+            <div className="app-modal-header">
+              <h3 className="modal-title">{editId ? "Edit Group" : "Create Group"}</h3>
+              <FiX className="modal-close-icon" onClick={resetForm} />
             </div>
 
-            <form onSubmit={handleSubmit}>
+            <form className="group-entry-form" onSubmit={handleSubmit}>
 
               <input
+                className="form-control-input"
                 name="name"
                 placeholder="Group name"
                 value={form.name}
                 onChange={handleChange}
               />
 
-              <select name="course_id" onChange={handleChange} value={form.course_id}>
+              <select className="form-control-select" name="course_id" onChange={handleChange} value={form.course_id}>
                 <option value="">Course</option>
                 {courses.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
 
-              <select name="teacher_id" onChange={handleChange} value={form.teacher_id}>
+              <select className="form-control-select" name="teacher_id" onChange={handleChange} value={form.teacher_id}>
                 <option value="">Teacher</option>
                 {teachers.map((t) => (
                   <option key={t.id} value={t.id}>{t.name}</option>
                 ))}
               </select>
 
-              <input type="date" name="start_date" value={form.start_date} onChange={handleChange} />
-              <input type="time" name="start_time" value={form.start_time} onChange={handleChange} />
-              <input type="time" name="end_time" value={form.end_time} onChange={handleChange} />
+              <input className="form-control-input" type="date" name="start_date" value={form.start_date} onChange={handleChange} />
+              <input className="form-control-input" type="time" name="start_time" value={form.start_time} onChange={handleChange} />
+              <input className="form-control-input" type="time" name="end_time" value={form.end_time} onChange={handleChange} />
 
               {/* SCHEDULE */}
-              <select name="schedule_type" value={form.schedule_type} onChange={handleChange}>
+              <select className="form-control-select" name="schedule_type" value={form.schedule_type} onChange={handleChange}>
                 <option value="all">Every Day</option>
                 <option value="odd">Odd Days</option>
                 <option value="even">Even Days</option>
               </select>
 
-              <button disabled={saving}>
+              <button className="form-submit-button" disabled={saving}>
                 {saving ? "Saving..." : editId ? "Update" : "Create"}
               </button>
 
@@ -299,21 +301,21 @@ export default function Groups({ activeBranch }) {
 
       {/* DETAILS */}
       {selectedGroup && (
-        <div className="modal">
-          <div className="modal__content">
+        <div className="app-modal-overlay">
+          <div className="app-modal-box">
 
-            <div className="modal__header">
-              <h3>{selectedGroup.name}</h3>
-              <FiX onClick={() => setSelectedGroup(null)} />
+            <div className="app-modal-header">
+              <h3 className="modal-title">{selectedGroup.name}</h3>
+              <FiX className="modal-close-icon" onClick={() => setSelectedGroup(null)} />
             </div>
 
-            <div className="details">
-              <p><FiUser /> {getTeacher(selectedGroup.teacher_id)}</p>
-              <p><FiBookOpen /> {getCourse(selectedGroup.course_id)}</p>
-              <p><FiCalendar /> {selectedGroup.start_date}</p>
-              <p><FiClock /> {selectedGroup.start_time} - {selectedGroup.end_time}</p>
-              <p>📅 {getScheduleLabel(selectedGroup.schedule_type)}</p>
-              <p><FiUsers /> {getStudentsCount(selectedGroup.id)} students</p>
+            <div className="group-full-details">
+              <p className="detail-row"><FiUser /> {getTeacher(selectedGroup.teacher_id)}</p>
+              <p className="detail-row"><FiBookOpen /> {getCourse(selectedGroup.course_id)}</p>
+              <p className="detail-row"><FiCalendar /> {selectedGroup.start_date}</p>
+              <p className="detail-row"><FiClock /> {selectedGroup.start_time} - {selectedGroup.end_time}</p>
+              <p className="detail-row"><FiCalendar />{getScheduleLabel(selectedGroup.schedule_type)}</p>
+              <p className="detail-row"><FiUsers /> {getStudentsCount(selectedGroup.id)} students</p>
             </div>
 
           </div>

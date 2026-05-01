@@ -173,21 +173,23 @@ export default function Teachers({ activeBranch }) {
 
   // ================= UI =================
   return (
-    <div className="teachers">
-      <div className="teachers__header">
-        <div>
-          <h2>{activeBranch?.name || "Branch"} • Teachers</h2>
-          <p className="teachers__sub">Manage all teachers in your branch</p>
+    <div className="teachers-main-container">
+      <div className="teachers-top-bar">
+        <div className="teachers-info-header">
+          <h2 className="branch-title-text">{activeBranch?.name || "Branch"} • Teachers</h2>
+          <p className="branch-subtitle-text">Manage all teachers in your branch</p>
         </div>
 
-        <button onClick={() => setModalOpen(true)}>
+        <button className="add-teacher-btn" onClick={() => setModalOpen(true)}>
           <FiPlus /> Add Teacher
         </button>
       </div>
+      
       {/* SEARCH */}
-      <div className="teachers__search">
-        <FiSearch />
+      <div className="teachers-search-wrapper">
+        <FiSearch className="search-icon-fixed" />
         <input
+          className="search-input-field"
           placeholder="Search teacher..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -195,8 +197,8 @@ export default function Teachers({ activeBranch }) {
       </div>
 
       {/* TABLE */}
-      <div className="teachers__table">
-        <table>
+      <div className="teachers-list-table-box">
+        <table className="teachers-data-table">
           <thead>
             <tr>
               <th>#</th>
@@ -214,24 +216,24 @@ export default function Teachers({ activeBranch }) {
             {filtered.map((t, i) => (
               <tr
                 key={t.id}
+                className="table-body-row"
                 onClick={() => openView(t)}
-                style={{ cursor: "pointer" }}
               >
                 <td>{i + 1}</td>
-                <td>{t.name}</td>
+                <td className="teacher-name-col">{t.name}</td>
                 <td>{t.phone}</td>
                 <td>{getCourseName(t.course_id)}</td>
                 <td>{getStudentsCount(t.id)}</td>
-                <td>{getIncome(t.id).toFixed(0)} so'm</td>
-                <td className={t.salary_paid ? "paid" : "unpaid"}>
+                <td className="income-amount-col">{getIncome(t.id).toFixed(0)} so'm</td>
+                <td className={`status-cell ${t.salary_paid ? "status-paid" : "status-unpaid"}`}>
                   {t.salary_paid ? "Paid" : "Unpaid"}
                 </td>
 
-                <td onClick={(e) => e.stopPropagation()}>
-                  <button onClick={() => openEdit(t)}>
+                <td className="actions-col" onClick={(e) => e.stopPropagation()}>
+                  <button className="action-btn-edit" onClick={() => openEdit(t)}>
                     <FiEdit />
                   </button>
-                  <button onClick={() => setDeleteId(t.id)}>
+                  <button className="action-btn-delete" onClick={() => setDeleteId(t.id)}>
                     <FiTrash2 />
                   </button>
                 </td>
@@ -243,61 +245,61 @@ export default function Teachers({ activeBranch }) {
 
       {/* ================= VIEW MODAL ================= */}
       {viewOpen && viewData && (
-        <div className="modal">
-          <div className="modal__box view">
-            <div className="modal__header">
-              <h3>Teacher Details</h3>
-              <button onClick={() => setViewOpen(false)}>
+        <div className="overlay-modal">
+          <div className="modal-container-box view-mode">
+            <div className="modal-header-section">
+              <h3 className="modal-title-text">Teacher Details</h3>
+              <button className="modal-close-trigger" onClick={() => setViewOpen(false)}>
                 <FiX />
               </button>
             </div>
 
-            <div className="view__grid">
-              <div className="view__card">
-                <FiUser />
-                <div>
-                  <p>Name</p>
-                  <h4>{viewData.name}</h4>
+            <div className="details-info-grid">
+              <div className="detail-stat-card">
+                <FiUser className="stat-icon" />
+                <div className="stat-content">
+                  <p className="stat-label">Name</p>
+                  <h4 className="stat-value">{viewData.name}</h4>
                 </div>
               </div>
 
-              <div className="view__card">
-                <FiPhone />
-                <div>
-                  <p>Phone</p>
-                  <h4>{viewData.phone}</h4>
+              <div className="detail-stat-card">
+                <FiPhone className="stat-icon" />
+                <div className="stat-content">
+                  <p className="stat-label">Phone</p>
+                  <h4 className="stat-value">{viewData.phone}</h4>
                 </div>
               </div>
 
-              <div className="view__card">
-                <FiBookOpen />
-                <div>
-                  <p>Course</p>
-                  <h4>{getCourseName(viewData.course_id)}</h4>
+              <div className="detail-stat-card">
+                <FiBookOpen className="stat-icon" />
+                <div className="stat-content">
+                  <p className="stat-label">Course</p>
+                  <h4 className="stat-value">{getCourseName(viewData.course_id)}</h4>
                 </div>
               </div>
 
-              <div className="view__card">
-                <FiUsers />
-                <div>
-                  <p>Students</p>
-                  <h4>{getStudentsCount(viewData.id)}</h4>
+              <div className="detail-stat-card">
+                <FiUsers className="stat-icon" />
+                <div className="stat-content">
+                  <p className="stat-label">Students</p>
+                  <h4 className="stat-value">{getStudentsCount(viewData.id)}</h4>
                 </div>
               </div>
 
-              <div className="view__card">
-                <FiDollarSign />
-                <div>
-                  <p>Income</p>
-                  <h4>{getIncome(viewData.id).toFixed(0)} so'm</h4>
+              <div className="detail-stat-card">
+                <FiDollarSign className="stat-icon" />
+                <div className="stat-content">
+                  <p className="stat-label">Income</p>
+                  <h4 className="stat-value">{getIncome(viewData.id).toFixed(0)} so'm</h4>
                 </div>
               </div>
 
-              <div className="view__card">
-                <FiCheckCircle />
-                <div>
-                  <p>Status</p>
-                  <h4 className={viewData.salary_paid ? "paid" : "unpaid"}>
+              <div className="detail-stat-card">
+                <FiCheckCircle className="stat-icon" />
+                <div className="stat-content">
+                  <p className="stat-label">Status</p>
+                  <h4 className={`stat-value status-text ${viewData.salary_paid ? "status-paid" : "status-unpaid"}`}>
                     {viewData.salary_paid ? "Paid" : "Unpaid"}
                   </h4>
                 </div>
@@ -309,20 +311,21 @@ export default function Teachers({ activeBranch }) {
 
       {/* ================= FORM MODAL ================= */}
       {modalOpen && (
-        <div className="modal">
-          <div className="modal__box">
-            <div className="modal__header">
-              <h3>{editId ? "Edit Teacher" : "Add Teacher"}</h3>
-              <button onClick={resetForm}>
+        <div className="overlay-modal">
+          <div className="modal-container-box">
+            <div className="modal-header-section">
+              <h3 className="modal-title-text">{editId ? "Edit Teacher" : "Add Teacher"}</h3>
+              <button className="modal-close-trigger" onClick={resetForm}>
                 <FiX />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="form">
+            <form onSubmit={handleSubmit} className="teacher-entry-form">
               {/* NAME */}
-              <div className="form__group">
-                <label>Teacher Name</label>
+              <div className="form-input-group">
+                <label className="field-label">Teacher Name</label>
                 <input
+                  className="field-input"
                   name="name"
                   value={form.name}
                   onChange={handleChange}
@@ -331,9 +334,10 @@ export default function Teachers({ activeBranch }) {
               </div>
 
               {/* PHONE */}
-              <div className="form__group">
-                <label>Phone Number</label>
+              <div className="form-input-group">
+                <label className="field-label">Phone Number</label>
                 <input
+                  className="field-input"
                   name="phone"
                   value={form.phone}
                   onChange={handleChange}
@@ -342,9 +346,10 @@ export default function Teachers({ activeBranch }) {
               </div>
 
               {/* COURSE */}
-              <div className="form__group">
-                <label>Course</label>
+              <div className="form-input-group">
+                <label className="field-label">Course</label>
                 <select
+                  className="field-select"
                   name="course_id"
                   value={form.course_id}
                   onChange={handleChange}
@@ -359,9 +364,10 @@ export default function Teachers({ activeBranch }) {
               </div>
 
               {/* LAST PAYMENT */}
-              <div className="form__group">
-                <label>Last Payment Date</label>
+              <div className="form-input-group">
+                <label className="field-label">Last Payment Date</label>
                 <input
+                  className="field-date-picker"
                   type="date"
                   name="last_payment"
                   value={form.last_payment}
@@ -370,9 +376,10 @@ export default function Teachers({ activeBranch }) {
               </div>
 
               {/* NEXT PAYMENT */}
-              <div className="form__group">
-                <label>Next Payment Date</label>
+              <div className="form-input-group">
+                <label className="field-label">Next Payment Date</label>
                 <input
+                  className="field-date-picker"
                   type="date"
                   name="next_payment"
                   value={form.next_payment}
@@ -381,20 +388,21 @@ export default function Teachers({ activeBranch }) {
               </div>
 
               {/* STATUS */}
-              <div className="form__group checkbox">
-                <label>
+              <div className="form-checkbox-control">
+                <label className="checkbox-container">
                   <input
                     type="checkbox"
+                    className="hidden-checkbox"
                     name="salary_paid"
                     checked={form.salary_paid}
                     onChange={handleChange}
                   />
-                  Salary Paid
+                  <span className="checkbox-label-text">Salary Paid</span>
                 </label>
               </div>
 
               {/* BUTTON */}
-              <button type="submit" className="save-btn">
+              <button type="submit" className="form-submit-btn">
                 <FiSave /> Save Teacher
               </button>
             </form>
@@ -404,11 +412,13 @@ export default function Teachers({ activeBranch }) {
 
       {/* DELETE */}
       {deleteId && (
-        <div className="modal">
-          <div className="modal__box">
-            <p>Delete teacher?</p>
-            <button onClick={handleDelete}>Yes</button>
-            <button onClick={() => setDeleteId(null)}>No</button>
+        <div className="overlay-modal">
+          <div className="modal-container-box confirm-box">
+            <p className="confirm-message-text">Delete teacher?</p>
+            <div className="confirm-btn-group">
+              <button className="confirm-yes-btn" onClick={handleDelete}>Yes</button>
+              <button className="confirm-no-btn" onClick={() => setDeleteId(null)}>No</button>
+            </div>
           </div>
         </div>
       )}

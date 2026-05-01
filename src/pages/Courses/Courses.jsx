@@ -116,55 +116,55 @@ export default function Courses({ activeBranch }) {
 
   // ================= UI =================
   return (
-    <div className="courses">
+    <div className="cr-module-root">
 
       {/* HEADER */}
-      <div className="courses__header">
-        <div>
-          <h2>{activeBranch?.name || "Branch"} • Courses</h2>
-          <p className="courses__sub">Manage all your courses</p>
+      <div className="cr-top-navigation">
+        <div className="cr-identity-box">
+          <h2 className="cr-main-heading">{activeBranch?.name || "Branch"} • Kurslar</h2>
+          <p className="cr-sub-text">Barcha o'quv yo'nalishlarini boshqarish</p>
         </div>
 
-        <button onClick={() => setCreateOpen(true)}>
-          <FiPlus /> Add Course
+        <button className="cr-add-action-btn" onClick={() => setCreateOpen(true)}>
+          <FiPlus /> Kurs qo'shish
         </button>
       </div>
 
       {/* LOADING */}
-      {loading && <div className="courses__loading">Loading...</div>}
+      {loading && <div className="cr-loader-backdrop">Yuklanmoqda...</div>}
 
       {/* EMPTY STATE */}
       {!loading && sortedCourses.length === 0 && (
-        <div className="courses__empty">
-          <FiBookOpen size={40} />
-          <p>No courses found</p>
+        <div className="cr-no-results-box">
+          <FiBookOpen className="cr-empty-icon" />
+          <p className="cr-empty-message">Kurslar hali mavjud emas</p>
         </div>
       )}
 
       {/* GRID */}
-      <div className="courses__grid">
+      <div className="cr-cards-layout">
         {sortedCourses.map((c) => (
-          <div key={c.id} className="courses__card">
+          <div key={c.id} className="cr-subject-card">
 
-            <div onClick={() => setSelectedCourse(c)}>
-              <div className="card__icon">
+            <div className="cr-card-interactive-area" onClick={() => setSelectedCourse(c)}>
+              <div className="cr-subject-avatar">
                 <FiBookOpen />
               </div>
 
-              <h3>{c.name}</h3>
+              <h3 className="cr-subject-title">{c.name}</h3>
 
-              <div className="card__stats">
-                <span>
-                  <FiLayers /> {getGroupsCount(c.id)} groups
+              <div className="cr-metrics-row">
+                <span className="cr-metric-tag">
+                  <FiLayers /> {getGroupsCount(c.id)} guruh
                 </span>
-                <span>
-                  <FiUsers /> {getTeachersCount(c.id)} teachers
+                <span className="cr-metric-tag">
+                  <FiUsers /> {getTeachersCount(c.id)} ustoz
                 </span>
               </div>
             </div>
 
             <button
-              className="delete-btn"
+              className="cr-remove-btn"
               onClick={() => handleDelete(c.id)}
             >
               <FiTrash2 />
@@ -176,23 +176,24 @@ export default function Courses({ activeBranch }) {
 
       {/* ================= CREATE MODAL ================= */}
       {createOpen && (
-        <div className="modal">
-          <div className="modal__content">
+        <div className="cr-modal-portal">
+          <div className="cr-modal-surface">
 
-            <div className="modal__header">
-              <h3>Create Course</h3>
-              <FiX onClick={() => setCreateOpen(false)} />
+            <div className="cr-modal-header">
+              <h3 className="cr-modal-headline">Yangi kurs yaratish</h3>
+              <FiX className="cr-modal-dismiss" onClick={() => setCreateOpen(false)} />
             </div>
 
-            <form onSubmit={handleCreate}>
+            <form className="cr-modal-form" onSubmit={handleCreate}>
               <input
-                placeholder="Course name..."
+                className="cr-modal-input-field"
+                placeholder="Kurs nomi..."
                 value={courseName}
                 onChange={(e) => setCourseName(e.target.value)}
               />
 
-              <button type="submit" className="submit">
-                Create Course
+              <button type="submit" className="cr-modal-confirm-btn">
+                Saqlash
               </button>
             </form>
 
@@ -202,32 +203,32 @@ export default function Courses({ activeBranch }) {
 
       {/* ================= DETAILS MODAL ================= */}
       {selectedCourse && (
-        <div className="modal">
-          <div className="modal__content">
+        <div className="cr-modal-portal">
+          <div className="cr-modal-surface">
 
-            <div className="modal__header">
-              <h3>{selectedCourse.name}</h3>
-              <FiX onClick={() => setSelectedCourse(null)} />
+            <div className="cr-modal-header">
+              <h3 className="cr-modal-headline">{selectedCourse.name}</h3>
+              <FiX className="cr-modal-dismiss" onClick={() => setSelectedCourse(null)} />
             </div>
 
-            <div className="course-details">
+            <div className="cr-details-body">
 
-              <p>
-                <strong>Groups:</strong> {getGroupsCount(selectedCourse.id)}
+              <p className="cr-info-row">
+                <span className="cr-info-label">Guruhlar soni:</span> {getGroupsCount(selectedCourse.id)}
               </p>
 
-              <p>
-                <strong>Teachers:</strong> {getTeachersCount(selectedCourse.id)}
+              <p className="cr-info-row">
+                <span className="cr-info-label">O'qituvchilar soni:</span> {getTeachersCount(selectedCourse.id)}
               </p>
 
-              <h4>Teachers List</h4>
+              <h4 className="cr-list-header">O'qituvchilar ro'yxati</h4>
 
               {getTeachersByCourse(selectedCourse.id).length === 0 ? (
-                <p>No teachers assigned</p>
+                <p className="cr-empty-list-text">O'qituvchilar biriktirilmagan</p>
               ) : (
-                <ul>
+                <ul className="cr-staff-listing">
                   {getTeachersByCourse(selectedCourse.id).map((t) => (
-                    <li key={t.id}>{t.name}</li>
+                    <li key={t.id} className="cr-staff-unit">{t.name}</li>
                   ))}
                 </ul>
               )}
