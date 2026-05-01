@@ -1,26 +1,31 @@
 import { useState } from "react";
 import { supabase } from "../../services/supabaseClient";
 import { useNavigate } from "react-router-dom";
+import BranchModal from "../BranchModal/BranchModal";
 import "./Auth.css";
 
-export default function Auth({ setCenterName }) {
+export default function Auth() {
   const navigate = useNavigate();
 
   const [isRegister, setIsRegister] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showBranchModal, setShowBranchModal] = useState(false);
+  const [userId, setUserId] = useState(null);
 
   const [form, setForm] = useState({
-    centerName: "",
     email: "",
     password: "",
+    centerName: "",
   });
 
   const handleChange = (e) => {
     setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
   };
 
-  const handleAuth = async () => {
+  // ================= AUTH =================
+  const handleAuth = async (e) => {
+    e.preventDefault();
     setLoading(true);
     setError("");
 
@@ -28,21 +33,27 @@ export default function Auth({ setCenterName }) {
       const { email, password, centerName } = form;
 
       if (!email || !password) {
-        throw new Error("Please enter both email and password");
+        throw new Error("Email va password kiriting");
       }
 
+      // ================= REGISTER =================
       if (isRegister) {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { centerName } },
+          options: {
+            data: { centerName },
+          },
         });
 
         if (error) throw error;
 
-        setCenterName(centerName);
-        navigate("/");
-      } else {
+        setUserId(data.user.id);
+        setShowBranchModal(true);
+      }
+
+      // ================= LOGIN =================
+      else {
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -50,7 +61,22 @@ export default function Auth({ setCenterName }) {
 
         if (error) throw error;
 
-        navigate(`/dashboard/${data.user.id}`);
+        const user = data.user;
+
+        // 🔥 CHECK BRANCH
+        const { data: branch } = await supabase
+          .from("branches")
+          .select("*")
+          .eq("owner_uid", user.id)
+          .maybeSingle();
+
+        if (!branch) {
+          setUserId(user.id);
+          setShowBranchModal(true);
+          return;
+        }
+
+        navigate(`/dashboard/${branch.id}`);
       }
     } catch (err) {
       setError(err.message);
@@ -59,77 +85,80 @@ export default function Auth({ setCenterName }) {
     }
   };
 
-  return (
-    <div className="auth">
-      <div className="auth__card">
+  // ================= AFTER BRANCH =================
+  const handleBranchCreated = (branch) => {
+    setShowBranchModal(false);
+    navigate(`/dashboard/${branch.id}`);
+  };
 
-        {/* LEFT */}
-        <div className="auth__left">
-          <h1 className="auth__logo">EDU ERP</h1>
-          <p className="auth__subtitle">
-            Manage your education center with ease
+  return (
+    <div className="authWrapper">
+
+      <BranchModal
+        open={showBranchModal}
+        userId={userId}
+        onDone={handleBranchCreated}
+      />
+
+      <div className="authCard">
+        <div className="authLeft">
+          <h1 className="authLogo">Edu ERP</h1>
+          <p className="authText">
+            Smart Education Management System
           </p>
         </div>
 
-        {/* RIGHT */}
-        <div className="auth__right">
+        <div className="authRight">
 
-          <h2 className="auth__title">
-            {isRegister ? "Create your account" : "Welcome back"}
+          <h2 className="authTitle">
+            {isRegister ? "Create account" : "Welcome back"}
           </h2>
 
-          <p className="auth__desc">
-            Enter your credentials to continue
-          </p>
+          <form onSubmit={handleAuth} className="authForm">
 
-          {isRegister && (
+            {isRegister && (
+              <input
+                name="centerName"
+                placeholder="Center name"
+                value={form.centerName}
+                onChange={handleChange}
+                className="authInput"
+              />
+            )}
+
             <input
-              className="auth__input"
-              name="centerName"
-              placeholder="Center Name"
-              value={form.centerName}
+              name="email"
+              placeholder="Email"
+              value={form.email}
               onChange={handleChange}
+              className="authInput"
+              type="email"
             />
-          )}
 
-          <input
-            className="auth__input"
-            name="email"
-            placeholder="Email address"
-            value={form.email}
-            onChange={handleChange}
-          />
+            <input
+              name="password"
+              placeholder="Password"
+              value={form.password}
+              onChange={handleChange}
+              className="authInput"
+              type="password"
+            />
 
-          <input
-            className="auth__input"
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={form.password}
-            onChange={handleChange}
-          />
+            {error && <div className="authError">{error}</div>}
 
-          {error && <div className="auth__error">{error}</div>}
+            <button className="authButton" disabled={loading}>
+              {loading ? "Loading..." : isRegister ? "Sign up" : "Login"}
+            </button>
 
-          <button
-            className="auth__button"
-            onClick={handleAuth}
-            disabled={loading}
-          >
-            {loading
-              ? "Processing..."
-              : isRegister
-              ? "Create Account"
-              : "Sign In"}
-          </button>
+          </form>
 
           <p
-            className="auth__switch"
+            className="authSwitch"
             onClick={() => setIsRegister(!isRegister)}
           >
             {isRegister
-              ? "Already have an account? Sign in"
-              : "Don't have an account? Create one"}
+              ? "Already have account? Login"
+              : "Create new account"}
           </p>
 
         </div>

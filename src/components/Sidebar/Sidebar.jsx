@@ -1,15 +1,19 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard,
-  Users,
-  GraduationCap,
-  BookOpen,
-  CreditCard,
+  LayoutDashboard,   // dashboard
+  Users,             // students
+  UserCog,           // teachers (professional)
+  BookOpen,          // courses
+  Layers,            // groups
+  UserPlus,          // add students
+  Wallet,            // payments
+  CalendarCheck,     // attendance
   LogOut,
 } from "lucide-react";
+
 import { supabase } from "../../services/supabaseClient";
 import "./Sidebar.css";
-import logo from '../../assets/logo.png'
+import logo from "../../assets/logo.png";
 
 export default function Sidebar({
   collapsed,
@@ -19,15 +23,27 @@ export default function Sidebar({
 }) {
   const navigate = useNavigate();
 
+  // ================= PROFESSIONAL MENU =================
   const menu = [
     { name: "Dashboard", icon: LayoutDashboard, path: "" },
+
     { name: "Students", icon: Users, path: "students" },
-    { name: "Teachers", icon: GraduationCap, path: "teachers" },
+
+    // 👇 better than GraduationCap
+    { name: "Teachers", icon: UserCog, path: "teachers" },
+
     { name: "Courses", icon: BookOpen, path: "courses" },
-    { name: "Groups", icon: BookOpen, path: "groups" },
-    { name: "Add Students", icon: Users, path: "addstudents" },
-    { name: "Payments", icon: CreditCard, path: "payments" },
-    { name: "Attendance", icon: CreditCard, path: "attendance" },
+
+    // 👇 better structure representation
+    { name: "Groups", icon: Layers, path: "groups" },
+
+    { name: "Add Students", icon: UserPlus, path: "addstudents" },
+
+    // 👇 finance icon instead of CreditCard
+    { name: "Payments", icon: Wallet, path: "payments" },
+
+    // 👇 calendar-based attendance (real ERP feel)
+    { name: "Attendance", icon: CalendarCheck, path: "attendance" },
   ];
 
   const basePath = activeBranch
@@ -55,10 +71,8 @@ export default function Sidebar({
       ${mobileOpen ? "isMobileOpen" : ""}`}
     >
       {/* ================= HEADER ================= */}
-      {/* ================= HEADER ================= */}
       <div className="erpSidebar__header">
         <div className="erpSidebar__logoBox">
-          {/* LOGO IMAGE */}
           <img src={logo} alt="Logo" className="erpSidebar__logoImg" />
 
           {!collapsed && (
