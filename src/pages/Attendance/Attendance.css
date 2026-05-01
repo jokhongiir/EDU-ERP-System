@@ -15,8 +15,6 @@
 /* ================= BASE ================= */
 .attendance {
   font-family: Inter, system-ui, sans-serif;
-  background: var(--bg);
-  min-height: 100vh;
   padding: 24px;
   color: var(--text);
 }

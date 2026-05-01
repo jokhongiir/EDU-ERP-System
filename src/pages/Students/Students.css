@@ -102,6 +102,7 @@
   padding: 14px;
   border-top: 1px solid var(--border);
   font-size: 14px;
+  text-align: left;
 }
 
 .students__table tbody tr {
