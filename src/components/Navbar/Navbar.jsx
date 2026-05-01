@@ -19,69 +19,116 @@ export default function Navbar({
   refreshBranches,
 }) {
   const [user, setUser] = useState(null);
+
   const [dropdownOpen, setDropdownOpen] = useState(false);
+
   const [modalOpen, setModalOpen] = useState(false);
   const [editingBranch, setEditingBranch] = useState(null);
   const [form, setForm] = useState({ name: "" });
 
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedBranch, setSelectedBranch] = useState(null);
+
   const dropdownRef = useRef();
 
+  // ================= USER =================
   useEffect(() => {
-    const fetchUser = async () => {
+    const loadUser = async () => {
       const { data } = await supabase.auth.getUser();
-      setUser(data.user);
+      setUser(data?.user || null);
     };
-    fetchUser();
+    loadUser();
   }, []);
 
+  // ================= CLOSE DROPDOWN =================
   useEffect(() => {
-    const handleClick = (e) => {
+    const handleClickOutside = (e) => {
       if (!dropdownRef.current?.contains(e.target)) {
         setDropdownOpen(false);
       }
     };
-    document.addEventListener("click", handleClick);
-    return () => document.removeEventListener("click", handleClick);
+
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
+  // ================= SAVE (CREATE / UPDATE) =================
   const handleSave = async () => {
-    if (!form.name) return;
+    if (!form.name.trim()) return;
 
-    if (editingBranch) {
-      await supabase
-        .from("branches")
-        .update({ name: form.name })
-        .eq("id", editingBranch.id);
-    } else {
-      await supabase.from("branches").insert([
-        {
-          name: form.name,
-          owner_uid: user.id,
-        },
-      ]);
+    try {
+      if (editingBranch) {
+        await supabase
+          .from("branches")
+          .update({ name: form.name })
+          .eq("id", editingBranch.id);
+      } else {
+        await supabase.from("branches").insert([
+          {
+            name: form.name,
+            owner_uid: user?.id,
+          },
+        ]);
+      }
+
+      setModalOpen(false);
+      setEditingBranch(null);
+      setForm({ name: "" });
+
+      // 🔥 auto refresh UI
+      await refreshBranches?.();
+
+      // OPTIONAL: full reload (if you really want hard refresh)
+      window.location.reload();
+
+    } catch (err) {
+      console.error("Save error:", err);
     }
-
-    setForm({ name: "" });
-    setEditingBranch(null);
-    setModalOpen(false);
-    refreshBranches?.();
   };
 
-  const handleDelete = async (id) => {
-    await supabase.from("branches").delete().eq("id", id);
-    refreshBranches?.();
-  };
-
+  // ================= EDIT =================
   const handleEdit = (branch) => {
     setEditingBranch(branch);
     setForm({ name: branch.name });
     setModalOpen(true);
+    setDropdownOpen(false);
+  };
+
+  // ================= DELETE CLICK =================
+  const handleDeleteClick = (branch) => {
+    setSelectedBranch(branch);
+    setDeleteModalOpen(true);
+    setDropdownOpen(false);
+  };
+
+  // ================= CONFIRM DELETE =================
+  const handleDeleteConfirm = async () => {
+    if (!selectedBranch) return;
+
+    try {
+      await supabase
+        .from("branches")
+        .delete()
+        .eq("id", selectedBranch.id);
+
+      setDeleteModalOpen(false);
+      setSelectedBranch(null);
+
+      // 🔥 auto refresh UI
+      await refreshBranches?.();
+
+      // OPTIONAL HARD REFRESH
+      window.location.reload();
+
+    } catch (err) {
+      console.error("Delete error:", err);
+    }
   };
 
   return (
     <header className="erp-navbar">
 
-      {/* LEFT */}
+      {/* ================= LEFT ================= */}
       <div className="erp-navbar__left">
         <button className="erp-navbar__menu-btn" onClick={toggleSidebar}>
           <Menu size={22} />
@@ -97,11 +144,12 @@ export default function Navbar({
         </div>
       </div>
 
-      {/* RIGHT */}
+      {/* ================= RIGHT ================= */}
       <div className="erp-navbar__right">
 
-        {/* BRANCH */}
+        {/* BRANCH DROPDOWN */}
         <div className="erp-navbar__dropdown" ref={dropdownRef}>
+
           <button
             className="erp-navbar__dropdown-btn"
             onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -142,7 +190,11 @@ export default function Navbar({
 
                   <div className="erp-navbar__actions">
                     <Edit size={14} onClick={() => handleEdit(b)} />
-                    <Trash2 size={14} onClick={() => handleDelete(b.id)} />
+
+                    <Trash2
+                      size={14}
+                      onClick={() => handleDeleteClick(b)}
+                    />
                   </div>
 
                 </div>
@@ -160,29 +212,62 @@ export default function Navbar({
         </div>
       </div>
 
-      {/* MODAL */}
+      {/* ================= CREATE / EDIT MODAL ================= */}
       {modalOpen && (
         <div className="erp-modal__overlay">
           <div className="erp-modal">
 
             <h3>
-              {editingBranch ? "Edit Branch" : "New Branch"}
+              {editingBranch ? "Edit Branch" : "Create Branch"}
             </h3>
 
             <input
               value={form.name}
-              onChange={(e) =>
-                setForm({ name: e.target.value })
-              }
-              placeholder="Branch name"
+              onChange={(e) => setForm({ name: e.target.value })}
+              placeholder="Enter branch name"
             />
 
             <div className="erp-modal__actions">
               <button onClick={() => setModalOpen(false)}>
                 Cancel
               </button>
+
               <button onClick={handleSave}>
                 {editingBranch ? "Update" : "Create"}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* ================= DELETE MODAL ================= */}
+      {deleteModalOpen && (
+        <div className="erp-modal__overlay">
+          <div className="erp-modal erp-modal--danger">
+
+            <h3>Confirm Deletion</h3>
+
+            <p>
+              Are you sure you want to delete{" "}
+              <b>{selectedBranch?.name}</b>? This action cannot be undone.
+            </p>
+
+            <div className="erp-modal__actions">
+              <button
+                onClick={() => {
+                  setDeleteModalOpen(false);
+                  setSelectedBranch(null);
+                }}
+              >
+                Cancel
+              </button>
+
+              <button
+                className="danger"
+                onClick={handleDeleteConfirm}
+              >
+                Yes, Delete
               </button>
             </div>
 
