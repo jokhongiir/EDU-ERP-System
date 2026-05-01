@@ -14,9 +14,6 @@
 
 /* ================= PAGE WRAPPER ================= */
 .cr-module-root {
-  padding: 24px;
-  min-height: 100vh;
-  background: var(--bg);
   font-family: "Inter", sans-serif;
 }
 

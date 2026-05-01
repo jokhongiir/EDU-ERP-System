@@ -4,9 +4,6 @@
 }
 
 .teachers-main-container {
-  padding: 24px;
-  min-height: 100vh;
-  background: linear-gradient(180deg, #f8fafc, #eef2ff);
   font-family: Inter, sans-serif;
   color: #0f172a;
 }

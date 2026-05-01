@@ -86,7 +86,7 @@ export default function Courses({ activeBranch }) {
 
   // ================= DELETE =================
   const handleDelete = async (id) => {
-    const confirmDelete = confirm("Delete this course?");
+    const confirmDelete = confirm("Are you sure you want to delete this course?");
     if (!confirmDelete) return;
 
     try {
@@ -121,23 +121,23 @@ export default function Courses({ activeBranch }) {
       {/* HEADER */}
       <div className="cr-top-navigation">
         <div className="cr-identity-box">
-          <h2 className="cr-main-heading">{activeBranch?.name || "Branch"} • Kurslar</h2>
-          <p className="cr-sub-text">Barcha o'quv yo'nalishlarini boshqarish</p>
+          <h2 className="cr-main-heading">{activeBranch?.name || "Branch"} • Courses</h2>
+          <p className="cr-sub-text">Manage all educational directions</p>
         </div>
 
         <button className="cr-add-action-btn" onClick={() => setCreateOpen(true)}>
-          <FiPlus /> Kurs qo'shish
+          <FiPlus /> Add Course
         </button>
       </div>
 
       {/* LOADING */}
-      {loading && <div className="cr-loader-backdrop">Yuklanmoqda...</div>}
+      {loading && <div className="cr-loader-backdrop">Loading...</div>}
 
       {/* EMPTY STATE */}
       {!loading && sortedCourses.length === 0 && (
         <div className="cr-no-results-box">
           <FiBookOpen className="cr-empty-icon" />
-          <p className="cr-empty-message">Kurslar hali mavjud emas</p>
+          <p className="cr-empty-message">No courses available yet</p>
         </div>
       )}
 
@@ -155,10 +155,10 @@ export default function Courses({ activeBranch }) {
 
               <div className="cr-metrics-row">
                 <span className="cr-metric-tag">
-                  <FiLayers /> {getGroupsCount(c.id)} guruh
+                  <FiLayers /> {getGroupsCount(c.id)} groups
                 </span>
                 <span className="cr-metric-tag">
-                  <FiUsers /> {getTeachersCount(c.id)} ustoz
+                  <FiUsers /> {getTeachersCount(c.id)} teachers
                 </span>
               </div>
             </div>
@@ -180,20 +180,20 @@ export default function Courses({ activeBranch }) {
           <div className="cr-modal-surface">
 
             <div className="cr-modal-header">
-              <h3 className="cr-modal-headline">Yangi kurs yaratish</h3>
+              <h3 className="cr-modal-headline">Create New Course</h3>
               <FiX className="cr-modal-dismiss" onClick={() => setCreateOpen(false)} />
             </div>
 
             <form className="cr-modal-form" onSubmit={handleCreate}>
               <input
                 className="cr-modal-input-field"
-                placeholder="Kurs nomi..."
+                placeholder="Course name..."
                 value={courseName}
                 onChange={(e) => setCourseName(e.target.value)}
               />
 
               <button type="submit" className="cr-modal-confirm-btn">
-                Saqlash
+                Save
               </button>
             </form>
 
@@ -214,17 +214,17 @@ export default function Courses({ activeBranch }) {
             <div className="cr-details-body">
 
               <p className="cr-info-row">
-                <span className="cr-info-label">Guruhlar soni:</span> {getGroupsCount(selectedCourse.id)}
+                <span className="cr-info-label">Number of groups:</span> {getGroupsCount(selectedCourse.id)}
               </p>
 
               <p className="cr-info-row">
-                <span className="cr-info-label">O'qituvchilar soni:</span> {getTeachersCount(selectedCourse.id)}
+                <span className="cr-info-label">Number of teachers:</span> {getTeachersCount(selectedCourse.id)}
               </p>
 
-              <h4 className="cr-list-header">O'qituvchilar ro'yxati</h4>
+              <h4 className="cr-list-header">Teachers List</h4>
 
               {getTeachersByCourse(selectedCourse.id).length === 0 ? (
-                <p className="cr-empty-list-text">O'qituvchilar biriktirilmagan</p>
+                <p className="cr-empty-list-text">No teachers assigned</p>
               ) : (
                 <ul className="cr-staff-listing">
                   {getTeachersByCourse(selectedCourse.id).map((t) => (

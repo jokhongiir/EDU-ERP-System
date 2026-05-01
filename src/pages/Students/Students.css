@@ -14,9 +14,6 @@
 
 /* ================= PAGE ================= */
 .students {
-  padding: 24px;
-  min-height: 100vh;
-  background: var(--bg);
   color: var(--text);
   font-family: Inter, sans-serif;
 }

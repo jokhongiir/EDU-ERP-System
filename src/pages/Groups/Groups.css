@@ -1,8 +1,5 @@
 /* ================= ROOT ================= */
 .groups-container {
-  padding: 28px;
-  background: #f5f7fb;
-  min-height: 100vh;
   font-family: "Inter", sans-serif;
   color: #0f172a;
 }

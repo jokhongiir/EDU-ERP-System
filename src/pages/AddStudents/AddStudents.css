@@ -14,7 +14,6 @@
 
 /* ================= PAGE ================= */
 .add-page {
-  background: var(--bg);
   font-family: "Inter", sans-serif;
   color: var(--text);
 }
