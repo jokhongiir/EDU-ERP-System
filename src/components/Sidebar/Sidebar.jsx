@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { supabase } from "../../services/supabaseClient";
 import "./Sidebar.css";
+import logo from '../../assets/logo.png'
 
 export default function Sidebar({
   collapsed,
@@ -24,12 +25,14 @@ export default function Sidebar({
     { name: "Teachers", icon: GraduationCap, path: "teachers" },
     { name: "Courses", icon: BookOpen, path: "courses" },
     { name: "Groups", icon: BookOpen, path: "groups" },
-    { name: "Add Students", icon: BookOpen, path: "addstudents" },
+    { name: "Add Students", icon: Users, path: "addstudents" },
     { name: "Payments", icon: CreditCard, path: "payments" },
     { name: "Attendance", icon: CreditCard, path: "attendance" },
   ];
 
-  const basePath = activeBranch ? `/dashboard/${activeBranch.id}` : "";
+  const basePath = activeBranch
+    ? `/dashboard/${activeBranch.id}`
+    : "/dashboard";
 
   const handleLogout = async () => {
     try {
@@ -37,25 +40,37 @@ export default function Sidebar({
       navigate("/login");
       setMobileOpen(false);
     } catch (err) {
-      console.error(err.message);
+      console.error("Logout error:", err.message);
     }
+  };
+
+  const closeMobileMenu = () => {
+    if (setMobileOpen) setMobileOpen(false);
   };
 
   return (
     <aside
-      className={`erpSidebar ${collapsed ? "isCollapsed" : ""} ${
-        mobileOpen ? "isMobileOpen" : ""
-      }`}
+      className={`erpSidebar 
+      ${collapsed ? "isCollapsed" : ""} 
+      ${mobileOpen ? "isMobileOpen" : ""}`}
     >
-      {/* HEADER */}
+      {/* ================= HEADER ================= */}
+      {/* ================= HEADER ================= */}
       <div className="erpSidebar__header">
-        <div className="erpSidebar__logo">
-          <span className="erpSidebar__dot" />
-          {!collapsed && <h2>Edu ERP</h2>}
+        <div className="erpSidebar__logoBox">
+          {/* LOGO IMAGE */}
+          <img src={logo} alt="Logo" className="erpSidebar__logoImg" />
+
+          {!collapsed && (
+            <div className="erpSidebar__logoText">
+              <h2>Edu ERP</h2>
+              <span>Education ERP System</span>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* NAVIGATION */}
+      {/* ================= NAV ================= */}
       <nav className="erpSidebar__nav">
         {menu.map((item, idx) => {
           const Icon = item.icon;
@@ -64,12 +79,10 @@ export default function Sidebar({
             <NavLink
               key={idx}
               to={`${basePath}/${item.path}`}
+              onClick={closeMobileMenu}
               className={({ isActive }) =>
-                isActive
-                  ? "erpSidebar__link isActive"
-                  : "erpSidebar__link"
+                `erpSidebar__link ${isActive ? "isActive" : ""}`
               }
-              onClick={() => setMobileOpen(false)}
             >
               <Icon className="erpSidebar__icon" />
               {!collapsed && <span>{item.name}</span>}
@@ -78,7 +91,7 @@ export default function Sidebar({
         })}
       </nav>
 
-      {/* FOOTER */}
+      {/* ================= FOOTER ================= */}
       <div className="erpSidebar__footer">
         <button className="erpSidebar__logout" onClick={handleLogout}>
           <LogOut className="erpSidebar__icon" />

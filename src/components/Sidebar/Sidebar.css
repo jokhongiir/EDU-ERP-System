@@ -1,115 +1,225 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 /* ========== ROOT ========== */
 .erpSidebar {
-  width: 260px;
+  width: 280px;
   height: 100vh;
+
   background: #ffffff;
   border-right: 1px solid #eef2f7;
+
   display: flex;
   flex-direction: column;
+
   position: fixed;
   left: 0;
   top: 0;
+
   font-family: "Inter", system-ui, sans-serif;
-  transition: 0.3s ease;
-  box-shadow: 4px 0 25px rgba(0, 0, 0, 0.03);
+
+  transition: all 0.3s ease;
+
+  box-shadow: 8px 0 30px rgba(0, 0, 0, 0.04);
+
+  z-index: 1000;
+  overflow: hidden;
 }
 
 /* COLLAPSED */
 .erpSidebar.isCollapsed {
-  width: 80px;
+  width: 85px;
 }
 
-/* ========== HEADER ========== */
+/* MOBILE */
+.erpSidebar.isMobileOpen {
+  transform: translateX(0);
+}
+
+@media (max-width: 768px) {
+  .erpSidebar {
+    transform: translateX(-100%);
+  }
+}
+
+/* ================= HEADER ================= */
 .erpSidebar__header {
-  padding: 20px;
+  padding: 22px 18px;
   border-bottom: 1px solid #f1f5f9;
 }
 
-.erpSidebar__logo {
+/* LOGO BOX */
+.erpSidebar__logoBox {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
-.erpSidebar__logo h2 {
+/* LOGO IMAGE */
+.erpSidebar__logoImg {
+  width: 44px;
+  height: 44px;
+
+  border-radius: 12px;
+  object-fit: cover;
+
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.18);
+
+  transition: 0.3s;
+}
+
+/* LOGO TEXT */
+.erpSidebar__logoText h2 {
   font-size: 18px;
-  font-weight: 600;
-  color: #111827;
-  letter-spacing: 0.3px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
 }
 
-.erpSidebar__dot {
-  width: 10px;
-  height: 10px;
-  background: #3b82f6;
-  border-radius: 50%;
+.erpSidebar__logoText span {
+  font-size: 12px;
+  font-weight: 500;
+  color: #94a3b8;
 }
 
-/* ========== NAV ========== */
+/* ================= NAV ================= */
 .erpSidebar__nav {
   flex: 1;
-  padding: 12px;
+  padding: 14px 10px;
+
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
+/* LINK */
 .erpSidebar__link {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 11px 14px;
-  border-radius: 10px;
+
+  padding: 12px 14px;
+
+  border-radius: 12px;
+
   text-decoration: none;
-  color: #6b7280;
+
+  color: #64748b;
+
   font-size: 14px;
   font-weight: 500;
-  transition: 0.2s;
-}
 
-.erpSidebar__link:hover {
-  background: #f4f7ff;
-  color: #2563eb;
-  transform: translateX(2px);
-}
+  transition: all 0.25s ease;
 
-/* ACTIVE */
-.erpSidebar__link.isActive {
-  background: #eaf1ff;
-  color: #2563eb;
-  font-weight: 600;
+  position: relative;
 }
 
 /* ICON */
 .erpSidebar__icon {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
+
+  flex-shrink: 0;
+
+  transition: 0.2s ease;
 }
 
-/* ========== FOOTER ========== */
+/* HOVER */
+.erpSidebar__link:hover {
+  background: #f4f7ff;
+  color: #2563eb;
+
+  transform: translateX(5px);
+}
+
+/* ACTIVE */
+.erpSidebar__link.isActive {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: #ffffff;
+
+  font-weight: 600;
+
+  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.25);
+
+  border-radius: 12px;
+}
+
+/* ACTIVE LEFT INDICATOR */
+.erpSidebar__link.isActive::before {
+  content: "";
+  position: absolute;
+
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+
+  width: 4px;
+
+  background: #ffffff;
+
+  border-radius: 10px;
+}
+
+/* ================= FOOTER ================= */
 .erpSidebar__footer {
   padding: 14px;
   border-top: 1px solid #f1f5f9;
 }
 
+/* LOGOUT */
 .erpSidebar__logout {
   width: 100%;
+
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 11px 14px;
-  border-radius: 10px;
+  gap: 12px;
+
+  padding: 12px 14px;
+
   border: none;
+  border-radius: 12px;
+
   background: #fff1f2;
   color: #ef4444;
-  font-weight: 500;
+
+  font-size: 14px;
+  font-weight: 600;
+
   cursor: pointer;
-  transition: 0.2s;
+
+  transition: all 0.2s ease;
 }
 
+/* LOGOUT HOVER */
 .erpSidebar__logout:hover {
   background: #ffe4e6;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+}
+
+/* ================= COLLAPSED MODE ================= */
+.erpSidebar.isCollapsed .erpSidebar__link {
+  justify-content: center;
+}
+
+.erpSidebar.isCollapsed .erpSidebar__link span {
+  display: none;
+}
+
+.erpSidebar.isCollapsed .erpSidebar__logout {
+  justify-content: center;
+}
+
+.erpSidebar.isCollapsed .erpSidebar__logout span {
+  display: none;
+}
+
+/* ICON HOVER EFFECT */
+.erpSidebar__link:hover .erpSidebar__icon {
+  transform: scale(1.15);
+}
+
+/* SMOOTH ANIMATIONS */
+.erpSidebar__link,
+.erpSidebar__logout,
+.erpSidebar__logoImg {
+  transition: all 0.25s ease;
 }
