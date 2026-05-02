@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { supabase } from "../../services/supabaseClient";
 import {
   FiPlus,
@@ -7,30 +7,28 @@ import {
   FiLayers,
   FiTrash2,
   FiX,
+  FiEdit3,
+  FiChevronRight,
 } from "react-icons/fi";
 import "./Courses.css";
 
 export default function Courses({ activeBranch }) {
-  // ================= STATE =================
   const [courses, setCourses] = useState([]);
   const [groups, setGroups] = useState([]);
   const [teachers, setTeachers] = useState([]);
-
   const [loading, setLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
 
-  const [createOpen, setCreateOpen] = useState(false);
+  const [modalMode, setModalMode] = useState(null); // 'create' | 'edit' | 'details'
   const [selectedCourse, setSelectedCourse] = useState(null);
-
   const [courseName, setCourseName] = useState("");
 
   const branchId = activeBranch?.id;
 
-  // ================= FETCH =================
-  const fetchData = async () => {
+  // ================= DATA FETCHING =================
+  const fetchData = useCallback(async () => {
     if (!branchId) return;
-
     setLoading(true);
-
     try {
       const [coursesRes, groupsRes, teachersRes] = await Promise.all([
         supabase.from("courses").select("*").eq("branch_id", branchId),
@@ -38,207 +36,167 @@ export default function Courses({ activeBranch }) {
         supabase.from("teachers").select("*").eq("branch_id", branchId),
       ]);
 
-      if (coursesRes.error) throw coursesRes.error;
-      if (groupsRes.error) throw groupsRes.error;
-      if (teachersRes.error) throw teachersRes.error;
-
       setCourses(coursesRes.data || []);
       setGroups(groupsRes.data || []);
       setTeachers(teachersRes.data || []);
     } catch (err) {
-      console.error(err);
-      alert("Failed to load data");
+      console.error("Fetch Error:", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [branchId]);
 
   useEffect(() => {
     fetchData();
-  }, [branchId]);
+  }, [fetchData]);
 
-  // ================= CREATE =================
-  const handleCreate = async (e) => {
-    e?.preventDefault();
+  // ================= ACTIONS =================
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!courseName.trim() || actionLoading) return;
 
-    if (!courseName.trim()) return;
-
+    setActionLoading(true);
     try {
-      setLoading(true);
-
-      const { error } = await supabase.from("courses").insert({
-        name: courseName,
-        branch_id: branchId,
-      });
-
-      if (error) throw error;
-
+      if (modalMode === "create") {
+        await supabase.from("courses").insert({ name: courseName, branch_id: branchId });
+      } else if (modalMode === "edit") {
+        await supabase.from("courses").update({ name: courseName }).eq("id", selectedCourse.id);
+      }
       setCourseName("");
-      setCreateOpen(false);
+      setModalMode(null);
       fetchData();
     } catch (err) {
-      console.error(err);
       alert(err.message);
     } finally {
-      setLoading(false);
+      setActionLoading(false);
     }
   };
 
-  // ================= DELETE =================
   const handleDelete = async (id) => {
-    const confirmDelete = confirm("Are you sure you want to delete this course?");
-    if (!confirmDelete) return;
-
+    if (!window.confirm("Are you sure? This will remove the course and associated data.")) return;
     try {
       await supabase.from("courses").delete().eq("id", id);
-
-      setCourses((prev) => prev.filter((c) => c.id !== id));
+      setCourses(prev => prev.filter(c => c.id !== id));
     } catch (err) {
-      console.error(err);
-      alert("Delete failed");
+      alert("An error occurred while deleting.");
     }
   };
 
   // ================= HELPERS =================
-  const getGroupsCount = (courseId) =>
-    groups.filter((g) => g.course_id === courseId).length;
+  const getStats = (courseId) => {
+    const courseTeachers = teachers.filter(t => t.course_id === courseId);
+    const courseGroups = groups.filter(g => g.course_id === courseId);
+    return {
+      groupsCount: courseGroups.length,
+      teachersCount: courseTeachers.length,
+      teacherList: courseTeachers
+    };
+  };
 
-  const getTeachersCount = (courseId) =>
-    teachers.filter((t) => t.course_id === courseId).length;
+  const sortedCourses = useMemo(() => 
+    [...courses].sort((a, b) => a.name.localeCompare(b.name)), 
+  [courses]);
 
-  const getTeachersByCourse = (courseId) =>
-    teachers.filter((t) => t.course_id === courseId);
-
-  // ================= MEMOIZED UI DATA =================
-  const sortedCourses = useMemo(() => {
-    return [...courses].sort((a, b) => a.name.localeCompare(b.name));
-  }, [courses]);
-
-  // ================= UI =================
   return (
     <div className="cr-module-root">
-
       {/* HEADER */}
-      <div className="cr-top-navigation">
-        <div className="cr-identity-box">
-          <h2 className="cr-main-heading">{activeBranch?.name || "Branch"} • Courses</h2>
-          <p className="cr-sub-text">Manage all educational directions</p>
+      <div className="cr-header-section">
+        <div className="cr-title-group">
+          <h2 className="cr-main-title">{activeBranch?.name || "Main Branch"} • Curriculum</h2>
+          <p className="cr-subtitle">Manage courses and educational directions</p>
         </div>
-
-        <button className="cr-add-action-btn" onClick={() => setCreateOpen(true)}>
-          <FiPlus /> Add Course
+        <button className="cr-create-btn" onClick={() => { setModalMode("create"); setCourseName(""); }}>
+          <FiPlus /> New Course
         </button>
       </div>
 
-      {/* LOADING */}
-      {loading && <div className="cr-loader-backdrop">Loading...</div>}
-
-      {/* EMPTY STATE */}
-      {!loading && sortedCourses.length === 0 && (
-        <div className="cr-no-results-box">
-          <FiBookOpen className="cr-empty-icon" />
-          <p className="cr-empty-message">No courses available yet</p>
+      {/* CONTENT */}
+      {loading ? (
+        <div className="cr-skeleton-grid">
+          {[1, 2, 3].map(i => <div key={i} className="cr-skeleton-card" />)}
         </div>
-      )}
-
-      {/* GRID */}
-      <div className="cr-cards-layout">
-        {sortedCourses.map((c) => (
-          <div key={c.id} className="cr-subject-card">
-
-            <div className="cr-card-interactive-area" onClick={() => setSelectedCourse(c)}>
-              <div className="cr-subject-avatar">
-                <FiBookOpen />
+      ) : sortedCourses.length === 0 ? (
+        <div className="cr-empty-state">
+          <div className="cr-empty-icon-wrapper"><FiBookOpen /></div>
+          <h3>No Courses Found</h3>
+          <p>Start by adding your first course to this branch.</p>
+        </div>
+      ) : (
+        <div className="cr-grid-layout">
+          {sortedCourses.map((course) => {
+            const stats = getStats(course.id);
+            return (
+              <div key={course.id} className="cr-course-card">
+                <div className="cr-card-body" onClick={() => { setSelectedCourse(course); setModalMode("details"); }}>
+                  <div className="cr-card-icon"><FiBookOpen /></div>
+                  <h3 className="cr-course-name">{course.name}</h3>
+                  <div className="cr-card-stats">
+                    <span><FiLayers /> {stats.groupsCount} Groups</span>
+                    <span><FiUsers /> {stats.teachersCount} Teachers</span>
+                  </div>
+                </div>
+                <div className="cr-card-actions">
+                  <button onClick={() => { setSelectedCourse(course); setCourseName(course.name); setModalMode("edit"); }}>
+                    <FiEdit3 />
+                  </button>
+                  <button className="cr-del-btn" onClick={() => handleDelete(course.id)}>
+                    <FiTrash2 />
+                  </button>
+                </div>
               </div>
+            );
+          })}
+        </div>
+      )}
 
-              <h3 className="cr-subject-title">{c.name}</h3>
+      {/* ================= MODAL MANAGER ================= */}
+      {modalMode && (
+        <div className="cr-modal-overlay" onClick={() => setModalMode(null)}>
+          <div className="cr-modal-content" onClick={e => e.stopPropagation()}>
+            <div className="cr-modal-header">
+              <h3>
+                {modalMode === 'create' && "Add New Course"}
+                {modalMode === 'edit' && "Edit Course"}
+                {modalMode === 'details' && "Course Overview"}
+              </h3>
+              <button className="cr-close-modal" onClick={() => setModalMode(null)}><FiX /></button>
+            </div>
 
-              <div className="cr-metrics-row">
-                <span className="cr-metric-tag">
-                  <FiLayers /> {getGroupsCount(c.id)} groups
-                </span>
-                <span className="cr-metric-tag">
-                  <FiUsers /> {getTeachersCount(c.id)} teachers
-                </span>
+            {modalMode === 'details' ? (
+              <div className="cr-details-view">
+                <div className="cr-detail-row">
+                  <label>Total Groups:</label>
+                  <span>{getStats(selectedCourse.id).groupsCount} Active</span>
+                </div>
+                <div className="cr-detail-row">
+                  <label>Faculty Members:</label>
+                  <div className="cr-teacher-tags">
+                    {getStats(selectedCourse.id).teacherList.length > 0 ? (
+                      getStats(selectedCourse.id).teacherList.map(t => <span key={t.id} className="cr-tag">{t.name}</span>)
+                    ) : <span className="cr-no-data">No teachers assigned yet.</span>}
+                  </div>
+                </div>
               </div>
-            </div>
-
-            <button
-              className="cr-remove-btn"
-              onClick={() => handleDelete(c.id)}
-            >
-              <FiTrash2 />
-            </button>
-
-          </div>
-        ))}
-      </div>
-
-      {/* ================= CREATE MODAL ================= */}
-      {createOpen && (
-        <div className="cr-modal-portal">
-          <div className="cr-modal-surface">
-
-            <div className="cr-modal-header">
-              <h3 className="cr-modal-headline">Create New Course</h3>
-              <FiX className="cr-modal-dismiss" onClick={() => setCreateOpen(false)} />
-            </div>
-
-            <form className="cr-modal-form" onSubmit={handleCreate}>
-              <input
-                className="cr-modal-input-field"
-                placeholder="Course name..."
-                value={courseName}
-                onChange={(e) => setCourseName(e.target.value)}
-              />
-
-              <button type="submit" className="cr-modal-confirm-btn">
-                Save
-              </button>
-            </form>
-
+            ) : (
+              <form onSubmit={handleSubmit} className="cr-modal-form">
+                <div className="cr-input-group">
+                  <label>Course Name</label>
+                  <input 
+                    autoFocus
+                    value={courseName}
+                    onChange={e => setCourseName(e.target.value)}
+                    placeholder="e.g. Full-Stack Development"
+                    required
+                  />
+                </div>
+                <button type="submit" disabled={actionLoading} className="cr-submit-btn">
+                  {actionLoading ? "Saving Changes..." : (modalMode === 'create' ? "Create Course" : "Update Course")}
+                </button>
+              </form>
+            )}
           </div>
         </div>
       )}
-
-      {/* ================= DETAILS MODAL ================= */}
-      {selectedCourse && (
-        <div className="cr-modal-portal">
-          <div className="cr-modal-surface">
-
-            <div className="cr-modal-header">
-              <h3 className="cr-modal-headline">{selectedCourse.name}</h3>
-              <FiX className="cr-modal-dismiss" onClick={() => setSelectedCourse(null)} />
-            </div>
-
-            <div className="cr-details-body">
-
-              <p className="cr-info-row">
-                <span className="cr-info-label">Number of groups:</span> {getGroupsCount(selectedCourse.id)}
-              </p>
-
-              <p className="cr-info-row">
-                <span className="cr-info-label">Number of teachers:</span> {getTeachersCount(selectedCourse.id)}
-              </p>
-
-              <h4 className="cr-list-header">Teachers List</h4>
-
-              {getTeachersByCourse(selectedCourse.id).length === 0 ? (
-                <p className="cr-empty-list-text">No teachers assigned</p>
-              ) : (
-                <ul className="cr-staff-listing">
-                  {getTeachersByCourse(selectedCourse.id).map((t) => (
-                    <li key={t.id} className="cr-staff-unit">{t.name}</li>
-                  ))}
-                </ul>
-              )}
-
-            </div>
-
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }

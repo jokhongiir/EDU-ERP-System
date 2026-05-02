@@ -1,103 +1,53 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../../services/supabaseClient";
+import { FiUsers, FiUserCheck, FiBookOpen, FiLayers, FiRefreshCw, FiTrendingUp } from "react-icons/fi";
 import {
-  FiUsers,
-  FiUserCheck,
-  FiBookOpen,
-  FiLayers,
-  FiRefreshCw,
-} from "react-icons/fi";
-
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
+  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  CartesianGrid,
 } from "recharts";
-
 import "./DashboardHome.css";
 
 export default function DashboardHome({ activeBranch }) {
   const branchId = activeBranch?.id;
 
-  // ================= STATE =================
-  const [stats, setStats] = useState({
-    students: 0,
-    teachers: 0,
-    courses: 0,
-    groups: 0,
+  const [data, setData] = useState({
+    stats: { students: 0, teachers: 0, courses: 0, groups: 0 },
+    chartData: []
   });
-
-  const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState(null);
 
-  // ================= FETCH DATA =================
-  const fetchDashboard = useCallback(async () => {
+  const fetchDashboardData = useCallback(async () => {
     if (!branchId) return;
-
     try {
       setLoading(true);
-      setError(null);
 
-      const [students, teachers, courses, groups] = await Promise.all([
-        supabase
-          .from("students")
-          .select("*", { count: "exact", head: true })
-          .eq("branch_id", branchId),
-
-        supabase
-          .from("teachers")
-          .select("*", { count: "exact", head: true })
-          .eq("branch_id", branchId),
-
-        supabase
-          .from("courses")
-          .select("*", { count: "exact", head: true })
-          .eq("branch_id", branchId),
-
-        supabase
-          .from("groups")
-          .select("*", { count: "exact", head: true })
-          .eq("branch_id", branchId),
+      // Barcha asosiy countlarni va chart uchun kerakli datalarni bir yo'la olamiz
+      const [st, tc, co, gr, allSt] = await Promise.all([
+        supabase.from("students").select("id", { count: "exact", head: true }).eq("branch_id", branchId),
+        supabase.from("teachers").select("id", { count: "exact", head: true }).eq("branch_id", branchId),
+        supabase.from("courses").select("id, name").eq("branch_id", branchId),
+        supabase.from("groups").select("id", { count: "exact", head: true }).eq("branch_id", branchId),
+        supabase.from("students").select("course_id").eq("branch_id", branchId)
       ]);
 
-      setStats({
-        students: students.count || 0,
-        teachers: teachers.count || 0,
-        courses: courses.count || 0,
-        groups: groups.count || 0,
+      // Chart ma'lumotlarini JS yordamida hisoblaymiz (Bazaga ortiqcha yuk tushmaydi)
+      const chartMap = co.data?.map(course => ({
+        name: course.name,
+        count: allSt.data?.filter(s => s.course_id === course.id).length || 0
+      })) || [];
+
+      setData({
+        stats: {
+          students: st.count || 0,
+          teachers: tc.count || 0,
+          courses: co.data?.length || 0,
+          groups: gr.count || 0,
+        },
+        chartData: chartMap.sort((a, b) => b.count - a.count)
       });
-
-      // ================= CHART =================
-      const { data: courseList, error } = await supabase
-        .from("courses")
-        .select("id, name")
-        .eq("branch_id", branchId);
-
-      if (error) throw error;
-
-      const result = await Promise.all(
-        (courseList || []).map(async (c) => {
-          const { count } = await supabase
-            .from("students")
-            .select("*", { count: "exact", head: true })
-            .eq("course_id", c.id);
-
-          return {
-            name: c.name,
-            students: count || 0,
-          };
-        })
-      );
-
-      setChartData(result);
     } catch (err) {
-      console.error(err);
-      setError("Something went wrong while loading dashboard");
+      console.error("Dashboard error:", err);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -105,115 +55,91 @@ export default function DashboardHome({ activeBranch }) {
   }, [branchId]);
 
   useEffect(() => {
-    fetchDashboard();
-  }, [fetchDashboard]);
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
-  // ================= REFRESH =================
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchDashboard();
-  };
-
-  // ================= CARDS =================
   const cards = [
-    {
-      label: "Students",
-      value: stats.students,
-      icon: <FiUsers />,
-      color: "#3b82f6",
-    },
-    {
-      label: "Teachers",
-      value: stats.teachers,
-      icon: <FiUserCheck />,
-      color: "#10b981",
-    },
-    {
-      label: "Courses",
-      value: stats.courses,
-      icon: <FiBookOpen />,
-      color: "#f59e0b",
-    },
-    {
-      label: "Groups",
-      value: stats.groups,
-      icon: <FiLayers />,
-      color: "#ef4444",
-    },
+    { label: "Talabalar", val: data.stats.students, icon: <FiUsers />, color: "var(--blue)" },
+    { label: "O'qituvchilar", val: data.stats.teachers, icon: <FiUserCheck />, color: "var(--emerald)" },
+    { label: "Kurslar", val: data.stats.courses, icon: <FiBookOpen />, color: "var(--amber)" },
+    { label: "Guruhlar", val: data.stats.groups, icon: <FiLayers />, color: "var(--rose)" },
   ];
 
-  // ================= UI =================
   return (
-    <div className="dash">
-
+    <div className="dash-wrapper">
       {/* HEADER */}
-      <div className="dash__header">
-        <div>
-          <h1>Dashboard Overview</h1>
-          <p>{activeBranch?.name || "No branch selected"}</p>
+      <div className="dash-header">
+        <div className="header-info">
+          <h1>Tahliliy Ma'lumotlar</h1>
+          <p>{activeBranch?.name || "Filial tanlanmagan"}</p>
         </div>
-
-        <button
-          className="refresh-btn"
-          onClick={handleRefresh}
-          disabled={refreshing}
+        <button 
+          className={`refresh-action ${refreshing ? "spinning" : ""}`} 
+          onClick={() => { setRefreshing(true); fetchDashboardData(); }}
         >
-          <FiRefreshCw className={refreshing ? "spin" : ""} />
-          Refresh
+          <FiRefreshCw /> {refreshing ? "Yangilanmoqda..." : "Yangilash"}
         </button>
       </div>
 
-      {/* ERROR */}
-      {error && <div className="dash__error">{error}</div>}
-
-      {/* ================= STATS ================= */}
-      <div className="dash__grid">
-        {loading
-          ? [1, 2, 3, 4].map((i) => (
-              <div key={i} className="dash__card skeleton" />
-            ))
-          : cards.map((c) => (
-              <div key={c.label} className="dash__card">
-                <div
-                  className="dash__icon"
-                  style={{ background: c.color }}
-                >
-                  {c.icon}
-                </div>
-
-                <div>
-                  <span className="dash__label">{c.label}</span>
-                  <h2 className="dash__value">{c.value}</h2>
-                </div>
+      {/* STATS GRID */}
+      <div className="stats-container">
+        {cards.map((c, i) => (
+          <div key={i} className="stat-glass-card" style={{"--accent": c.color}}>
+            <div className="stat-content">
+              <div className="stat-icon-box">{c.icon}</div>
+              <div className="stat-text">
+                <span className="stat-label">{c.label}</span>
+                <h2 className="stat-number">{loading ? "..." : c.val}</h2>
               </div>
-            ))}
+            </div>
+            <FiTrendingUp className="stat-deco" />
+          </div>
+        ))}
       </div>
 
-      {/* ================= CHART ================= */}
-      <div className="dash__chart">
-        <div className="dash__chart-header">
-          <h3>Course Analytics</h3>
-          <span>Students per course</span>
+      {/* CHART SECTION */}
+      <div className="chart-section">
+        <div className="chart-info">
+          <h3>O'quv Yo'nalishlari Faolligi</h3>
+          <p>Kurslar bo'yicha talabalar taqsimoti</p>
         </div>
 
-        {loading ? (
-          <div className="dash__skeleton" />
-        ) : (
-          <ResponsiveContainer width="100%" height={320}>
-            <BarChart data={chartData}>
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Bar
-                dataKey="students"
-                fill="#3b82f6"
-                radius={[10, 10, 0, 0]}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        )}
+        <div className="chart-canvas">
+          {loading ? <div className="chart-skeleton" /> : (
+            <ResponsiveContainer width="100%" height={350}>
+              <AreaChart data={data.chartData}>
+                <defs>
+                  <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--blue)" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="var(--blue)" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis 
+                  dataKey="name" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{fill: '#94a3b8', fontSize: 12}} 
+                  dy={10}
+                />
+                <YAxis hide />
+                <Tooltip 
+                  contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="count" 
+                  stroke="var(--blue)" 
+                  strokeWidth={3} 
+                  fillOpacity={1} 
+                  fill="url(#colorCount)" 
+                  animationDuration={1500}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
+        </div>
       </div>
-
     </div>
   );
 }

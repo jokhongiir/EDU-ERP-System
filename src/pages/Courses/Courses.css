@@ -1,293 +1,319 @@
-/* ================= ROOT ================= */
+/* ================= GLOBAL SETTINGS (Siz bergan ranglar) ================= */
 :root {
-  --primary: #376fff;
-  --primary-dark: #1a5bff;
-  --bg: #f5f7ff;
-  --card: #ffffff;
-  --text: #0f172a;
-  --muted: #6b7280;
-  --border: #e5eaf3;
-  --danger: #ef4444;
-  --shadow: 0 12px 35px rgba(0, 0, 0, 0.08);
-  --radius: 16px;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --bg-main: #f8fafc;
+  --text-dark: #0f172a;
+  --text-gray: #64748b;
+  --border-color: #e2e8f0;
+  --white: #ffffff;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+  --shadow-md: 0 10px 15px -3px rgba(0,0,0,0.1);
+  --radius-lg: 14px;
+  --radius-md: 10px;
 }
 
-/* ================= PAGE WRAPPER ================= */
 .cr-module-root {
-  font-family: "Inter", sans-serif;
+  padding: 24px;
+  background-color: var(--bg-main);
+  min-height: 100vh;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
-/* ================= HEADER ================= */
-.cr-top-navigation {
+/* ================= HEADER SECTION ================= */
+.cr-header-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 22px;
+  margin-bottom: 30px;
 }
 
-.cr-main-heading {
-  font-size: 22px;
+.cr-main-title {
+  font-size: 24px;
   font-weight: 700;
-  color: var(--text);
+  color: var(--text-dark);
+  letter-spacing: -0.02em;
 }
 
-.cr-sub-text {
-  font-size: 13px;
-  color: var(--muted);
+.cr-subtitle {
+  color: var(--text-gray);
+  font-size: 14px;
   margin-top: 4px;
 }
 
-.cr-add-action-btn {
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+.cr-create-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--primary);
   color: white;
   border: none;
-  padding: 10px 16px;
-  border-radius: 12px;
+  padding: 12px 20px;
+  border-radius: var(--radius-md);
   font-weight: 600;
   cursor: pointer;
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  box-shadow: var(--shadow);
-  transition: 0.2s ease;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
 }
 
-.cr-add-action-btn:hover {
+.cr-create-btn:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+/* ================= GRID & CARDS ================= */
+.cr-grid-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.cr-course-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.cr-course-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: rgba(37, 99, 235, 0.2);
   transform: translateY(-2px);
 }
 
-/* ================= LOADING ================= */
-.cr-loader-backdrop {
-  text-align: center;
-  padding: 20px;
-  color: var(--muted);
-  font-weight: 500;
-}
-
-/* ================= EMPTY ================= */
-.cr-no-results-box {
-  text-align: center;
-  margin-top: 60px;
-  color: var(--muted);
-}
-
-.cr-empty-icon {
-  font-size: 40px;
-  margin-bottom: 10px;
-}
-
-/* ================= GRID ================= */
-.cr-cards-layout {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
-}
-
-/* ================= CARD ================= */
-.cr-subject-card {
-  background: var(--card);
-  border-radius: var(--radius);
-  padding: 16px;
-  box-shadow: var(--shadow);
-  position: relative;
-  transition: 0.25s ease;
-}
-
-.cr-subject-card:hover {
-  transform: translateY(-5px);
-}
-
-/* clickable area */
-.cr-card-interactive-area {
+.cr-card-body {
   cursor: pointer;
 }
 
-/* icon */
-.cr-subject-avatar {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: rgba(55, 111, 255, 0.12);
+.cr-card-icon {
+  width: 40px;
+  height: 40px;
+  background: #eff6ff;
   color: var(--primary);
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 10px;
+  font-size: 20px;
+  margin-bottom: 15px;
 }
 
-/* title */
-.cr-subject-title {
-  font-size: 16px;
+.cr-course-name {
+  font-size: 18px;
   font-weight: 700;
-  color: var(--text);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  color: var(--text-dark);
 }
 
-/* stats */
-.cr-metrics-row {
+.cr-card-stats {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 12px;
 }
 
-.cr-metric-tag {
-  font-size: 12px;
-  background: #f2f6ff;
-  padding: 6px 10px;
-  border-radius: 999px;
+.cr-card-stats span {
   display: flex;
   align-items: center;
-  gap: 5px;
-  color: var(--text);
+  gap: 6px;
+  color: var(--text-gray);
+  font-size: 13px;
+  background: #f1f5f9;
+  padding: 4px 10px;
+  border-radius: 20px;
 }
 
-/* delete */
-.cr-remove-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
+.cr-card-stats svg {
+  color: var(--primary);
+}
+
+.cr-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px dashed var(--border-color);
+}
+
+.cr-card-actions button {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
   border: none;
-  background: #f3f4f6;
-  padding: 6px;
-  border-radius: 10px;
   cursor: pointer;
-  transition: 0.2s;
+  transition: background 0.2s;
+  background: #eff6ff;
+  color: var(--primary);
 }
 
-.cr-remove-btn:hover {
-  background: var(--danger);
-  color: white;
+.cr-card-actions .cr-del-btn {
+  background: #fff1f2;
+  color: #e11d48;
 }
 
-/* ================= MODAL ================= */
-.cr-modal-portal {
+.cr-card-actions button:hover {
+  opacity: 0.8;
+}
+
+/* ================= MODAL & FORM ================= */
+.cr-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.55);
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
   display: flex;
-  align-items: center;
   justify-content: center;
-  backdrop-filter: blur(7px);
-  z-index: 999;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
 }
 
-.cr-modal-surface {
-  width: 420px;
-  background: var(--card);
-  border-radius: 18px;
-  padding: 18px;
-  box-shadow: var(--shadow);
-  animation: pop 0.2s ease;
+.cr-modal-content {
+  background: var(--white);
+  width: 100%;
+  max-width: 500px;
+  border-radius: 20px;
+  padding: 30px;
+  position: relative;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: slideUp 0.3s ease-out;
 }
 
-@keyframes pop {
-  from {
-    transform: scale(0.95);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* ================= MODAL HEADER ================= */
 .cr-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 14px;
+  margin-bottom: 25px;
 }
 
-.cr-modal-headline {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.cr-modal-dismiss {
+.cr-close-modal {
+  font-size: 20px;
+  color: var(--text-gray);
   cursor: pointer;
-  color: var(--muted);
-  transition: 0.2s;
+  border: none;
+  background: none;
+  padding: 4px;
 }
 
-.cr-modal-dismiss:hover {
-  color: var(--danger);
-}
-
-/* ================= FORM ================= */
+/* Form Elements */
 .cr-modal-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 18px;
 }
 
-.cr-modal-input-field {
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  outline: none;
+.cr-input-group label {
   font-size: 14px;
-  transition: 0.2s;
+  font-weight: 600;
+  color: var(--text-dark);
+  display: block;
+  margin-bottom: 8px;
 }
 
-.cr-modal-input-field:focus {
+.cr-input-group input {
+  width: 100%;
+  height: 45px;
+  padding: 0 15px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.cr-input-group input:focus {
   border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-/* ================= BUTTON ================= */
-.cr-modal-confirm-btn {
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+.cr-submit-btn {
+  background: var(--primary);
   color: white;
   border: none;
-  padding: 10px;
-  border-radius: 12px;
-  font-weight: 600;
+  height: 48px;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 15px;
   cursor: pointer;
-  transition: 0.2s;
+  margin-top: 10px;
 }
 
-.cr-modal-confirm-btn:hover {
-  transform: translateY(-2px);
-}
-
-/* ================= DETAILS ================= */
-.cr-details-body {
+/* ================= DETAILS VIEW ================= */
+.cr-details-view {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 15px;
 }
 
-.cr-info-row {
+.cr-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 10px;
+}
+
+.cr-detail-row label {
+  color: var(--text-gray);
   font-size: 14px;
-  color: var(--text);
+  font-weight: 500;
 }
 
-.cr-info-label {
-  color: var(--muted);
-}
-
-.cr-list-header {
-  margin-top: 10px;
-  font-size: 14px;
+.cr-detail-row span {
+  color: var(--text-dark);
   font-weight: 600;
 }
 
-.cr-staff-listing {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.cr-teacher-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 5px;
 }
 
-.cr-staff-unit {
-  padding: 8px;
-  background: #f2f6ff;
-  margin-top: 6px;
-  border-radius: 10px;
-  font-size: 13px;
+.cr-tag {
+  background: #e0e7ff;
+  color: #4338ca;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
 }
 
-.cr-empty-list-text {
-  font-size: 13px;
-  color: var(--muted);
+/* ================= SKELETON & EMPTY ================= */
+.cr-skeleton-card {
+  height: 180px;
+  background: #edf2f7;
+  border-radius: var(--radius-lg);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+.cr-empty-state {
+  text-align: center;
+  padding: 50px;
+  color: var(--text-gray);
+}
+
+.cr-empty-icon-wrapper {
+  font-size: 40px;
+  margin-bottom: 10px;
+  opacity: 0.5;
 }

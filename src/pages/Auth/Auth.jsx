@@ -23,7 +23,7 @@ export default function Auth() {
     setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
   };
 
-  // ================= AUTH =================
+  // ================= MAIN AUTH LOGIC =================
   const handleAuth = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -33,12 +33,12 @@ export default function Auth() {
       const { email, password, centerName } = form;
 
       if (!email || !password) {
-        throw new Error("Email va password kiriting");
+        throw new Error("Please fill in both email and password.");
       }
 
-      // ================= REGISTER =================
+      // 1. REGISTER LOGIC
       if (isRegister) {
-        const { data, error } = await supabase.auth.signUp({
+        const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -46,54 +46,58 @@ export default function Auth() {
           },
         });
 
-        if (error) throw error;
+        if (signUpError) throw signUpError;
+        if (!data.user) throw new Error("An error occurred during registration.");
 
         setUserId(data.user.id);
         setShowBranchModal(true);
-      }
-
-      // ================= LOGIN =================
+      } 
+      
+      // 2. LOGIN LOGIC
       else {
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
 
-        if (error) throw error;
+        if (signInError) throw signInError;
 
-        const user = data.user;
+        const user = authData.user;
 
-        // 🔥 CHECK BRANCH
-        const { data: branch } = await supabase
+        // 🔥 CHECK BRANCH (Professional logic to prevent accidental modal triggers)
+        const { data: branches, error: branchError } = await supabase
           .from("branches")
-          .select("*")
-          .eq("owner_uid", user.id)
-          .maybeSingle();
+          .select("id")
+          .eq("owner_uid", user.id);
 
-        if (!branch) {
+        if (branchError) throw branchError;
+
+        // If no branches are found, force branch creation
+        if (!branches || branches.length === 0) {
           setUserId(user.id);
           setShowBranchModal(true);
-          return;
+        } else {
+          // If a branch exists, redirect to the first available dashboard
+          navigate(`/dashboard/${branches[0].id}`);
         }
-
-        navigate(`/dashboard/${branch.id}`);
       }
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "An unexpected error occurred.");
     } finally {
       setLoading(false);
     }
   };
 
-  // ================= AFTER BRANCH =================
+  // ================= AFTER BRANCH CREATION =================
   const handleBranchCreated = (branch) => {
     setShowBranchModal(false);
-    navigate(`/dashboard/${branch.id}`);
+    if (branch?.id) {
+      navigate(`/dashboard/${branch.id}`);
+    }
   };
 
   return (
     <div className="authWrapper">
-
       <BranchModal
         open={showBranchModal}
         userId={userId}
@@ -103,36 +107,34 @@ export default function Auth() {
       <div className="authCard">
         <div className="authLeft">
           <h1 className="authLogo">Edu ERP</h1>
-          <p className="authText">
-            Smart Education Management System
-          </p>
+          <p className="authText">Smart Education Management System</p>
         </div>
 
         <div className="authRight">
-
           <h2 className="authTitle">
-            {isRegister ? "Create account" : "Welcome back"}
+            {isRegister ? "Create Account" : "Welcome Back"}
           </h2>
 
           <form onSubmit={handleAuth} className="authForm">
-
             {isRegister && (
               <input
                 name="centerName"
-                placeholder="Center name"
+                placeholder="Learning Center Name"
                 value={form.centerName}
                 onChange={handleChange}
                 className="authInput"
+                required
               />
             )}
 
             <input
               name="email"
-              placeholder="Email"
+              placeholder="Email Address"
               value={form.email}
               onChange={handleChange}
               className="authInput"
               type="email"
+              required
             />
 
             <input
@@ -142,25 +144,37 @@ export default function Auth() {
               onChange={handleChange}
               className="authInput"
               type="password"
+              required
             />
 
             {error && <div className="authError">{error}</div>}
 
-            <button className="authButton" disabled={loading}>
-              {loading ? "Loading..." : isRegister ? "Sign up" : "Login"}
+            <button 
+              type="submit" 
+              className="authButton" 
+              disabled={loading}
+            >
+              {loading ? (
+                <span className="loader">Processing...</span>
+              ) : isRegister ? (
+                "Sign Up"
+              ) : (
+                "Login"
+              )}
             </button>
-
           </form>
 
           <p
             className="authSwitch"
-            onClick={() => setIsRegister(!isRegister)}
+            onClick={() => {
+              setIsRegister(!isRegister);
+              setError(""); 
+            }}
           >
             {isRegister
-              ? "Already have account? Login"
-              : "Create new account"}
+              ? "Already have an account? Login"
+              : "Don't have an account? Sign up"}
           </p>
-
         </div>
       </div>
     </div>

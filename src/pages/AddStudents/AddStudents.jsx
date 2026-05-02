@@ -1,28 +1,17 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../services/supabaseClient";
 
 import {
-  FiUser,
-  FiPhone,
-  FiBookOpen,
-  FiUsers,
-  FiCalendar,
-  FiDollarSign,
-  FiCheckCircle,
-  FiSave,
-  FiX,
-  FiHome,
-  FiClipboard,
-  FiUserCheck,
-  FiTrendingUp,
-  FiCreditCard,
+  FiUser, FiPhone, FiBookOpen, FiUsers, FiCalendar,
+  FiDollarSign, FiCheckCircle, FiSave, FiX, FiHome,
+  FiClipboard, FiUserCheck, FiTrendingUp, FiCreditCard,
 } from "react-icons/fi";
 
 import "./AddStudents.css";
 
 // ================= HELPERS =================
-const onlyDigits = (v = "") => v.toString().replace(/\D/g, "");
+const onlyDigits = (v = "") => v?.toString().replace(/\D/g, "") || "";
 
 const formatPhone = (value) => {
   let d = onlyDigits(value);
@@ -50,28 +39,23 @@ const formatPercent = (value) => {
   return num + "%";
 };
 
-// ================= MAIN =================
-export default function AddStudents({
-  activeBranch,
-  editStudent = null,   // 👈 EDIT MODE
-  onFinish,
-}) {
+// ================= MAIN COMPONENT =================
+export default function AddStudents({ activeBranch, editStudent = null, onFinish }) {
   const navigate = useNavigate();
   const branchId = activeBranch?.id;
-
-  // ================= MODE =================
   const isEdit = !!editStudent;
 
-  // ================= DATA =================
-  const [courses, setCourses] = useState([]);
-  const [teachers, setTeachers] = useState([]);
-  const [groups, setGroups] = useState([]);
+  // --- Data States ---
+  const [dbData, setDbData] = useState({
+    courses: [],
+    teachers: [],
+    groups: [],
+  });
 
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
-  const [error, setError] = useState("");
 
-  // ================= FORM =================
+  // --- Form State ---
   const [form, setForm] = useState({
     first_name: "",
     last_name: "",
@@ -88,96 +72,96 @@ export default function AddStudents({
     paid: false,
   });
 
-  // ================= LOAD EDIT DATA =================
+  // --- Initial Load (Edit Mode) ---
   useEffect(() => {
     if (editStudent) {
       setForm({
-        first_name: editStudent.first_name || "",
-        last_name: editStudent.last_name || "",
-        phone: editStudent.phone ? "+998 " + editStudent.phone : "+998 ",
-        parent_phone: editStudent.parent_phone ? "+998 " + editStudent.parent_phone : "+998 ",
+        ...editStudent,
+        phone: editStudent.phone ? formatPhone(editStudent.phone) : "+998 ",
+        parent_phone: editStudent.parent_phone ? formatPhone(editStudent.parent_phone) : "+998 ",
+        monthly_fee: formatMoney(editStudent.monthly_fee),
+        teacher_percent: formatPercent(editStudent.teacher_percent),
         course_id: editStudent.course_id || "",
         teacher_id: editStudent.teacher_id || "",
         group_id: editStudent.group_id || "",
-        start_date: editStudent.start_date || "",
-        payment_date: editStudent.payment_date || "",
-        next_payment_date: editStudent.next_payment_date || "",
-        monthly_fee: editStudent.monthly_fee?.toString() || "",
-        teacher_percent: editStudent.teacher_percent?.toString() || "",
-        paid: editStudent.paid || false,
       });
     }
   }, [editStudent]);
 
-  // ================= FETCH =================
+  // --- Fetch Global Data ---
   useEffect(() => {
     if (!branchId) return;
 
-    const load = async () => {
+    const loadData = async () => {
       setFetching(true);
+      try {
+        const [c, t, g] = await Promise.all([
+          supabase.from("courses").select("*").eq("branch_id", branchId),
+          supabase.from("teachers").select("*").eq("branch_id", branchId),
+          supabase.from("groups").select("*").eq("branch_id", branchId),
+        ]);
 
-      const [c, t, g] = await Promise.all([
-        supabase.from("courses").select("*").eq("branch_id", branchId),
-        supabase.from("teachers").select("*").eq("branch_id", branchId),
-        supabase.from("groups").select("*").eq("branch_id", branchId),
-      ]);
-
-      setCourses(c.data || []);
-      setTeachers(t.data || []);
-      setGroups(g.data || []);
-
-      setFetching(false);
+        setDbData({
+          courses: c.data || [],
+          teachers: t.data || [],
+          groups: g.data || [],
+        });
+      } catch (err) {
+        console.error("Fetch error:", err);
+      } finally {
+        setFetching(false);
+      }
     };
 
-    load();
+    loadData();
   }, [branchId]);
 
-  // ================= FILTER =================
-// ================= FILTER =================
-const filteredTeachers = useMemo(() => {
-  if (!form.course_id) return teachers;
-  return teachers.filter((t) => t.course_id === form.course_id);
-}, [teachers, form.course_id]);
+  // --- Filtered Lists ---
+  const filteredTeachers = useMemo(() => {
+    if (!form.course_id) return dbData.teachers;
+    return dbData.teachers.filter((t) => t.course_id == form.course_id);
+  }, [dbData.teachers, form.course_id]);
 
-const filteredGroups = useMemo(() => {
-  return groups.filter((g) => {
-    return (
-      (!form.course_id || g.course_id === form.course_id) &&
-      (!form.teacher_id || g.teacher_id === form.teacher_id)
-    );
-  });
-}, [groups, form.course_id, form.teacher_id]);
+  const filteredGroups = useMemo(() => {
+    return dbData.groups.filter((g) => {
+      const matchCourse = !form.course_id || g.course_id == form.course_id;
+      const matchTeacher = !form.teacher_id || g.teacher_id == form.teacher_id;
+      return matchCourse && matchTeacher;
+    });
+  }, [dbData.groups, form.course_id, form.teacher_id]);
 
-  // ================= HANDLE =================
-  const handleChange = (e) => {
+  // --- Handlers ---
+  const handleChange = useCallback((e) => {
     const { name, value, type, checked } = e.target;
-
-    let val = value;
+    let val = type === "checkbox" ? checked : value;
 
     if (name === "phone" || name === "parent_phone") val = formatPhone(value);
     if (name === "monthly_fee") val = formatMoney(value);
     if (name === "teacher_percent") val = formatPercent(value);
 
-    setForm((p) => ({
-      ...p,
-      [name]: type === "checkbox" ? checked : val,
-    }));
-  };
+    setForm((prev) => {
+      const next = { ...prev, [name]: val };
+      
+      // Kurs o'zgarsa bog'liqlarni tozalash
+      if (name === "course_id") {
+        next.teacher_id = "";
+        next.group_id = "";
+      }
+      // O'qituvchi o'zgarsa guruhni tozalash
+      if (name === "teacher_id") {
+        next.group_id = "";
+      }
+      
+      return next;
+    });
+  }, []);
 
-  // ================= VALIDATION =================
-  const validate = () => {
-    if (!form.first_name.trim()) return "First name required";
-    if (!form.last_name.trim()) return "Last name required";
-    if (onlyDigits(form.phone).length < 12) return "Phone invalid";
-    return null;
-  };
-
-  // ================= SUBMIT (ADD + EDIT) =================
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const err = validate();
-    if (err) return alert(err);
+    if (!form.first_name.trim() || !form.last_name.trim()) {
+      return alert("Ism va familiya majburiy!");
+    }
 
     setLoading(true);
 
@@ -198,148 +182,145 @@ const filteredGroups = useMemo(() => {
       paid: form.paid,
     };
 
-    let result;
-
-    if (isEdit) {
-      result = await supabase
-        .from("students")
-        .update(payload)
-        .eq("id", editStudent.id);
-    } else {
-      result = await supabase.from("students").insert(payload);
-    }
+    const { error } = isEdit
+      ? await supabase.from("students").update(payload).eq("id", editStudent.id)
+      : await supabase.from("students").insert(payload);
 
     setLoading(false);
 
-    if (result.error) return alert(result.error.message);
-
-    if (onFinish) return onFinish();
-    navigate(`/dashboard/${branchId}/students`);
+    if (error) {
+      alert(error.message);
+    } else {
+      onFinish ? onFinish() : navigate(`/dashboard/${branchId}/students`);
+    }
   };
 
-  // ================= UI =================
-  if (!branchId) return <div>No branch selected</div>;
+  if (!branchId) return <div className="p-4">Branch topilmadi...</div>;
 
   return (
     <div className="add-page">
-
       {/* HEADER */}
       <div className="header">
         <FiHome />
         <div>
-          <p>Active Branch</p>
+          <p>Filial</p>
           <h3>{activeBranch?.name}</h3>
         </div>
       </div>
 
       <h2>
         <FiUserCheck />
-        {isEdit ? " Edit Student" : " Create New Student"}
+        {isEdit ? " O'quvchini tahrirlash" : " Yangi o'quvchi qo'shish"}
       </h2>
 
-      {fetching && <p>Loading...</p>}
+      {fetching && <div className="loading-bar">Yuklanmoqda...</div>}
 
       <form onSubmit={handleSubmit} className="form">
-
-        {/* PERSONAL */}
+        {/* SHAXSIY MA'LUMOTLAR */}
         <div className="section">
-          <h4><FiUser /> Personal Info</h4>
-
+          <h4><FiUser /> Shaxsiy ma'lumotlar</h4>
           <div className="grid">
-
-            <Field label="First Name">
-              <Input icon={<FiUserCheck />} name="first_name" value={form.first_name} onChange={handleChange} />
+            <Field label="Ismi">
+              <Input icon={<FiUserCheck />} name="first_name" value={form.first_name} onChange={handleChange} required />
             </Field>
-
-            <Field label="Last Name">
-              <Input icon={<FiUser />} name="last_name" value={form.last_name} onChange={handleChange} />
+            <Field label="Familiyasi">
+              <Input icon={<FiUser />} name="last_name" value={form.last_name} onChange={handleChange} required />
             </Field>
-
-            <Field label="Student Phone">
+            <Field label="O'quvchi telefoni">
               <Input icon={<FiPhone />} name="phone" value={form.phone} onChange={handleChange} />
             </Field>
-
-            <Field label="Parent Phone">
+            <Field label="Ota-ona telefoni">
               <Input icon={<FiPhone />} name="parent_phone" value={form.parent_phone} onChange={handleChange} />
             </Field>
-
           </div>
         </div>
 
-        {/* EDUCATION */}
+        {/* TA'LIM */}
         <div className="section">
-          <h4><FiBookOpen /> Education</h4>
-
+          <h4><FiBookOpen /> Ta'lim ma'lumotlari</h4>
           <div className="grid">
-
-            <Field label="Course">
-              <Select icon={<FiBookOpen />} name="course_id" value={form.course_id} onChange={handleChange} options={courses} />
+            <Field label="Kurs">
+              <Select 
+                icon={<FiBookOpen />} 
+                name="course_id" 
+                value={form.course_id} 
+                onChange={handleChange} 
+                options={dbData.courses} 
+              />
             </Field>
-
-            <Field label="Teacher">
-              <Select icon={<FiUsers />} name="teacher_id" value={form.teacher_id} onChange={handleChange} options={filteredTeachers} />
+            <Field label="O'qituvchi">
+              <Select 
+                icon={<FiUsers />} 
+                name="teacher_id" 
+                value={form.teacher_id} 
+                onChange={handleChange} 
+                options={filteredTeachers}
+                disabled={!form.course_id}
+                placeholder={form.course_id ? "Tanlang" : "Oldin kursni tanlang"}
+              />
             </Field>
-
-            <Field label="Group">
-              <Select icon={<FiClipboard />} name="group_id" value={form.group_id} onChange={handleChange} options={filteredGroups} />
+            <Field label="Guruh">
+              <Select 
+                icon={<FiClipboard />} 
+                name="group_id" 
+                value={form.group_id} 
+                onChange={handleChange} 
+                options={filteredGroups}
+                disabled={!form.course_id || filteredGroups.length === 0}
+                placeholder={
+                  !form.course_id 
+                  ? "Kursni tanlang" 
+                  : filteredGroups.length === 0 
+                  ? "Guruh mavjud emas" 
+                  : "Guruhni tanlang"
+                }
+              />
             </Field>
-
-            <Field label="Start Date">
+            <Field label="Boshlash sanasi">
               <DateInput name="start_date" value={form.start_date} onChange={handleChange} />
             </Field>
-
           </div>
         </div>
 
-        {/* PAYMENT */}
+        {/* TO'LOV */}
         <div className="section">
-          <h4><FiCreditCard /> Payment</h4>
-
+          <h4><FiCreditCard /> To'lov ma'lumotlari</h4>
           <div className="grid">
-
-            <Field label="Payment Date">
+            <Field label="To'lov sanasi">
               <DateInput name="payment_date" value={form.payment_date} onChange={handleChange} />
             </Field>
-
-            <Field label="Next Payment Date">
+            <Field label="Keyingi to'lov sanasi">
               <DateInput name="next_payment_date" value={form.next_payment_date} onChange={handleChange} />
             </Field>
-
-            <Field label="Monthly Fee">
+            <Field label="Oylik to'lov">
               <Input icon={<FiTrendingUp />} name="monthly_fee" value={form.monthly_fee} onChange={handleChange} />
             </Field>
-
-            <Field label="Teacher %">
+            <Field label="O'qituvchi ulushi (%)">
               <Input icon={<FiDollarSign />} name="teacher_percent" value={form.teacher_percent} onChange={handleChange} />
             </Field>
-
           </div>
-
           <label className="checkbox">
             <input type="checkbox" name="paid" checked={form.paid} onChange={handleChange} />
-            <FiCheckCircle /> Paid
+            <FiCheckCircle color={form.paid ? "#22c55e" : "#ccc"} /> To'lov qilindi
           </label>
         </div>
 
-        {/* ACTIONS */}
+        {/* BUTTONS */}
         <div className="actions">
-          <button type="submit" disabled={loading}>
+          <button type="submit" className="submit-btn" disabled={loading}>
             <FiSave />
-            {loading ? "Saving..." : isEdit ? "Update Student" : "Create Student"}
+            {loading ? "Saqlanmoqda..." : (isEdit ? "Yangilash" : "Saqlash")}
           </button>
-
-          <button type="button" onClick={() => navigate(-1)}>
-            <FiX /> Cancel
+          <button type="button" className="cancel-btn" onClick={() => navigate(-1)}>
+            <FiX /> Bekor qilish
           </button>
         </div>
-
       </form>
     </div>
   );
 }
 
-/* ================= UI COMPONENTS ================= */
-
+// ================= UI COMPONENTS =================
 const Field = ({ label, children }) => (
   <div className="field">
     <label>{label}</label>
@@ -350,17 +331,19 @@ const Field = ({ label, children }) => (
 const Input = ({ icon, ...props }) => (
   <div className="input">
     {icon}
-    <input {...props} />
+    <input {...props} autoComplete="off" />
   </div>
 );
 
-const Select = ({ icon, options, ...props }) => (
+const Select = ({ icon, options, placeholder = "Select", ...props }) => (
   <div className="input">
     {icon}
     <select {...props}>
-      <option value="">Select</option>
+      <option value="">{placeholder}</option>
       {options.map((o) => (
-        <option key={o.id} value={o.id}>{o.name}</option>
+        <option key={o.id} value={o.id}>
+          {o.name || o.group_name || o.title}
+        </option>
       ))}
     </select>
   </div>

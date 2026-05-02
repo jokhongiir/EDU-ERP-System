@@ -1,227 +1,231 @@
-/* ================= ROOT ================= */
 :root {
-  --bg: #f4f6fb;
-  --card: #ffffff;
-  --text: #0f172a;
-  --muted: #64748b;
-
-  --primary: #2563eb;
-  --primary-dark: #1d4ed8;
-
-  --border: #e5e7eb;
-  --shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --success: #22c55e;
+  --danger: #ef4444;
+  --bg-page: #f8fafc;
+  --bg-card: #ffffff;
+  --text-dark: #1e293b;
+  --text-gray: #64748b;
+  --border: #e2e8f0;
+  --ring: rgba(79, 70, 229, 0.15);
+  --radius: 12px;
 }
 
-/* ================= PAGE ================= */
 .add-page {
-  font-family: "Inter", sans-serif;
-  color: var(--text);
+  font-family: 'Inter', system-ui, sans-serif;
+  background-color: var(--bg-page);
+  min-height: 100vh;
 }
 
-/* ================= HEADER ================= */
+/* Header qismi */
 .header {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 16px 20px;
-  background: var(--card);
-  border-radius: 14px;
-  box-shadow: var(--shadow);
-  margin-bottom: 18px;
+  gap: 1rem;
+  background: var(--bg-card);
+  padding: 1.25rem;
+  border-radius: var(--radius);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  margin-bottom: 2rem;
 }
 
 .header svg {
-  font-size: 22px;
+  font-size: 1.5rem;
   color: var(--primary);
-}
-
-.header p {
-  margin: 0;
-  font-size: 12px;
-  color: var(--muted);
 }
 
 .header h3 {
   margin: 0;
-  font-size: 16px;
-  font-weight: 600;
+  color: var(--text-dark);
+  font-size: 1.1rem;
 }
 
-/* ================= TITLE ================= */
-.add-page h2 {
-  font-size: 22px;
-  font-weight: 700;
-  margin: 18px 0;
+.header p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-gray);
+}
+
+/* Sarlavha */
+h2 {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 0.75rem;
+  color: var(--text-dark);
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
 }
 
-/* ================= ERROR ================= */
-.error {
-  background: #fee2e2;
-  color: #b91c1c;
-  padding: 10px 14px;
-  border-radius: 10px;
-  margin-bottom: 12px;
-  font-size: 13px;
-}
-
-/* ================= FORM ================= */
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-/* ================= SECTION CARD ================= */
+/* Sektsiyalar (Kardlar) */
 .section {
-  background: var(--card);
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: var(--shadow);
+  background: var(--bg-card);
+  padding: 2rem;
+  border-radius: var(--radius);
   border: 1px solid var(--border);
+  margin-bottom: 2rem;
+  transition: transform 0.2s ease;
+}
+
+.section:hover {
+  border-color: var(--primary);
 }
 
 .section h4 {
-  font-size: 15px;
-  margin-bottom: 16px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
+  color: var(--primary);
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-/* ================= GRID ================= */
+/* Grid tizimi */
 .grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
 }
 
-/* ================= FIELD ================= */
+/* Input va Fieldlar */
 .field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0.5rem;
 }
 
 .field label {
-  font-size: 12px;
-  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-dark);
 }
 
-/* ================= INPUT WRAPPER ================= */
 .input {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: #f9fafb;
-  transition: 0.2s ease;
+  gap: 0.75rem;
+  background: #fdfdfd;
+  border: 1.5px solid var(--border);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.input:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--ring);
+  background: #fff;
 }
 
 .input svg {
-  font-size: 18px;
+  color: var(--text-gray);
+  font-size: 1.1rem;
+}
+
+.input input, .input select {
+  border: none;
+  background: transparent;
+  width: 100%;
+  outline: none;
+  font-size: 0.95rem;
+  color: var(--text-dark);
+}
+
+/* Select disabled holati */
+.input select:disabled {
+  cursor: not-allowed;
   color: #94a3b8;
 }
 
-/* input/select */
-.input input,
-.input select {
-  width: 100%;
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 14px;
-  color: var(--text);
-}
-
-/* focus */
-.input:focus-within {
-  border-color: var(--primary);
-  background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-}
-
-/* ================= CHECKBOX ================= */
+/* Checkbox */
 .checkbox {
-  margin-top: 14px;
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 14px;
-  color: var(--text);
+  gap: 0.75rem;
+  margin-top: 1rem;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--text-dark);
+  width: fit-content;
 }
 
 .checkbox input {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--success);
 }
 
-/* ================= ACTIONS ================= */
+/* Tugmalar */
 .actions {
   display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 10px;
+  gap: 1rem;
+  margin-top: 2rem;
 }
 
-/* BUTTON BASE */
-.actions button {
-  padding: 10px 16px;
-  border-radius: 12px;
-  border: none;
-  font-size: 14px;
-  cursor: pointer;
+.submit-btn {
+  flex: 2;
   display: flex;
   align-items: center;
-  gap: 8px;
-  transition: 0.2s;
-}
-
-/* PRIMARY BUTTON */
-.actions button[type="submit"] {
+  justify-content: center;
+  gap: 0.5rem;
   background: var(--primary);
   color: white;
+  border: none;
+  padding: 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.actions button[type="submit"]:hover {
-  background: var(--primary-dark);
+.submit-btn:hover:not(:disabled) {
+  background: var(--primary-hover);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
 }
 
-/* SECONDARY */
-.actions button[type="button"] {
-  background: #e2e8f0;
-  color: #0f172a;
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-.actions button[type="button"]:hover {
-  background: #cbd5e1;
+.cancel-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: #fff;
+  color: var(--text-gray);
+  border: 1.5px solid var(--border);
+  padding: 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-/* ================= LOADING ================= */
-.add-page p {
-  color: var(--muted);
+.cancel-btn:hover {
+  background: #f1f5f9;
+  color: var(--text-dark);
 }
 
-/* ================= RESPONSIVE ================= */
-@media (max-width: 768px) {
-  .grid {
-    grid-template-columns: 1fr;
-  }
+/* Loading animatsiyasi */
+.loading-bar {
+  padding: 0.75rem;
+  background: #eef2ff;
+  color: var(--primary);
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 500;
+  margin-bottom: 1.5rem;
+  border: 1px dashed var(--primary);
+}
 
-  .add-page {
-    padding: 14px;
-  }
-
-  .actions {
-    flex-direction: column;
-  }
-
-  .actions button {
-    width: 100%;
-    justify-content: center;
-  }
+/* Mobil moslashuv */
+@media (max-width: 640px) {
+  .grid { grid-template-columns: 1fr; }
+  .actions { flex-direction: column; }
+  .submit-btn, .cancel-btn { width: 100%; }
 }
