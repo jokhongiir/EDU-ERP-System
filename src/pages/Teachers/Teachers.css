@@ -1,14 +1,31 @@
-/* ================= GLOBAL ================= */
-* {
-  box-sizing: border-box;
+/* ================= ROOT ================= */
+:root {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+
+  --bg: #f8fafc;
+  --card: #ffffff;
+
+  --text: #0f172a;
+  --muted: #64748b;
+
+  --border: #e2e8f0;
+
+  --green: #10b981;
+  --red: #ef4444;
+
+  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 12px 30px rgba(0, 0, 0, 0.08);
+
+  --radius: 14px;
 }
 
+/* ================= BASE ================= */
 .teachers-main-container {
-  font-family: Inter, sans-serif;
-  color: #0f172a;
+  font-family: "Inter", system-ui, sans-serif;
 }
 
-/* ================= HEADER ================= */
+/* ================= TOP BAR ================= */
 .teachers-top-bar {
   display: flex;
   justify-content: space-between;
@@ -16,38 +33,37 @@
   margin-bottom: 18px;
 }
 
-.branch-title-text {
+.teachers-info-header h2 {
   font-size: 22px;
-  font-weight: 800;
-  letter-spacing: -0.3px;
+  font-weight: 700;
+  margin: 0;
 }
 
 .branch-subtitle-text {
   font-size: 13px;
-  color: #64748b;
+  color: var(--muted);
   margin-top: 4px;
 }
 
+/* ================= ADD BUTTON ================= */
 .add-teacher-btn {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  color: white;
+  background: var(--primary);
+  color: #fff;
   border: none;
   padding: 10px 16px;
-  border-radius: 12px;
+  border-radius: 10px;
   font-weight: 600;
   cursor: pointer;
-
   display: flex;
+  gap: 6px;
   align-items: center;
-  gap: 8px;
-
-  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.25);
-  transition: 0.25s ease;
+  box-shadow: var(--shadow-sm);
+  transition: 0.2s;
 }
 
 .add-teacher-btn:hover {
+  background: var(--primary-hover);
   transform: translateY(-2px);
-  box-shadow: 0 14px 30px rgba(37, 99, 235, 0.35);
 }
 
 /* ================= SEARCH ================= */
@@ -55,36 +71,33 @@
   display: flex;
   align-items: center;
   gap: 10px;
-
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: var(--card);
+  border: 1px solid var(--border);
   padding: 10px 14px;
-  border-radius: 14px;
-
+  border-radius: var(--radius);
+  max-width: 380px;
+  box-shadow: var(--shadow-sm);
   margin-bottom: 18px;
-
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.03);
-}
-
-.search-input-field {
-  width: 100%;
-  border: none;
-  outline: none;
-  font-size: 14px;
 }
 
 .search-icon-fixed {
-  color: #64748b;
+  color: var(--muted);
+}
+
+.search-input-field {
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 14px;
+  background: transparent;
 }
 
 /* ================= TABLE ================= */
 .teachers-list-table-box {
-  background: white;
-  border-radius: 16px;
+  background: var(--card);
+  border-radius: var(--radius);
   overflow: hidden;
-
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-sm);
 }
 
 .teachers-data-table {
@@ -98,48 +111,54 @@
 
 .teachers-data-table th {
   text-align: left;
-  padding: 14px;
   font-size: 12px;
+  padding: 14px;
+  color: var(--muted);
   text-transform: uppercase;
-  color: #475569;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.05em;
 }
 
 .table-body-row {
-  transition: 0.2s ease;
+  transition: 0.2s;
+  cursor: pointer;
 }
 
 .table-body-row:hover {
   background: #f8fafc;
-  transform: scale(1.002);
 }
 
 .teachers-data-table td {
+  text-align: left;
   padding: 14px;
   font-size: 14px;
-  border-top: 1px solid #f1f5f9;
-  text-align: left;
+  border-bottom: 1px solid var(--border);
 }
 
 .teacher-name-col {
-  font-weight: 700;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.income-amount-col {
+  font-weight: 600;
+  color: var(--green);
 }
 
 /* ================= STATUS ================= */
 .status-cell {
-  font-weight: 700;
-  font-size: 13px;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .status-paid {
-  color: #16a34a;
+  color: var(--green);
 }
 
 .status-unpaid {
-  color: #dc2626;
+  color: var(--red);
 }
 
-/* ================= ACTION BUTTONS ================= */
+/* ================= ACTIONS ================= */
 .actions-col {
   display: flex;
   gap: 8px;
@@ -147,75 +166,68 @@
 
 .action-btn-edit,
 .action-btn-delete {
-  border: none;
   width: 34px;
   height: 34px;
-
-  border-radius: 10px;
+  border: none;
+  border-radius: 8px;
   cursor: pointer;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
-  transition: 0.2s ease;
+  transition: 0.2s;
 }
 
 .action-btn-edit {
-  background: #e0f2fe;
-  color: #0284c7;
+  background: #eff6ff;
+  color: var(--primary);
 }
 
 .action-btn-edit:hover {
-  transform: scale(1.1);
+  background: #dbeafe;
+  transform: translateY(-2px);
 }
 
 .action-btn-delete {
   background: #fee2e2;
-  color: #dc2626;
+  color: var(--red);
 }
 
 .action-btn-delete:hover {
-  transform: scale(1.1);
+  background: #fecaca;
+  transform: translateY(-2px);
 }
 
-/* ================= MODAL BACKDROP (IMPORTANT FIX) ================= */
+/* ================= MODAL ================= */
 .overlay-modal {
   position: fixed;
   inset: 0;
-  background: rgba(2, 6, 23, 0.65);
-  backdrop-filter: blur(8px);
-
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(6px);
   display: flex;
   justify-content: center;
   align-items: center;
-
-  z-index: 9999; /* 🔥 IMPORTANT FIX */
+  z-index: 999;
+  padding: 20px;
 }
 
-/* ================= MODAL BOX ================= */
 .modal-container-box {
-  width: 520px;
-  max-width: 92%;
-
-  background: white;
+  background: #fff;
+  width: 100%;
+  max-width: 650px;
   border-radius: 18px;
-
   padding: 22px;
-
-  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.25);
-
-  animation: modalIn 0.25s ease;
+  box-shadow: var(--shadow-md);
+  animation: pop 0.25s ease;
 }
 
-@keyframes modalIn {
+@keyframes pop {
   from {
-    transform: translateY(20px) scale(0.98);
     opacity: 0;
+    transform: scale(0.95);
   }
   to {
-    transform: translateY(0) scale(1);
     opacity: 1;
+    transform: scale(1);
   }
 }
 
@@ -224,42 +236,26 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .modal-title-text {
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 700;
 }
 
-/* ================= CLOSE BUTTON (PRO) ================= */
 .modal-close-trigger {
-  width: 38px;
-  height: 38px;
-
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-
-  background: #f8fafc;
+  background: transparent;
+  border: none;
+  font-size: 20px;
   cursor: pointer;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  transition: 0.2s ease;
-}
-
-.modal-close-trigger:hover {
-  /* color: white; */
-  transform: rotate(90deg);
 }
 
 /* ================= FORM ================= */
 .teacher-entry-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
 }
 
 .form-input-group {
@@ -269,32 +265,31 @@
 }
 
 .field-label {
-  font-size: 12px;
-  color: #64748b;
+  font-size: 13px;
+  color: var(--muted);
 }
 
 .field-input,
 .field-select,
 .field-date-picker {
-  padding: 10px 12px;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-
+  height: 42px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0 12px;
   outline: none;
-  font-size: 14px;
-
   transition: 0.2s;
 }
 
 .field-input:focus,
 .field-select:focus,
 .field-date-picker:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 /* ================= CHECKBOX ================= */
 .form-checkbox-control {
+  grid-column: span 2;
   display: flex;
   align-items: center;
 }
@@ -302,60 +297,72 @@
 .checkbox-container {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
+  gap: 10px;
+  font-weight: 500;
 }
 
-/* ================= SUBMIT BUTTON ================= */
+/* ================= SUBMIT ================= */
 .form-submit-btn {
-  margin-top: 6px;
-
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  color: white;
-
+  grid-column: span 2;
+  background: var(--primary);
+  color: #fff;
   border: none;
-  padding: 12px;
-  border-radius: 14px;
-
-  font-weight: 700;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 600;
   cursor: pointer;
-
-  transition: 0.2s ease;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  transition: 0.2s;
 }
 
 .form-submit-btn:hover {
+  background: var(--primary-hover);
   transform: translateY(-2px);
 }
 
-/* ================= VIEW GRID ================= */
+/* ================= VIEW ================= */
 .details-info-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 14px;
 }
 
 .detail-stat-card {
   background: #f8fafc;
-  border: 1px solid #e2e8f0;
-
+  border: 1px solid var(--border);
+  border-radius: 12px;
   padding: 12px;
-  border-radius: 14px;
-
   display: flex;
   gap: 10px;
   align-items: center;
 }
 
+.stat-icon {
+  color: var(--primary);
+  font-size: 20px;
+}
+
 .stat-label {
   font-size: 11px;
-  color: #64748b;
+  color: var(--muted);
 }
 
 .stat-value {
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 600;
 }
 
-/* ================= CONFIRM MODAL ================= */
+.status-text.status-paid {
+  color: var(--green);
+}
+
+.status-text.status-unpaid {
+  color: var(--red);
+}
+
+/* ================= CONFIRM ================= */
 .confirm-box {
   text-align: center;
 }
@@ -363,7 +370,6 @@
 .confirm-message-text {
   font-size: 16px;
   margin-bottom: 14px;
-  font-weight: 600;
 }
 
 .confirm-btn-group {
@@ -373,16 +379,33 @@
 }
 
 .confirm-yes-btn {
-  background: #ef4444;
+  background: var(--red);
   color: white;
   border: none;
   padding: 8px 14px;
-  border-radius: 10px;
+  border-radius: 8px;
 }
 
 .confirm-no-btn {
   background: #e2e8f0;
   border: none;
   padding: 8px 14px;
-  border-radius: 10px;
+  border-radius: 8px;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+  .teacher-entry-form {
+    grid-template-columns: 1fr;
+  }
+
+  .details-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .teachers-top-bar {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
 }

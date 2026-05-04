@@ -22,7 +22,7 @@ export default function DashboardHome({ activeBranch }) {
     try {
       setLoading(true);
 
-      // Barcha asosiy countlarni va chart uchun kerakli datalarni bir yo'la olamiz
+      // Fetch all basic counts and chart data in parallel
       const [st, tc, co, gr, allSt] = await Promise.all([
         supabase.from("students").select("id", { count: "exact", head: true }).eq("branch_id", branchId),
         supabase.from("teachers").select("id", { count: "exact", head: true }).eq("branch_id", branchId),
@@ -31,7 +31,7 @@ export default function DashboardHome({ activeBranch }) {
         supabase.from("students").select("course_id").eq("branch_id", branchId)
       ]);
 
-      // Chart ma'lumotlarini JS yordamida hisoblaymiz (Bazaga ortiqcha yuk tushmaydi)
+      // Calculate chart data via JS (to avoid database overhead)
       const chartMap = co.data?.map(course => ({
         name: course.name,
         count: allSt.data?.filter(s => s.course_id === course.id).length || 0
@@ -59,10 +59,10 @@ export default function DashboardHome({ activeBranch }) {
   }, [fetchDashboardData]);
 
   const cards = [
-    { label: "Talabalar", val: data.stats.students, icon: <FiUsers />, color: "var(--blue)" },
-    { label: "O'qituvchilar", val: data.stats.teachers, icon: <FiUserCheck />, color: "var(--emerald)" },
-    { label: "Kurslar", val: data.stats.courses, icon: <FiBookOpen />, color: "var(--amber)" },
-    { label: "Guruhlar", val: data.stats.groups, icon: <FiLayers />, color: "var(--rose)" },
+    { label: "Students", val: data.stats.students, icon: <FiUsers />, color: "var(--blue)" },
+    { label: "Teachers", val: data.stats.teachers, icon: <FiUserCheck />, color: "var(--emerald)" },
+    { label: "Courses", val: data.stats.courses, icon: <FiBookOpen />, color: "var(--amber)" },
+    { label: "Groups", val: data.stats.groups, icon: <FiLayers />, color: "var(--rose)" },
   ];
 
   return (
@@ -70,14 +70,14 @@ export default function DashboardHome({ activeBranch }) {
       {/* HEADER */}
       <div className="dash-header">
         <div className="header-info">
-          <h1>Tahliliy Ma'lumotlar</h1>
-          <p>{activeBranch?.name || "Filial tanlanmagan"}</p>
+          <h1>Analytics Overview</h1>
+          <p>{activeBranch?.name || "No branch selected"}</p>
         </div>
         <button 
           className={`refresh-action ${refreshing ? "spinning" : ""}`} 
           onClick={() => { setRefreshing(true); fetchDashboardData(); }}
         >
-          <FiRefreshCw /> {refreshing ? "Yangilanmoqda..." : "Yangilash"}
+          <FiRefreshCw /> {refreshing ? "Refreshing..." : "Refresh"}
         </button>
       </div>
 
@@ -100,8 +100,8 @@ export default function DashboardHome({ activeBranch }) {
       {/* CHART SECTION */}
       <div className="chart-section">
         <div className="chart-info">
-          <h3>O'quv Yo'nalishlari Faolligi</h3>
-          <p>Kurslar bo'yicha talabalar taqsimoti</p>
+          <h3>Course Activity</h3>
+          <p>Student distribution by course</p>
         </div>
 
         <div className="chart-canvas">

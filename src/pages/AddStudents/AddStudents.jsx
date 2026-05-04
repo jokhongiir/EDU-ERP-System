@@ -55,6 +55,7 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
 
+
   // --- Form State ---
   const [form, setForm] = useState({
     first_name: "",
@@ -142,12 +143,12 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
     setForm((prev) => {
       const next = { ...prev, [name]: val };
       
-      // Kurs o'zgarsa bog'liqlarni tozalash
+      // Clear dependencies if course changes
       if (name === "course_id") {
         next.teacher_id = "";
         next.group_id = "";
       }
-      // O'qituvchi o'zgarsa guruhni tozalash
+      // Clear group if teacher changes
       if (name === "teacher_id") {
         next.group_id = "";
       }
@@ -160,7 +161,7 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
     e.preventDefault();
 
     if (!form.first_name.trim() || !form.last_name.trim()) {
-      return alert("Ism va familiya majburiy!");
+      return alert("First name and Last name are required!");
     }
 
     setLoading(true);
@@ -195,7 +196,7 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
     }
   };
 
-  if (!branchId) return <div className="p-4">Branch topilmadi...</div>;
+  if (!branchId) return <div className="p-4">Branch not found...</div>;
 
   return (
     <div className="add-page">
@@ -203,43 +204,43 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
       <div className="header">
         <FiHome />
         <div>
-          <p>Filial</p>
+          <p>Branch</p>
           <h3>{activeBranch?.name}</h3>
         </div>
       </div>
 
       <h2>
         <FiUserCheck />
-        {isEdit ? " O'quvchini tahrirlash" : " Yangi o'quvchi qo'shish"}
+        {isEdit ? " Edit Student" : " Add New Student"}
       </h2>
 
-      {fetching && <div className="loading-bar">Yuklanmoqda...</div>}
+      {fetching && <div className="loading-bar">Loading...</div>}
 
       <form onSubmit={handleSubmit} className="form">
-        {/* SHAXSIY MA'LUMOTLAR */}
+        {/* PERSONAL INFORMATION */}
         <div className="section">
-          <h4><FiUser /> Shaxsiy ma'lumotlar</h4>
+          <h4><FiUser /> Personal Information</h4>
           <div className="grid">
-            <Field label="Ismi">
+            <Field label="First Name">
               <Input icon={<FiUserCheck />} name="first_name" value={form.first_name} onChange={handleChange} required />
             </Field>
-            <Field label="Familiyasi">
+            <Field label="Last Name">
               <Input icon={<FiUser />} name="last_name" value={form.last_name} onChange={handleChange} required />
             </Field>
-            <Field label="O'quvchi telefoni">
+            <Field label="Student Phone">
               <Input icon={<FiPhone />} name="phone" value={form.phone} onChange={handleChange} />
             </Field>
-            <Field label="Ota-ona telefoni">
+            <Field label="Parent Phone">
               <Input icon={<FiPhone />} name="parent_phone" value={form.parent_phone} onChange={handleChange} />
             </Field>
           </div>
         </div>
 
-        {/* TA'LIM */}
+        {/* EDUCATION */}
         <div className="section">
-          <h4><FiBookOpen /> Ta'lim ma'lumotlari</h4>
+          <h4><FiBookOpen /> Education Details</h4>
           <div className="grid">
-            <Field label="Kurs">
+            <Field label="Course">
               <Select 
                 icon={<FiBookOpen />} 
                 name="course_id" 
@@ -248,7 +249,7 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
                 options={dbData.courses} 
               />
             </Field>
-            <Field label="O'qituvchi">
+            <Field label="Teacher">
               <Select 
                 icon={<FiUsers />} 
                 name="teacher_id" 
@@ -256,10 +257,10 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
                 onChange={handleChange} 
                 options={filteredTeachers}
                 disabled={!form.course_id}
-                placeholder={form.course_id ? "Tanlang" : "Oldin kursni tanlang"}
+                placeholder={form.course_id ? "Select" : "Select course first"}
               />
             </Field>
-            <Field label="Guruh">
+            <Field label="Group">
               <Select 
                 icon={<FiClipboard />} 
                 name="group_id" 
@@ -269,39 +270,39 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
                 disabled={!form.course_id || filteredGroups.length === 0}
                 placeholder={
                   !form.course_id 
-                  ? "Kursni tanlang" 
+                  ? "Select course" 
                   : filteredGroups.length === 0 
-                  ? "Guruh mavjud emas" 
-                  : "Guruhni tanlang"
+                  ? "No groups available" 
+                  : "Select group"
                 }
               />
             </Field>
-            <Field label="Boshlash sanasi">
+            <Field label="Start Date">
               <DateInput name="start_date" value={form.start_date} onChange={handleChange} />
             </Field>
           </div>
         </div>
 
-        {/* TO'LOV */}
+        {/* PAYMENT */}
         <div className="section">
-          <h4><FiCreditCard /> To'lov ma'lumotlari</h4>
+          <h4><FiCreditCard /> Payment Details</h4>
           <div className="grid">
-            <Field label="To'lov sanasi">
+            <Field label="Payment Date">
               <DateInput name="payment_date" value={form.payment_date} onChange={handleChange} />
             </Field>
-            <Field label="Keyingi to'lov sanasi">
+            <Field label="Next Payment Date">
               <DateInput name="next_payment_date" value={form.next_payment_date} onChange={handleChange} />
             </Field>
-            <Field label="Oylik to'lov">
+            <Field label="Monthly Fee">
               <Input icon={<FiTrendingUp />} name="monthly_fee" value={form.monthly_fee} onChange={handleChange} />
             </Field>
-            <Field label="O'qituvchi ulushi (%)">
+            <Field label="Teacher's Share (%)">
               <Input icon={<FiDollarSign />} name="teacher_percent" value={form.teacher_percent} onChange={handleChange} />
             </Field>
           </div>
           <label className="checkbox">
             <input type="checkbox" name="paid" checked={form.paid} onChange={handleChange} />
-            <FiCheckCircle color={form.paid ? "#22c55e" : "#ccc"} /> To'lov qilindi
+            <FiCheckCircle color={form.paid ? "#22c55e" : "#ccc"} /> Paid
           </label>
         </div>
 
@@ -309,10 +310,10 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
         <div className="actions">
           <button type="submit" className="submit-btn" disabled={loading}>
             <FiSave />
-            {loading ? "Saqlanmoqda..." : (isEdit ? "Yangilash" : "Saqlash")}
+            {loading ? "Saving..." : (isEdit ? "Update" : "Save")}
           </button>
           <button type="button" className="cancel-btn" onClick={() => navigate(-1)}>
-            <FiX /> Bekor qilish
+            <FiX /> Cancel
           </button>
         </div>
       </form>

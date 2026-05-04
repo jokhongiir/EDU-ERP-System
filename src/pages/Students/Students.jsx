@@ -23,7 +23,7 @@ export default function Students({ activeBranch }) {
   const [teachers, setTeachers] = useState([]);
   const [groups, setGroups] = useState([]);
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
   const [viewOpen, setViewOpen] = useState(false);
@@ -192,9 +192,8 @@ export default function Students({ activeBranch }) {
       </div>
 
       {/* ================= CONTENT ================= */}
-      {loading ? (
-        <div className="students__loading">Loading students...</div>
-      ) : filteredStudents.length === 0 ? (
+      {/* ================= CONTENT ================= */}
+      {filteredStudents.length === 0 && !loading ? (
         <div className="students__empty">
           <FiUser size={40} />
           <p>No students found</p>
@@ -215,44 +214,72 @@ export default function Students({ activeBranch }) {
           </thead>
 
           <tbody>
-            {filteredStudents.map((s, i) => (
-              <tr key={s.id} onClick={() => openView(s)}>
-                <td>{i + 1}</td>
+            {loading
+              ? Array.from({ length: 6 }).map((_, i) => (
+                  <tr key={i}>
+                    <td>
+                      <div className="skeleton skeleton-id"></div>
+                    </td>
+                    <td>
+                      <div className="skeleton skeleton-text"></div>
+                    </td>
+                    <td>
+                      <div className="skeleton skeleton-text"></div>
+                    </td>
+                    <td>
+                      <div className="skeleton skeleton-text"></div>
+                    </td>
+                    <td>
+                      <div className="skeleton skeleton-text"></div>
+                    </td>
+                    <td>
+                      <div className="skeleton skeleton-text"></div>
+                    </td>
+                    <td>
+                      <div className="skeleton skeleton-badge"></div>
+                    </td>
+                    <td>
+                      <div className="skeleton skeleton-btn"></div>
+                    </td>
+                  </tr>
+                ))
+              : filteredStudents.map((s, i) => (
+                  <tr key={s.id} onClick={() => openView(s)}>
+                    <td>{i + 1}</td>
 
-                <td>
-                  {s.first_name} {s.last_name}
-                </td>
+                    <td>
+                      {s.first_name} {s.last_name}
+                    </td>
+                    <td>{s.phone}</td>
+                    <td>{s.courses?.name}</td>
+                    <td>{s.teachers?.name}</td>
+                    <td>{s.groups?.name}</td>
 
-                <td>{s.phone}</td>
-                <td>{s.courses?.name}</td>
-                <td>{s.teachers?.name}</td>
-                <td>{s.groups?.name}</td>
+                    <td>
+                      {s.paid ? (
+                        <span className="status paid">
+                          <FiCheckCircle /> Paid
+                        </span>
+                      ) : (
+                        <span className="status unpaid">Unpaid</span>
+                      )}
+                    </td>
 
-                <td>
-                  {s.paid ? (
-                    <span className="status paid">
-                      <FiCheckCircle /> Paid
-                    </span>
-                  ) : (
-                    <span className="status unpaid">Unpaid</span>
-                  )}
-                </td>
-
-                <td onClick={(e) => e.stopPropagation()}>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openEdit(s);
-                    }}
-                  >
-                    <FiEdit />
-                  </button>
-                  <button onClick={() => handleDelete(s.id)}>
-                    <FiTrash2 />
-                  </button>
-                </td>
-              </tr>
-            ))}
+                    <td onClick={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openEdit(s);
+                        }}
+                      >
+                        <FiEdit />
+                      </button>
+                      <button onClick={() => handleDelete(s.id)}>
+                        <FiTrash2 />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
           </tbody>
         </table>
       )}
