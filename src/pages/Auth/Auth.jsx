@@ -2,6 +2,7 @@ import { useState } from "react";
 import { supabase } from "../../services/supabaseClient";
 import { useNavigate } from "react-router-dom";
 import BranchModal from "../BranchModal/BranchModal";
+import logo2 from '../../assets/logo2.png'
 import "./Auth.css";
 
 export default function Auth() {
@@ -47,18 +48,20 @@ export default function Auth() {
         });
 
         if (signUpError) throw signUpError;
-        if (!data.user) throw new Error("An error occurred during registration.");
+        if (!data.user)
+          throw new Error("An error occurred during registration.");
 
         setUserId(data.user.id);
         setShowBranchModal(true);
-      } 
-      
+      }
+
       // 2. LOGIN LOGIC
       else {
-        const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+        const { data: authData, error: signInError } =
+          await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
 
         if (signInError) throw signInError;
 
@@ -106,8 +109,19 @@ export default function Auth() {
 
       <div className="authCard">
         <div className="authLeft">
-          <h1 className="authLogo">Edu ERP</h1>
-          <p className="authText">Smart Education Management System</p>
+          <div className="authLeftContent">
+            <img
+              src={logo2} // o‘zing image qo‘y (public papkaga)
+              alt="education"
+              className="authImage"
+            />
+
+            <h1 className="authLogo">Edu ERP</h1>
+
+            <p className="authText">
+              Smart Education Management System for modern learning centers.
+            </p>
+          </div>
         </div>
 
         <div className="authRight">
@@ -149,11 +163,7 @@ export default function Auth() {
 
             {error && <div className="authError">{error}</div>}
 
-            <button 
-              type="submit" 
-              className="authButton" 
-              disabled={loading}
-            >
+            <button type="submit" className="authButton" disabled={loading}>
               {loading ? (
                 <span className="loader">Processing...</span>
               ) : isRegister ? (
@@ -168,7 +178,7 @@ export default function Auth() {
             className="authSwitch"
             onClick={() => {
               setIsRegister(!isRegister);
-              setError(""); 
+              setError("");
             }}
           >
             {isRegister

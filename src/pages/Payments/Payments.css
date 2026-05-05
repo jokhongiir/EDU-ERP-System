@@ -1,22 +1,22 @@
-/* ================= ROOT ================= */
+/* ================= DESIGN SYSTEM ================= */
 :root {
-  --primary: #376fff;
-  --primary-dark: #1a5bff;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
 
-  --bg: #f5f7ff;
+  --bg: #f8fafc;
   --card: #ffffff;
 
   --text: #0f172a;
   --muted: #64748b;
 
-  --border: #e5e7eb;
+  --border: #e2e8f0;
 
-  --paid: #16a34a;
-  --unpaid: #ef4444;
-  --partial: #f59e0b;
+  --green: #10b981;
+  --red: #ef4444;
+  --yellow: #f59e0b;
 
-  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 12px 30px rgba(0, 0, 0, 0.12);
+  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.08);
 
   --radius: 14px;
 }
@@ -24,10 +24,6 @@
 /* ================= BASE ================= */
 .payments {
   font-family: "Inter", system-ui, sans-serif;
-  background: var(--bg);
-  min-height: 100vh;
-  padding: 20px;
-  color: var(--text);
 }
 
 /* ================= HEADER ================= */
@@ -35,7 +31,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 
 .payments__header h2 {
@@ -56,23 +52,24 @@
   align-items: center;
   gap: 10px;
   background: var(--card);
-  padding: 12px 14px;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-sm);
-  margin-bottom: 18px;
   border: 1px solid var(--border);
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  max-width: 380px;
+  margin-bottom: 18px;
+  box-shadow: var(--shadow-sm);
   transition: 0.2s;
 }
 
 .payments__search:focus-within {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(55, 111, 255, 0.15);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .payments__search input {
-  width: 100%;
   border: none;
   outline: none;
+  width: 100%;
   font-size: 14px;
   background: transparent;
 }
@@ -89,20 +86,20 @@
 
 /* HEADER */
 .payments__table thead {
-  background: #eef2ff;
+  background: #f1f5f9;
 }
 
 .payments__table th {
   text-align: left;
-  font-size: 13px;
   padding: 14px;
+  font-size: 12px;
+  text-transform: uppercase;
   color: var(--muted);
-  font-weight: 600;
+  letter-spacing: 0.05em;
 }
 
 /* ROW */
 .payments__table td {
-  text-align: left;
   padding: 14px;
   font-size: 14px;
   border-bottom: 1px solid var(--border);
@@ -113,46 +110,47 @@
 }
 
 .payments__table tbody tr:hover {
-  background: #f8faff;
+  background: #f8fafc;
 }
 
 /* ================= STATUS ================= */
 .status {
-  padding: 5px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
   border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
 }
 
 .status.paid {
   background: #dcfce7;
-  color: var(--paid);
+  color: var(--green);
 }
 
 .status.unpaid {
   background: #fee2e2;
-  color: var(--unpaid);
+  color: var(--red);
 }
 
 .status.partial {
   background: #fef3c7;
-  color: var(--partial);
+  color: var(--yellow);
 }
 
-/* ================= ACTIONS ================= */
+/* ================= ACTION BUTTONS ================= */
 .payments__actions {
   display: flex;
   gap: 8px;
+  align-items: center;
 }
 
 .payments__actions button {
   border: none;
+  cursor: pointer;
   padding: 8px 10px;
   border-radius: 10px;
-  cursor: pointer;
   font-size: 13px;
   display: flex;
   align-items: center;
@@ -163,7 +161,7 @@
 
 /* EDIT */
 .payments__actions button:first-child {
-  background: #eef2ff;
+  background: #eff6ff;
   color: var(--primary);
 }
 
@@ -175,7 +173,7 @@
 /* PAY */
 .btn-pay {
   background: #ecfdf5;
-  color: var(--paid);
+  color: var(--green);
 }
 
 .btn-pay:hover {
@@ -186,7 +184,7 @@
 /* UNPAY */
 .btn-unpay {
   background: #fff1f2;
-  color: var(--unpaid);
+  color: var(--red);
 }
 
 .btn-unpay:hover {
@@ -197,7 +195,7 @@
 /* ================= EMPTY ================= */
 .payments__empty {
   text-align: center;
-  padding: 70px;
+  padding: 60px;
   color: var(--muted);
 }
 
@@ -208,29 +206,31 @@
   background: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(6px);
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   z-index: 999;
+  padding: 20px;
 }
 
 .modal__box {
+  background: var(--card);
   width: 100%;
-  max-width: 480px;
-  background: white;
+  max-width: 520px;
   border-radius: 18px;
-  padding: 20px;
+  padding: 22px;
   box-shadow: var(--shadow-md);
   animation: pop 0.25s ease;
 }
 
+/* ANIMATION */
 @keyframes pop {
   from {
-    transform: scale(0.95);
     opacity: 0;
+    transform: scale(0.95);
   }
   to {
-    transform: scale(1);
     opacity: 1;
+    transform: scale(1);
   }
 }
 
@@ -239,21 +239,21 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 18px;
 }
 
 .modal__header button {
-  background: transparent;
   border: none;
-  font-size: 18px;
+  background: transparent;
+  font-size: 20px;
   cursor: pointer;
 }
 
 /* FORM */
 .modal__form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
 }
 
 .form__group {
@@ -263,7 +263,7 @@
 }
 
 .form__group label {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--muted);
 }
 
@@ -278,7 +278,7 @@
 
 .form__group input:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(55, 111, 255, 0.15);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 /* CHECKBOX */
@@ -289,24 +289,42 @@
   font-size: 13px;
 }
 
-/* SAVE BUTTON */
+/* SAVE */
 .modal__actions {
-  margin-top: 15px;
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .modal__actions button {
-  width: 100%;
-  height: 45px;
-  border: none;
-  border-radius: 12px;
   background: var(--primary);
   color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 10px;
   font-weight: 600;
   cursor: pointer;
   transition: 0.2s;
 }
 
 .modal__actions button:hover {
-  background: var(--primary-dark);
+  background: var(--primary-hover);
   transform: translateY(-2px);
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+  .payments__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .payments__table {
+    font-size: 12px;
+  }
+
+  .modal__form {
+    grid-template-columns: 1fr;
+  }
 }
