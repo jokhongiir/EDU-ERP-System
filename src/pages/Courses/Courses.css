@@ -1,108 +1,146 @@
-/* =========================
-   DESIGN SYSTEM (ULTRA PRO)
-========================= */
+/* =========================================
+   COURSES — ULTRA PROFESSIONAL UI
+========================================= */
+
 :root {
   --primary: #376fff;
   --primary-dark: #1a5bff;
 
-  --bg: #f6f8ff;
-  --surface: rgba(255, 255, 255, 0.85);
+  --bg: #f4f7ff;
 
   --text: #0f172a;
   --muted: #64748b;
 
   --border: rgba(15, 23, 42, 0.08);
 
-  --radius-sm: 12px;
-  --radius-md: 18px;
-  --radius-lg: 24px;
+  --radius-sm: 14px;
+  --radius-md: 22px;
+  --radius-lg: 30px;
 
   --shadow-sm: 0 6px 18px rgba(15, 23, 42, 0.06);
-  --shadow-md: 0 14px 40px rgba(15, 23, 42, 0.10);
-  --shadow-lg: 0 25px 70px rgba(15, 23, 42, 0.18);
+  --shadow-md: 0 18px 40px rgba(15, 23, 42, 0.10);
+  --shadow-lg: 0 35px 80px rgba(15, 23, 42, 0.18);
 
-  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* =========================
+/* =========================================
    ROOT
-========================= */
+========================================= */
+
 .cr-module-root {
-  animation: fadeIn 0.7s ease;
-  padding: 5px;
-  font-family: Inter, system-ui, sans-serif;
+  padding: 10px;
+  animation: fadeIn 0.5s ease;
+  font-family: Inter, sans-serif;
+  background: transparent;
 }
 
-/* =========================
+/* =========================================
    HEADER
-========================= */
+========================================= */
+
 .cr-header-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 32px;
+  margin-bottom: 28px;
+  gap: 16px;
+}
+
+.title-area {
+  display: flex;
+  flex-direction: column;
 }
 
 .page-main-title {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 800;
-  letter-spacing: -0.6px;
+  letter-spacing: -0.8px;
+  color: var(--text);
 }
 
 .page-description {
-  font-size: 13px;
+  margin-top: 6px;
   color: var(--muted);
-  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 500;
 }
 
-/* BUTTON */
+/* =========================================
+   CREATE BUTTON
+========================================= */
+
 .cr-create-btn {
+  height: 50px;
+  padding: 0 18px;
+
+  border: none;
+  border-radius: 16px;
+
   display: flex;
   align-items: center;
   gap: 8px;
 
-  padding: 11px 16px;
-  border-radius: var(--radius-sm);
-  border: none;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+
+  font-weight: 700;
+  font-size: 14px;
+
   cursor: pointer;
 
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  color: white;
-  font-weight: 600;
+  box-shadow: 0 14px 30px rgba(55, 111, 255, 0.25);
 
-  box-shadow: var(--shadow-md);
   transition: var(--transition);
 }
 
 .cr-create-btn:hover {
-  transform: translateY(-3px) scale(1.01);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-3px);
+  box-shadow: 0 22px 50px rgba(55, 111, 255, 0.35);
 }
 
-/* =========================
+/* =========================================
    GRID
-========================= */
+========================================= */
+
 .cr-grid-layout {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
   gap: 22px;
 }
 
-/* =========================
-   CARD (GLASS PREMIUM)
-========================= */
-.cr-course-card {
-  background: var(--surface);
-  backdrop-filter: blur(14px);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+/* =========================================
+   CARD
+========================================= */
 
-  box-shadow: var(--shadow-sm);
-  transition: var(--transition);
+.cr-course-card {
+  position: relative;
+
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(22px);
+
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 26px;
 
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
+
+  box-shadow: var(--shadow-sm);
+
+  transition: var(--transition);
+
+  cursor: pointer;
+}
+
+.cr-course-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 4px;
+
+  background: linear-gradient(90deg, var(--primary), #6ea8ff);
 }
 
 .cr-course-card:hover {
@@ -110,260 +148,138 @@
   box-shadow: var(--shadow-lg);
 }
 
-/* CARD BODY */
-.cr-card-body {
-  padding: 20px;
-  cursor: pointer;
-  transition: var(--transition);
-}
+/* =========================================
+   CARD BODY
+========================================= */
 
-.cr-card-body:hover {
-  background: rgba(55, 111, 255, 0.03);
+.cr-card-body {
+  padding: 22px;
 }
 
 .cr-card-icon {
-  width: 46px;
-  height: 46px;
+  width: 44px;
+  height: 44px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 14px;
+
+  background: rgba(55, 111, 255, 0.12);
+  color: var(--primary);
+
+  margin-bottom: 14px;
+  font-size: 20px;
+}
+
+.cr-course-name {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+
+  margin-bottom: 14px;
+}
+
+/* =========================================
+   STATS
+========================================= */
+
+.cr-card-stats {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.cr-card-stats span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+
+  background: rgba(15, 23, 42, 0.03);
+  padding: 8px 10px;
+  border-radius: 12px;
+}
+
+.cr-card-stats svg {
+  color: var(--primary);
+}
+
+/* =========================================
+   ACTIONS
+========================================= */
+
+.cr-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+
+  padding: 14px 18px;
+
+  border-top: 1px solid rgba(15, 23, 42, 0.05);
+
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.cr-action-btn {
+  width: 42px;
+  height: 42px;
+
+  border: none;
   border-radius: 14px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  background: linear-gradient(135deg, rgba(55,111,255,0.15), rgba(26,91,255,0.1));
-  color: var(--primary);
+  background: rgba(255, 255, 255, 0.7);
 
-  margin-bottom: 12px;
-}
-
-.cr-course-name {
-  font-size: 15px;
-  font-weight: 700;
-  margin-bottom: 10px;
-}
-
-.cr-card-stats {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: var(--muted);
-}
-
-/* =========================
-   ACTIONS
-========================= */
-.cr-card-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 6px;
-
-  padding: 10px 12px;
-  border-top: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.4);
-}
-
-.cr-card-actions button {
-  border: none;
-  background: transparent;
   cursor: pointer;
 
-  padding: 8px;
-  border-radius: 10px;
+  color: var(--muted);
 
   transition: var(--transition);
-  color: var(--muted);
 }
 
-.cr-card-actions button:hover {
-  background: rgba(55, 111, 255, 0.10);
-  color: var(--primary);
+.cr-action-btn:hover {
   transform: translateY(-2px);
+  background: rgba(55, 111, 255, 0.12);
+  color: var(--primary);
 }
 
 .cr-del-btn:hover {
-  color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
 }
 
-/* =========================
+/* =========================================
    EMPTY STATE
-========================= */
+========================================= */
+
 .cr-empty-state {
   text-align: center;
-  padding: 90px 20px;
+  padding: 100px 20px;
   color: var(--muted);
 }
 
 .cr-empty-icon-wrapper {
-  font-size: 48px;
-  color: var(--primary);
+  font-size: 50px;
   margin-bottom: 12px;
+  color: var(--primary);
 }
 
-/* =========================
-   SKELETON
-========================= */
-/* =========================
-   SKELETON SYSTEM (PREMIUM)
-========================= */
+/* =========================================
+   MODAL
+========================================= */
 
-/* CARD SKELETON WRAPPER */
-.cr-skeleton-card {
- position: relative;
-overflow: hidden;
-
-height: 200px;
-border-radius: var(--radius-md);
-
-background: linear-gradient(
-  135deg,
-  rgba(255, 255, 255, 0.9),
-  rgba(240, 244, 255, 0.75),
-  rgba(255, 255, 255, 0.85)
-);
-
-border: 1px solid rgba(79, 124, 255, 0.08);
-
-box-shadow: 
-  0 8px 20px rgba(15, 23, 42, 0.06),
-  inset 0 1px 0 rgba(255, 255, 255, 0.6);
-}
-
-/* GLOBAL SHIMMER LAYER */
-.cr-skeleton-card::after,
-.cr-skeleton-line::after,
-.cr-skeleton-circle::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-
-  background: linear-gradient(
-    110deg,
-    transparent 20%,
-    rgba(255,255,255,0.6) 50%,
-    transparent 80%
-  );
-
-  transform: translateX(-100%);
-  animation: shimmerMove 1.4s infinite;
-}
-
-@keyframes shimmerMove {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-
-/* =========================
-   CARD INNER STRUCTURE SKELETON
-========================= */
-.cr-skeleton-body {
-  padding: 18px;
-}
-
-/* ICON */
-.cr-skeleton-circle {
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
-
-  background: rgba(55, 111, 255, 0.12);
-  position: relative;
-  overflow: hidden;
-
-  margin-bottom: 14px;
-}
-
-/* TITLE LINE */
-.cr-skeleton-title {
-  width: 70%;
-  height: 14px;
-
-  border-radius: 8px;
-  background: rgba(15, 23, 42, 0.06);
-
-  margin-bottom: 10px;
-  position: relative;
-  overflow: hidden;
-}
-
-/* SMALL TEXT */
-.cr-skeleton-line {
-  width: 90%;
-  height: 10px;
-
-  border-radius: 6px;
-  background: rgba(15, 23, 42, 0.05);
-
-  margin-bottom: 6px;
-  position: relative;
-  overflow: hidden;
-}
-
-/* STATS ROW */
-.cr-skeleton-stats {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 14px;
-}
-
-.cr-skeleton-pill {
-  width: 40%;
-  height: 10px;
-
-  border-radius: 999px;
-  background: rgba(15, 23, 42, 0.05);
-
-  position: relative;
-  overflow: hidden;
-}
-
-/* =========================
-   GRID SKELETON
-========================= */
-.cr-skeleton-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
-  gap: 22px;
-}
-
-/* =========================
-   MODAL SKELETON (EXTRA PRO)
-========================= */
-.cr-skeleton-modal {
-  width: 420px;
-  max-width: 92%;
-
-  border-radius: var(--radius-lg);
-  padding: 18px;
-
-  background: rgba(255,255,255,0.8);
-  border: 1px solid rgba(15, 23, 42, 0.06);
-
-  box-shadow: var(--shadow-lg);
-}
-
-.cr-skeleton-modal-line {
-  height: 12px;
-  border-radius: 8px;
-  background: rgba(15, 23, 42, 0.05);
-
-  margin-bottom: 10px;
-  position: relative;
-  overflow: hidden;
-}
-
-.cr-skeleton-modal-line.short {
-  width: 60%;
-}
-
-.cr-skeleton-modal-line.long {
-  width: 90%;
-}
-/* =========================
-   MODAL (ULTRA GLASS)
-========================= */
 .cr-modal-overlay {
   position: fixed;
   inset: 0;
+
   background: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(14px);
 
@@ -375,22 +291,22 @@ box-shadow:
 }
 
 .cr-modal-content {
-  width: 440px;
+  width: 470px;
   max-width: 92%;
 
   background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(18px);
+  backdrop-filter: blur(22px);
 
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: var(--radius-lg);
+  border-radius: 28px;
 
   box-shadow: var(--shadow-lg);
 
   overflow: hidden;
-  animation: pop 0.18s ease;
+
+  animation: modalPop 0.25s ease;
 }
 
-@keyframes pop {
+@keyframes modalPop {
   from {
     transform: scale(0.96);
     opacity: 0;
@@ -401,73 +317,89 @@ box-shadow:
   }
 }
 
-/* MODAL HEADER */
 .cr-modal-header {
+  padding: 18px 22px;
+
   display: flex;
   justify-content: space-between;
   align-items: center;
 
-  padding: 16px 18px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
 }
 
-/* CLOSE */
 .cr-close-modal {
-  background: transparent;
+  width: 40px;
+  height: 40px;
+
   border: none;
+  border-radius: 12px;
+
+  background: rgba(15, 23, 42, 0.04);
+
   cursor: pointer;
-  font-size: 18px;
+
   transition: var(--transition);
 }
 
 .cr-close-modal:hover {
-  color: #ef4444;
   transform: rotate(90deg);
+  background: rgba(239, 68, 68, 0.1);
 }
 
-/* FORM */
+/* =========================================
+   FORM
+========================================= */
+
 .cr-modal-form {
-  padding: 18px;
+  padding: 22px;
+
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
-.cr-input-group{
+
+.cr-input-group {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
+
 .cr-input-group label {
   font-size: 12px;
+  font-weight: 600;
   color: var(--muted);
 }
 
 .cr-input-group input {
-  width: 100%;
-  padding: 11px 12px;
+  height: 52px;
 
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
+  padding: 0 14px;
+
+  border-radius: 16px;
+
+  border: 1px solid rgba(15, 23, 42, 0.08);
 
   outline: none;
-  transition: var(--transition);
+
+  font-size: 14px;
 }
 
 .cr-input-group input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 4px rgba(55, 111, 255, 0.12);
+  border-color: rgba(55, 111, 255, 0.4);
+  box-shadow: 0 0 0 4px rgba(55, 111, 255, 0.1);
 }
 
-/* BUTTON */
 .cr-submit-btn {
-  padding: 11px;
-  border-radius: var(--radius-sm);
+  height: 52px;
+
   border: none;
+  border-radius: 18px;
 
   background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  color: white;
 
-  font-weight: 600;
+  color: #fff;
+  font-weight: 700;
+
   cursor: pointer;
 
   transition: var(--transition);
@@ -475,40 +407,122 @@ box-shadow:
 
 .cr-submit-btn:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 18px 40px rgba(55, 111, 255, 0.25);
 }
 
-/* =========================
+/* =========================================
    DETAILS
-========================= */
+========================================= */
+
 .cr-details-view {
-  padding: 18px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.cr-detail-row {
-  margin-bottom: 12px;
-  font-size: 13px;
+.cr-detail-card {
+  padding: 14px;
+  border-radius: 16px;
+
+  background: rgba(15, 23, 42, 0.03);
+}
+
+.cr-tags-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
 }
 
 .cr-tag {
+  padding: 6px 10px;
+  border-radius: 999px;
+
   background: rgba(55, 111, 255, 0.12);
   color: var(--primary);
-  padding: 5px 10px;
-  border-radius: 999px;
-  font-size: 11px;
+
+  font-size: 12px;
+  font-weight: 600;
 }
 
-/* =========================
+/* =========================================
+   SKELETON
+========================================= */
+
+.cr-skeleton-card {
+  pointer-events: none;
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #e2e8f0 25%,
+    #f1f5f9 50%,
+    #e2e8f0 75%
+  );
+
+  background-size: 400% 100%;
+  animation: shimmer 1.3s infinite;
+  border-radius: 12px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+.cr-skeleton-title {
+  height: 20px;
+  width: 70%;
+  margin-bottom: 14px;
+}
+
+.cr-skeleton-text {
+  height: 12px;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.cr-skeleton-text.short {
+  width: 60%;
+}
+
+.cr-skeleton-btn {
+  width: 42px;
+  height: 42px;
+}
+
+/* =========================================
    RESPONSIVE
-========================= */
-@media (max-width: 600px) {
+========================================= */
+
+@media (max-width: 768px) {
   .cr-header-section {
     flex-direction: column;
     align-items: flex-start;
-    gap: 10px;
   }
 
-  .cr-modal-content {
-    width: 95%;
+  .cr-grid-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================
+   ANIMATION
+========================================= */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

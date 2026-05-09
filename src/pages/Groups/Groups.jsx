@@ -431,8 +431,28 @@ export default function Groups({ activeBranch }) {
       </div>
 
       {/* LIST */}
+      {/* LIST */}
       {loading ? (
-        <div className="loading-state">Loading groups...</div>
+        <div className="groups-main-grid">
+          {[...Array(6)].map((_, index) => (
+            <div className="group-item-card skeleton-card" key={index}>
+              <div className="group-card-info">
+                <div className="skeleton skeleton-title"></div>
+
+                <div className="card-details-stack">
+                  <div className="skeleton skeleton-text"></div>
+                  <div className="skeleton skeleton-text"></div>
+                  <div className="skeleton skeleton-text short"></div>
+                </div>
+              </div>
+
+              <div className="group-card-actions">
+                <div className="skeleton skeleton-btn"></div>
+                <div className="skeleton skeleton-btn"></div>
+              </div>
+            </div>
+          ))}
+        </div>
       ) : filteredGroups.length === 0 ? (
         <div className="empty-state">No groups found.</div>
       ) : (
