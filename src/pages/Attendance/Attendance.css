@@ -15,8 +15,9 @@
 /* ================= BASE ================= */
 .attendance {
   font-family: Inter, system-ui, sans-serif;
-  padding: 24px;
-  color: var(--text);
+  animation: fadeIn 0.7s ease;
+  padding: 5px;
+
 }
 
 /* ================= INFO PANEL (TOP BAR) ================= */

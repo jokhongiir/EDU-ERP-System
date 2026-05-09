@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
+import { createPortal } from "react-dom"; // For Portal
 import { supabase } from "../../services/supabaseClient";
 import {
   FiPlus,
@@ -8,7 +9,6 @@ import {
   FiTrash2,
   FiX,
   FiEdit3,
-  FiChevronRight,
 } from "react-icons/fi";
 import "./Courses.css";
 
@@ -50,6 +50,16 @@ export default function Courses({ activeBranch }) {
     fetchData();
   }, [fetchData]);
 
+  // ================= MODAL SCROLL CONTROL =================
+  useEffect(() => {
+    if (modalMode) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => { document.body.style.overflow = "unset"; };
+  }, [modalMode]);
+
   // ================= ACTIONS =================
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -73,7 +83,7 @@ export default function Courses({ activeBranch }) {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure? This will remove the course and associated data.")) return;
+    if (!window.confirm("Are you sure you want to delete this course?")) return;
     try {
       await supabase.from("courses").delete().eq("id", id);
       setCourses(prev => prev.filter(c => c.id !== id));
@@ -97,13 +107,70 @@ export default function Courses({ activeBranch }) {
     [...courses].sort((a, b) => a.name.localeCompare(b.name)), 
   [courses]);
 
+  // ================= RENDER MODAL PORTAL =================
+  const renderModal = () => {
+    if (!modalMode) return null;
+
+    return createPortal(
+      <div className="cr-modal-overlay" onClick={() => setModalMode(null)}>
+        <div className="cr-modal-content" onClick={e => e.stopPropagation()}>
+          <div className="cr-modal-header">
+            <h3>
+              {modalMode === 'create' && "Add New Course"}
+              {modalMode === 'edit' && "Edit Course"}
+              {modalMode === 'details' && "Course Details"}
+            </h3>
+            <button className="cr-close-modal" onClick={() => setModalMode(null)}><FiX /></button>
+          </div>
+
+          {modalMode === 'details' ? (
+            <div className="cr-details-view">
+              <div className="cr-detail-row">
+                <label>Total Groups:</label>
+                <span> {getStats(selectedCourse.id).groupsCount} active groups</span>
+              </div>
+              <div className="cr-detail-row">
+                <label>Teachers:</label>
+                {/* <div className="cr-teacher-tags"> */}
+                  {getStats(selectedCourse.id).teacherList.length > 0 ? (
+                    getStats(selectedCourse.id).teacherList.map(t => <span key={t.id} className="cr-tag"> {t.name}</span>)
+                  ) : <span className="cr-no-data"> No teachers assigned yet.</span>}
+                {/* </div> */}
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="cr-modal-form">
+              <div className="cr-input-group">
+                <label>Course Name</label>
+                <input 
+                  autoFocus
+                  value={courseName}
+                  onChange={e => setCourseName(e.target.value)}
+                  placeholder="e.g. Full-Stack Development"
+                  required
+                />
+              </div>
+              <button type="submit" disabled={actionLoading} className="cr-submit-btn">
+                {actionLoading ? "Saving..." : (modalMode === 'create' ? "Create Course" : "Update Changes")}
+              </button>
+            </form>
+          )}
+        </div>
+      </div>,
+      document.body // INSERTS MODAL INTO BODY
+    );
+  };
+
   return (
     <div className="cr-module-root">
       {/* HEADER */}
       <div className="cr-header-section">
-        <div className="cr-title-group">
-          <h2 className="cr-main-title">{activeBranch?.name || "Main Branch"} • Curriculum</h2>
-          <p className="cr-subtitle">Manage courses and educational directions</p>
+         <div className="title-area">
+          <h1 className="page-main-title">
+            {activeBranch?.name || "Branch"} • Courses
+          </h1>
+
+          <p className="page-description">Manage educational directions and courses</p>
         </div>
         <button className="cr-create-btn" onClick={() => { setModalMode("create"); setCourseName(""); }}>
           <FiPlus /> New Course
@@ -119,7 +186,7 @@ export default function Courses({ activeBranch }) {
         <div className="cr-empty-state">
           <div className="cr-empty-icon-wrapper"><FiBookOpen /></div>
           <h3>No Courses Found</h3>
-          <p>Start by adding your first course to this branch.</p>
+          <p>No courses have been added to this branch yet.</p>
         </div>
       ) : (
         <div className="cr-grid-layout">
@@ -149,54 +216,8 @@ export default function Courses({ activeBranch }) {
         </div>
       )}
 
-      {/* ================= MODAL MANAGER ================= */}
-      {modalMode && (
-        <div className="cr-modal-overlay" onClick={() => setModalMode(null)}>
-          <div className="cr-modal-content" onClick={e => e.stopPropagation()}>
-            <div className="cr-modal-header">
-              <h3>
-                {modalMode === 'create' && "Add New Course"}
-                {modalMode === 'edit' && "Edit Course"}
-                {modalMode === 'details' && "Course Overview"}
-              </h3>
-              <button className="cr-close-modal" onClick={() => setModalMode(null)}><FiX /></button>
-            </div>
-
-            {modalMode === 'details' ? (
-              <div className="cr-details-view">
-                <div className="cr-detail-row">
-                  <label>Total Groups:</label>
-                  <span>{getStats(selectedCourse.id).groupsCount} Active</span>
-                </div>
-                <div className="cr-detail-row">
-                  <label>Faculty Members:</label>
-                  <div className="cr-teacher-tags">
-                    {getStats(selectedCourse.id).teacherList.length > 0 ? (
-                      getStats(selectedCourse.id).teacherList.map(t => <span key={t.id} className="cr-tag">{t.name}</span>)
-                    ) : <span className="cr-no-data">No teachers assigned yet.</span>}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="cr-modal-form">
-                <div className="cr-input-group">
-                  <label>Course Name</label>
-                  <input 
-                    autoFocus
-                    value={courseName}
-                    onChange={e => setCourseName(e.target.value)}
-                    placeholder="e.g. Full-Stack Development"
-                    required
-                  />
-                </div>
-                <button type="submit" disabled={actionLoading} className="cr-submit-btn">
-                  {actionLoading ? "Saving Changes..." : (modalMode === 'create' ? "Create Course" : "Update Course")}
-                </button>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
+      {/* MODAL MANAGER PORTAL CALL */}
+      {renderModal()}
     </div>
   );
 }

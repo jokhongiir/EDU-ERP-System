@@ -34,6 +34,10 @@ export default function Students({ activeBranch }) {
 
   const [saving, setSaving] = useState(false);
 
+  const [filterCourse, setFilterCourse] = useState("");
+  const [filterTeacher, setFilterTeacher] = useState("");
+  const [filterGroup, setFilterGroup] = useState("");
+
   // ================= FETCH =================
   const fetchData = async () => {
     if (!branchId) return;
@@ -63,12 +67,23 @@ export default function Students({ activeBranch }) {
     fetchData();
   }, [branchId]);
 
+  // ================= YANGI QO'SHILGAN QISM: MODAL SCROLL CONTROL =================
+  useEffect(() => {
+    if (viewOpen || editOpen) {
+      document.body.style.overflow = "hidden"; // Modal ochiqligida orqa fon skroll bo'lmaydi
+    } else {
+      document.body.style.overflow = "unset"; // Modal yopilganda skroll tiklanadi
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [viewOpen, editOpen]);
+
   // ================= DELETE =================
   const handleDelete = async (id) => {
     if (!confirm("Delete student?")) return;
 
     await supabase.from("students").delete().eq("id", id);
-
     setStudents((prev) => prev.filter((s) => s.id !== id));
   };
 
@@ -101,6 +116,7 @@ export default function Students({ activeBranch }) {
 
     setEditOpen(true);
   };
+
   // ================= CHANGE INPUT =================
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -156,21 +172,34 @@ export default function Students({ activeBranch }) {
 
   // ================= SEARCH =================
   const filteredStudents = useMemo(() => {
-    return students.filter((s) =>
-      `${s.first_name} ${s.last_name}`
+    return students.filter((s) => {
+      const fullName = `${s.first_name} ${s.last_name}`
         .toLowerCase()
-        .includes(search.toLowerCase()),
-    );
-  }, [students, search]);
+        .includes(search.toLowerCase());
+
+      const courseMatch = filterCourse ? s.course_id === filterCourse : true;
+
+      const teacherMatch = filterTeacher
+        ? s.teacher_id === filterTeacher
+        : true;
+
+      const groupMatch = filterGroup ? s.group_id === filterGroup : true;
+
+      return fullName && courseMatch && teacherMatch && groupMatch;
+    });
+  }, [students, search, filterCourse, filterTeacher, filterGroup]);
 
   // ========================= UI =========================
   return (
     <div className="students">
       {/* ================= HEADER ================= */}
       <div className="students__header">
-        <div>
-          <h2>{activeBranch?.name || "Branch"} • Students</h2>
-          <p className="students__sub">Manage all students in your branch</p>
+        <div className="title-area">
+          <h1 className="page-main-title">
+            {activeBranch?.name || "Branch"} • Students
+          </h1>
+
+          <p className="page-description">Manage all students in your branch</p>
         </div>
 
         <button
@@ -182,23 +211,62 @@ export default function Students({ activeBranch }) {
       </div>
 
       {/* ================= SEARCH ================= */}
-      <div className="students__search">
-        <FiSearch />
-        <input
-          placeholder="Search by name..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      <div className="students__search-wrapper">
+        {/* SEARCH */}
+        <div className="students__search">
+          <FiSearch />
+          <input
+            placeholder="Search by name..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+
+        {/* COURSE FILTER */}
+        <select
+          className="students__filter"
+          value={filterCourse}
+          onChange={(e) => setFilterCourse(e.target.value)}
+        >
+          <option value="">All Courses</option>
+          {courses.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+
+        {/* TEACHER FILTER */}
+        <select
+          className="students__filter"
+          value={filterTeacher}
+          onChange={(e) => setFilterTeacher(e.target.value)}
+        >
+          <option value="">All Teachers</option>
+          {teachers.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.name}
+            </option>
+          ))}
+        </select>
+
+        {/* GROUP FILTER */}
+        <select
+          className="students__filter"
+          value={filterGroup}
+          onChange={(e) => setFilterGroup(e.target.value)}
+        >
+          <option value="">All Groups</option>
+          {groups.map((g) => (
+            <option key={g.id} value={g.id}>
+              {g.name}
+            </option>
+          ))}
+        </select>
       </div>
 
-      {/* ================= CONTENT ================= */}
-      {/* ================= CONTENT ================= */}
-      {filteredStudents.length === 0 && !loading ? (
-        <div className="students__empty">
-          <FiUser size={40} />
-          <p>No students found</p>
-        </div>
-      ) : (
+      {/* ================= TABLE CONTENT ================= */}
+      <div className="students__table-wrapper">
         <table className="students__table">
           <thead>
             <tr>
@@ -214,90 +282,91 @@ export default function Students({ activeBranch }) {
           </thead>
 
           <tbody>
-            {loading
-              ? Array.from({ length: 6 }).map((_, i) => (
-                  <tr key={i}>
-                    <td>
-                      <div className="skeleton skeleton-id"></div>
-                    </td>
-                    <td>
-                      <div className="skeleton skeleton-text"></div>
-                    </td>
-                    <td>
-                      <div className="skeleton skeleton-text"></div>
-                    </td>
-                    <td>
-                      <div className="skeleton skeleton-text"></div>
-                    </td>
-                    <td>
-                      <div className="skeleton skeleton-text"></div>
-                    </td>
-                    <td>
-                      <div className="skeleton skeleton-text"></div>
-                    </td>
-                    <td>
-                      <div className="skeleton skeleton-badge"></div>
-                    </td>
-                    <td>
-                      <div className="skeleton skeleton-btn"></div>
-                    </td>
-                  </tr>
-                ))
-              : filteredStudents.map((s, i) => (
-                  <tr key={s.id} onClick={() => openView(s)}>
-                    <td>{i + 1}</td>
+            {loading ? (
+              Array.from({ length: 7 }).map((_, i) => (
+                <tr key={`loading-${i}`}>
+                  <td
+                    colSpan="8"
+                    style={{
+                      textAlign: "center",
+                      padding: "1.5rem",
+                      color: "#666",
+                    }}
+                  >
+                    <div className="loading-row">Loading data...</div>
+                  </td>
+                </tr>
+              ))
+            ) : filteredStudents.length === 0 ? (
+              <tr>
+                <td colSpan="8">
+                  <div
+                    className="students__empty"
+                    style={{ padding: "3rem 0" }}
+                  >
+                    <FiUser
+                      size={40}
+                      style={{ marginBottom: "10px", opacity: 0.5 }}
+                    />
+                    <p>No students found</p>
+                  </div>
+                </td>
+              </tr>
+            ) : (
+              filteredStudents.map((s, i) => (
+                <tr key={s.id} onClick={() => openView(s)}>
+                  <td>{i + 1}</td>
+                  <td>
+                    {s.first_name} {s.last_name}
+                  </td>
+                  <td>{s.phone}</td>
+                  <td>{s.courses?.name || "-"}</td>
+                  <td>{s.teachers?.name || "-"}</td>
+                  <td>{s.groups?.name || "-"}</td>
 
-                    <td>
-                      {s.first_name} {s.last_name}
-                    </td>
-                    <td>{s.phone}</td>
-                    <td>{s.courses?.name}</td>
-                    <td>{s.teachers?.name}</td>
-                    <td>{s.groups?.name}</td>
+                  <td>
+                    {s.paid ? (
+                      <span className="status paid">
+                        <FiCheckCircle /> Paid
+                      </span>
+                    ) : (
+                      <span className="status unpaid">Unpaid</span>
+                    )}
+                  </td>
 
-                    <td>
-                      {s.paid ? (
-                        <span className="status paid">
-                          <FiCheckCircle /> Paid
-                        </span>
-                      ) : (
-                        <span className="status unpaid">Unpaid</span>
-                      )}
-                    </td>
-
-                    <td onClick={(e) => e.stopPropagation()}>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openEdit(s);
-                        }}
-                      >
-                        <FiEdit />
-                      </button>
-                      <button onClick={() => handleDelete(s.id)}>
-                        <FiTrash2 />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                  <td onClick={(e) => e.stopPropagation()}>
+                    <button onClick={() => openEdit(s)} title="Edit">
+                      <FiEdit />
+                    </button>
+                    <button onClick={() => handleDelete(s.id)} title="Delete">
+                      <FiTrash2 />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
-      )}
+      </div>
 
       {/* ================= VIEW MODAL ================= */}
-      {/* ================= VIEW MODAL ================= */}
       {viewOpen && viewData && (
-        <div className="modal">
-          <div className="modal__box view__box">
+        <div className="modal" onClick={() => setViewOpen(false)}>
+          {" "}
+          {/* Tashqarini bosganda yopiladi */}
+          <div
+            className="modal__box view__box"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {" "}
+            {/* Ichkarini bosganda yopilmaydi */}
             <div className="modal__header">
               <h3>Student Details</h3>
               <button onClick={() => setViewOpen(false)}>
                 <FiX />
               </button>
             </div>
-
             <div className="view__grid">
-              {/* LEFT COLUMN */}
               <div className="view__column">
                 <div className="view__field">
                   <label>Full Name</label>
@@ -333,7 +402,6 @@ export default function Students({ activeBranch }) {
                 </div>
               </div>
 
-              {/* RIGHT COLUMN */}
               <div className="view__column">
                 <div className="view__field">
                   <label>Group</label>
@@ -391,17 +459,19 @@ export default function Students({ activeBranch }) {
 
       {/* ================= EDIT MODAL ================= */}
       {editOpen && editData && (
-        <div className="modal">
-          <div className="modal__box">
+        <div className="modal" onClick={() => setEditOpen(false)}>
+          {" "}
+          {/* Tashqarini bosganda yopiladi */}
+          <div className="modal__box" onClick={(e) => e.stopPropagation()}>
+            {" "}
+            {/* Ichkarini bosganda yopilmaydi */}
             <div className="modal__header">
               <h3>Edit Student</h3>
               <button onClick={() => setEditOpen(false)}>
                 <FiX />
               </button>
             </div>
-
             <div className="modal__form">
-              {/* FORM GROUPS */}
               {[
                 { label: "First Name", name: "first_name" },
                 { label: "Last Name", name: "last_name" },
@@ -418,7 +488,6 @@ export default function Students({ activeBranch }) {
                 </div>
               ))}
 
-              {/* SELECTS */}
               <div className="form__group">
                 <label>Course</label>
                 <select
@@ -467,10 +536,11 @@ export default function Students({ activeBranch }) {
                 </select>
               </div>
 
-              {/* DATES */}
               {["start_date", "payment_date", "next_payment_date"].map((d) => (
                 <div className="form__group" key={d}>
-                  <label>{d.replaceAll("_", " ")}</label>
+                  <label style={{ textTransform: "capitalize" }}>
+                    {d.replaceAll("_", " ")}
+                  </label>
                   <input
                     type="date"
                     name={d}
@@ -480,10 +550,10 @@ export default function Students({ activeBranch }) {
                 </div>
               ))}
 
-              {/* FINANCE */}
               <div className="form__group">
                 <label>Monthly Fee</label>
                 <input
+                  type="number"
                   name="monthly_fee"
                   value={editData.monthly_fee || ""}
                   onChange={handleChange}
@@ -493,13 +563,13 @@ export default function Students({ activeBranch }) {
               <div className="form__group">
                 <label>Teacher %</label>
                 <input
+                  type="number"
                   name="teacher_percent"
                   value={editData.teacher_percent || ""}
                   onChange={handleChange}
                 />
               </div>
 
-              {/* CHECKBOX */}
               <div className="form__group full">
                 <label className="checkbox">
                   <input
@@ -512,9 +582,12 @@ export default function Students({ activeBranch }) {
                 </label>
               </div>
             </div>
-
             <div className="modal__actions">
-              <button onClick={handleSave} disabled={saving}>
+              <button
+                className="save-btn"
+                onClick={handleSave}
+                disabled={saving}
+              >
                 <FiSave />
                 {saving ? "Saving..." : "Save"}
               </button>

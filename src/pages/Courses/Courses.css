@@ -1,332 +1,514 @@
-/* ================= ROOT ================= */
+/* =========================
+   DESIGN SYSTEM (ULTRA PRO)
+========================= */
 :root {
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
+  --primary: #376fff;
+  --primary-dark: #1a5bff;
 
-  --bg: #f8fafc;
-  --card: #ffffff;
+  --bg: #f6f8ff;
+  --surface: rgba(255, 255, 255, 0.85);
 
   --text: #0f172a;
   --muted: #64748b;
 
-  --border: #e2e8f0;
+  --border: rgba(15, 23, 42, 0.08);
 
-  --green: #10b981;
-  --red: #ef4444;
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 24px;
 
-  --shadow-sm: 0 2px 10px rgba(0,0,0,0.05);
-  --shadow-md: 0 12px 30px rgba(0,0,0,0.08);
+  --shadow-sm: 0 6px 18px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 14px 40px rgba(15, 23, 42, 0.10);
+  --shadow-lg: 0 25px 70px rgba(15, 23, 42, 0.18);
 
-  --radius: 14px;
+  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ================= BASE ================= */
+/* =========================
+   ROOT
+========================= */
 .cr-module-root {
-  font-family: "Inter", system-ui, sans-serif;
+  animation: fadeIn 0.7s ease;
+  padding: 5px;
+  font-family: Inter, system-ui, sans-serif;
 }
 
-/* ================= HEADER ================= */
+/* =========================
+   HEADER
+========================= */
 .cr-header-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 18px;
+  margin-bottom: 32px;
 }
 
-.cr-main-title {
-  font-size: 22px;
-  font-weight: 700;
-  margin: 0;
+.page-main-title {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.6px;
 }
 
-.cr-subtitle {
+.page-description {
   font-size: 13px;
   color: var(--muted);
   margin-top: 4px;
 }
 
-/* ================= BUTTON ================= */
+/* BUTTON */
 .cr-create-btn {
-  background: var(--primary);
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 10px;
-  font-weight: 600;
-  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 6px;
-  box-shadow: var(--shadow-sm);
-  transition: 0.2s;
+  gap: 8px;
+
+  padding: 11px 16px;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+  font-weight: 600;
+
+  box-shadow: var(--shadow-md);
+  transition: var(--transition);
 }
 
 .cr-create-btn:hover {
-  background: var(--primary-hover);
-  transform: translateY(-2px);
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: var(--shadow-lg);
 }
 
-/* ================= GRID ================= */
+/* =========================
+   GRID
+========================= */
 .cr-grid-layout {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 22px;
 }
 
-/* ================= COURSE CARD ================= */
+/* =========================
+   CARD (GLASS PREMIUM)
+========================= */
 .cr-course-card {
-  background: var(--card);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-sm);
-  overflow: hidden;
-  transition: 0.25s;
+  background: var(--surface);
+  backdrop-filter: blur(14px);
   border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .cr-course-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-lg);
 }
 
+/* CARD BODY */
 .cr-card-body {
-  padding: 16px;
+  padding: 20px;
   cursor: pointer;
+  transition: var(--transition);
+}
+
+.cr-card-body:hover {
+  background: rgba(55, 111, 255, 0.03);
 }
 
 .cr-card-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
-  background: #eff6ff;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
+  background: linear-gradient(135deg, rgba(55,111,255,0.15), rgba(26,91,255,0.1));
   color: var(--primary);
-  margin-bottom: 10px;
+
+  margin-bottom: 12px;
 }
 
 .cr-course-name {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
-  margin: 0 0 10px 0;
+  margin-bottom: 10px;
 }
 
 .cr-card-stats {
   display: flex;
-  gap: 10px;
+  justify-content: space-between;
   font-size: 12px;
   color: var(--muted);
 }
 
-.cr-card-stats span {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-/* ================= ACTIONS ================= */
+/* =========================
+   ACTIONS
+========================= */
 .cr-card-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
-  padding: 12px;
+  gap: 6px;
+
+  padding: 10px 12px;
   border-top: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.4);
 }
 
 .cr-card-actions button {
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
   border: none;
+  background: transparent;
   cursor: pointer;
-  transition: 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+
+  padding: 8px;
+  border-radius: 10px;
+
+  transition: var(--transition);
+  color: var(--muted);
 }
 
-.cr-card-actions button:first-child {
-  background: #eff6ff;
+.cr-card-actions button:hover {
+  background: rgba(55, 111, 255, 0.10);
   color: var(--primary);
-}
-
-.cr-card-actions button:first-child:hover {
-  background: #dbeafe;
   transform: translateY(-2px);
-}
-
-.cr-del-btn {
-  background: #fee2e2;
-  color: var(--red);
 }
 
 .cr-del-btn:hover {
-  background: #fecaca;
-  transform: translateY(-2px);
+  color: #ef4444 !important;
 }
 
-/* ================= EMPTY ================= */
+/* =========================
+   EMPTY STATE
+========================= */
 .cr-empty-state {
   text-align: center;
-  padding: 60px;
+  padding: 90px 20px;
   color: var(--muted);
 }
 
 .cr-empty-icon-wrapper {
-  font-size: 40px;
+  font-size: 48px;
   color: var(--primary);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
-/* ================= SKELETON ================= */
+/* =========================
+   SKELETON
+========================= */
+/* =========================
+   SKELETON SYSTEM (PREMIUM)
+========================= */
+
+/* CARD SKELETON WRAPPER */
+.cr-skeleton-card {
+ position: relative;
+overflow: hidden;
+
+height: 200px;
+border-radius: var(--radius-md);
+
+background: linear-gradient(
+  135deg,
+  rgba(255, 255, 255, 0.9),
+  rgba(240, 244, 255, 0.75),
+  rgba(255, 255, 255, 0.85)
+);
+
+border: 1px solid rgba(79, 124, 255, 0.08);
+
+box-shadow: 
+  0 8px 20px rgba(15, 23, 42, 0.06),
+  inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* GLOBAL SHIMMER LAYER */
+.cr-skeleton-card::after,
+.cr-skeleton-line::after,
+.cr-skeleton-circle::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background: linear-gradient(
+    110deg,
+    transparent 20%,
+    rgba(255,255,255,0.6) 50%,
+    transparent 80%
+  );
+
+  transform: translateX(-100%);
+  animation: shimmerMove 1.4s infinite;
+}
+
+@keyframes shimmerMove {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* =========================
+   CARD INNER STRUCTURE SKELETON
+========================= */
+.cr-skeleton-body {
+  padding: 18px;
+}
+
+/* ICON */
+.cr-skeleton-circle {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+
+  background: rgba(55, 111, 255, 0.12);
+  position: relative;
+  overflow: hidden;
+
+  margin-bottom: 14px;
+}
+
+/* TITLE LINE */
+.cr-skeleton-title {
+  width: 70%;
+  height: 14px;
+
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.06);
+
+  margin-bottom: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* SMALL TEXT */
+.cr-skeleton-line {
+  width: 90%;
+  height: 10px;
+
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.05);
+
+  margin-bottom: 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* STATS ROW */
+.cr-skeleton-stats {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 14px;
+}
+
+.cr-skeleton-pill {
+  width: 40%;
+  height: 10px;
+
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.05);
+
+  position: relative;
+  overflow: hidden;
+}
+
+/* =========================
+   GRID SKELETON
+========================= */
 .cr-skeleton-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 22px;
 }
 
-.cr-skeleton-card {
-  height: 140px;
-  background: #e5e7eb;
-  border-radius: var(--radius);
-  animation: pulse 1.2s infinite;
+/* =========================
+   MODAL SKELETON (EXTRA PRO)
+========================= */
+.cr-skeleton-modal {
+  width: 420px;
+  max-width: 92%;
+
+  border-radius: var(--radius-lg);
+  padding: 18px;
+
+  background: rgba(255,255,255,0.8);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+
+  box-shadow: var(--shadow-lg);
 }
 
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.5; }
-  100% { opacity: 1; }
+.cr-skeleton-modal-line {
+  height: 12px;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.05);
+
+  margin-bottom: 10px;
+  position: relative;
+  overflow: hidden;
 }
 
-/* ================= MODAL ================= */
+.cr-skeleton-modal-line.short {
+  width: 60%;
+}
+
+.cr-skeleton-modal-line.long {
+  width: 90%;
+}
+/* =========================
+   MODAL (ULTRA GLASS)
+========================= */
 .cr-modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(14px);
+
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 999;
-  padding: 20px;
+
+  z-index: 9999;
 }
 
 .cr-modal-content {
-  background: white;
-  width: 100%;
-  max-width: 520px;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: var(--shadow-md);
-  animation: pop 0.25s ease;
+  width: 440px;
+  max-width: 92%;
+
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(18px);
+
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: var(--radius-lg);
+
+  box-shadow: var(--shadow-lg);
+
+  overflow: hidden;
+  animation: pop 0.18s ease;
 }
 
 @keyframes pop {
-  from { transform: scale(0.95); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.96);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
-/* ================= MODAL HEADER ================= */
+/* MODAL HEADER */
 .cr-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 14px;
+
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
 }
 
+/* CLOSE */
 .cr-close-modal {
   background: transparent;
   border: none;
-  font-size: 20px;
   cursor: pointer;
+  font-size: 18px;
+  transition: var(--transition);
 }
 
-/* ================= FORM ================= */
+.cr-close-modal:hover {
+  color: #ef4444;
+  transform: rotate(90deg);
+}
+
+/* FORM */
 .cr-modal-form {
+  padding: 18px;
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
-
+.cr-input-group{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 .cr-input-group label {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--muted);
 }
 
 .cr-input-group input {
   width: 100%;
-  height: 42px;
+  padding: 11px 12px;
+
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 0 12px;
+
   outline: none;
+  transition: var(--transition);
 }
 
 .cr-input-group input:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 4px rgba(55, 111, 255, 0.12);
 }
 
-/* ================= SUBMIT ================= */
+/* BUTTON */
 .cr-submit-btn {
-  background: var(--primary);
-  color: white;
+  padding: 11px;
+  border-radius: var(--radius-sm);
   border: none;
-  padding: 10px 14px;
-  border-radius: 10px;
+
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+
   font-weight: 600;
   cursor: pointer;
-  transition: 0.2s;
+
+  transition: var(--transition);
 }
 
 .cr-submit-btn:hover {
-  background: var(--primary-hover);
   transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
-/* ================= DETAILS ================= */
+/* =========================
+   DETAILS
+========================= */
 .cr-details-view {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  padding: 18px;
 }
 
 .cr-detail-row {
-  background: #f8fafc;
-  padding: 12px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-}
-
-.cr-detail-row label {
-  font-size: 12px;
-  color: var(--muted);
+  margin-bottom: 12px;
+  font-size: 13px;
 }
 
 .cr-tag {
-  display: inline-block;
-  padding: 4px 10px;
-  margin: 4px;
-  font-size: 12px;
-  background: #e0f2fe;
+  background: rgba(55, 111, 255, 0.12);
   color: var(--primary);
+  padding: 5px 10px;
   border-radius: 999px;
+  font-size: 11px;
 }
 
-.cr-no-data {
-  font-size: 12px;
-  color: var(--muted);
-}
-
-/* ================= RESPONSIVE ================= */
-@media (max-width: 768px) {
+/* =========================
+   RESPONSIVE
+========================= */
+@media (max-width: 600px) {
   .cr-header-section {
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
   }
 
-  .cr-grid-layout {
-    grid-template-columns: 1fr;
+  .cr-modal-content {
+    width: 95%;
   }
 }

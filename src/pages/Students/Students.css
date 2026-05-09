@@ -1,175 +1,448 @@
-/* ================= ROOT ================= */
-:root {
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
+/* =========================================================
+   STUDENTS • ULTRA PROFESSIONAL UI
+   MODERN • COMPACT • PREMIUM
+========================================================= */
 
-  --bg: #f8fafc;
+:root {
+  --primary: #376fff;
+  --primary-dark: #1a56db;
+  --primary-light: #eef4ff;
+
+  --bg: #f4f7fb;
   --card: #ffffff;
+  --soft: #f8fbff;
 
   --text: #0f172a;
-  --muted: #64748b;
+  --text-soft: #64748b;
+  --muted: #94a3b8;
 
   --border: #e2e8f0;
 
-  --green: #10b981;
-  --red: #ef4444;
-  --yellow: #f59e0b;
+  --success: #16a34a;
+  --success-bg: #dcfce7;
 
-  --shadow-sm: 0 2px 10px rgba(0,0,0,0.05);
-  --shadow-md: 0 10px 25px rgba(0,0,0,0.08);
+  --danger: #ef4444;
+  --danger-bg: #fee2e2;
 
-  --radius: 14px;
+  --shadow-sm: 0 3px 10px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 10px 28px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 18px 45px rgba(15, 23, 42, 0.15);
+
+  --radius: 20px;
 }
 
-/* ================= BASE ================= */
-.students {
-  font-family: "Inter", system-ui, sans-serif;
+/* =========================================================
+   GLOBAL
+========================================================= */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg);
+  font-family: "Inter", sans-serif;
   color: var(--text);
 }
 
-/* ================= HEADER ================= */
+/* =========================================================
+   PAGE
+========================================================= */
+
+.students {
+    padding: 5px;
+    animation: fadeIn 0.7s ease;
+
+
+
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
 .students__header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 22px;
+  gap: 18px;
+
+  margin-bottom: 20px;
 }
 
 .students__header h2 {
-  font-size: 22px;
-  font-weight: 700;
-  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
 }
 
 .students__sub {
+  /* margin-top: 5px; */
+
+  color: var(--text-soft);
+
   font-size: 13px;
-  color: var(--muted);
-  margin-top: 4px;
+  font-weight: 500;
 }
 
-/* ================= BUTTON ================= */
+/* =========================================================
+   BUTTON
+========================================================= */
+
 .primary-btn {
-  background: var(--primary);
-  color: white;
+  height: 46px;
+
   border: none;
-  padding: 10px 16px;
-  border-radius: 10px;
-  font-weight: 600;
+  border-radius: 14px;
+
+  padding: 0 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: linear-gradient(
+    135deg,
+    var(--primary),
+    var(--primary-dark)
+  );
+
+  color: white;
+
+  font-size: 13px;
+  font-weight: 700;
+
   cursor: pointer;
-  transition: 0.2s;
-  box-shadow: var(--shadow-sm);
+
+  transition: 0.25s ease;
+
+  box-shadow:
+    0 10px 24px rgba(55, 111, 255, 0.22);
 }
 
 .primary-btn:hover {
-  background: var(--primary-hover);
   transform: translateY(-2px);
 }
 
-/* ================= SEARCH ================= */
-.students__search {
+/* =========================================================
+   SEARCH
+========================================================= */
+
+/* =========================================================
+   SEARCH & FILTER • PREMIUM UI SECTION
+========================================================= */
+
+.students__search-wrapper {
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  padding: 10px 14px;
-  border-radius: var(--radius);
-  max-width: 380px;
+  gap: 12px;
+  flex-wrap: wrap;
+
   margin-bottom: 18px;
-  box-shadow: var(--shadow-sm);
 }
 
-.students__search input {
-  border: none;
-  outline: none;
-  width: 100%;
-  font-size: 14px;
-  background: transparent;
+/* ================= SEARCH BOX ================= */
+
+.students__search {
+  flex: 1;
+  position: relative;
+  min-width: 220px;
 }
 
-/* ================= EMPTY ================= */
-.students__empty {
-  text-align: center;
-  padding: 50px;
+.students__search svg {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+
   color: var(--muted);
+  font-size: 16px;
 }
 
-/* ================= TABLE ================= */
+/* INPUT */
+.students__search input {
+  width: 100%;
+  height: 48px;
+
+  padding: 0 14px 0 42px;
+
+  border-radius: 16px;
+  border: 1px solid var(--border);
+
+  background: #fff;
+
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+
+  box-shadow: var(--shadow-sm);
+
+  transition: all 0.25s ease;
+}
+
+/* placeholder */
+.students__search input::placeholder {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+/* hover */
+.students__search input:hover {
+  border-color: #c7d2fe;
+}
+
+/* focus */
+.students__search input:focus {
+  outline: none;
+
+  border-color: var(--primary);
+
+  box-shadow: 0 0 0 4px rgba(55, 111, 255, 0.12);
+}
+
+/* ================= FILTER SELECT ================= */
+
+.students__filter {
+  min-width: 180px;
+  height: 48px;
+
+  padding: 0 14px;
+
+  border-radius: 16px;
+  border: 1px solid var(--border);
+
+  background: #fff;
+
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+
+  cursor: pointer;
+
+  box-shadow: var(--shadow-sm);
+
+  transition: all 0.25s ease;
+
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+/* hover */
+.students__filter:hover {
+  border-color: #c7d2fe;
+}
+
+/* focus */
+.students__filter:focus {
+  outline: none;
+
+  border-color: var(--primary);
+
+  box-shadow: 0 0 0 4px rgba(55, 111, 255, 0.12);
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 768px) {
+  .students__search-wrapper {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .students__filter {
+    width: 100%;
+  }
+}
+
+/* =========================================================
+   TABLE
+========================================================= */
+
+.students__table-wrapper {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
+}
+
 .students__table {
   width: 100%;
+  min-width: 1000px;
   border-collapse: collapse;
-  background: var(--card);
-  border-radius: var(--radius);
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
 }
 
 .students__table thead {
-  background: #f1f5f9;
+  background: #f8fafc;
 }
 
 .students__table th {
   text-align: left;
   padding: 14px;
-  font-size: 12px;
-  text-transform: uppercase;
+
+  font-size: 11px;
+  font-weight: 800;
   color: var(--muted);
-  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.students__table td {
+  padding: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+
+  border-top: 1px solid #f1f5f9;
+}
+
+.students__table tbody tr {
+  transition: 0.2s ease;
+  cursor: pointer;
+}
+
+.students__table tbody tr:hover {
+  background: #f9fbff;
+}
+
+.students__table td:nth-child(2) {
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* =========================================================
+   TABLE WRAPPER
+========================================================= */
+
+.students__table-wrapper {
+  overflow-x: auto;
+
+  border-radius: 24px;
+
+  background: white;
+
+  border: 1px solid var(--border);
+
+  box-shadow: var(--shadow-md);
+}
+
+/* =========================================================
+   TABLE
+========================================================= */
+
+.students__table {
+  width: 100%;
+  min-width: 1050px;
+
+  border-collapse: collapse;
+}
+
+.students__table thead {
+  background: #f8fbff;
+}
+
+.students__table th {
+  text-align: left;
+  padding: 16px 16px;
+
+  text-align: left;
+
+  color: var(--text-soft);
+
+  font-size: 11px;
+  font-weight: 800;
+
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+
+  border-bottom: 1px solid var(--border);
 }
 
 .students__table td {
   text-align: left;
-  padding: 14px;
-  font-size: 14px;
-  border-bottom: 1px solid var(--border);
+
+  padding: 16px;
+
+  color: var(--text-soft);
+
+  font-size: 13px;
+  font-weight: 600;
+
+  border-bottom: 1px solid #edf2f7;
+
+  transition: 0.2s ease;
 }
 
-.students__table tr {
-  transition: 0.2s;
+.students__table tbody tr {
+  transition: 0.2s ease;
   cursor: pointer;
 }
 
-.students__table tr:hover {
-  background: #f8fafc;
+.students__table tbody tr:hover {
+  background: #f8fbff;
 }
 
-/* ================= STATUS ================= */
+.students__table td:nth-child(2) {
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* =========================================================
+   STATUS
+========================================================= */
+
 .status {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 4px 10px;
+
+  padding: 7px 12px;
+
   border-radius: 999px;
+
+  font-size: 11px;
+  font-weight: 800;
 }
 
 .status.paid {
-  background: #dcfce7;
-  color: var(--green);
+  background: var(--success-bg);
+  color: #166534;
 }
 
 .status.unpaid {
-  background: #fee2e2;
-  color: var(--red);
+  background: var(--danger-bg);
+  color: #991b1b;
 }
 
-/* ================= ACTION BUTTONS ================= */
+/* =========================================================
+   ACTION BUTTONS
+========================================================= */
+
 .students__table td button {
   width: 34px;
   height: 34px;
+
   border: none;
-  border-radius: 8px;
-  cursor: pointer;
+  border-radius: 11px;
+
   margin-right: 6px;
-  transition: 0.2s;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
+  font-size: 14px;
+
+  cursor: pointer;
+
+  transition: 0.22s ease;
 }
 
 .students__table td button:first-child {
-  background: #eff6ff;
+  background: #edf4ff;
   color: var(--primary);
 }
 
@@ -179,80 +452,212 @@
 }
 
 .students__table td button:last-child {
-  background: #fee2e2;
-  color: var(--red);
+  background: #fef2f2;
+  color: var(--danger);
 }
 
 .students__table td button:last-child:hover {
-  background: #fecaca;
+  background: #fee2e2;
   transform: translateY(-2px);
 }
 
-/* ================= MODAL ================= */
+/* =========================================================
+   EMPTY
+========================================================= */
+
+.students__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--text-soft);
+
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* =========================================================
+   MODAL
+========================================================= */
+
 .modal {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(6px);
+
+  background: rgba(15, 23, 42, 0.55);
+
+  backdrop-filter: blur(8px);
+
+  z-index: 9999;
+
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 999;
-  padding: 20px;
+  justify-content: center;
+
+  padding: 18px;
+
+  animation: fadeIn 0.25s ease;
 }
+
+/* =========================================================
+   MODAL BOX
+========================================================= */
 
 .modal__box {
-  background: white;
   width: 100%;
-  max-width: 650px;
-  border-radius: 18px;
-  padding: 24px;
-  box-shadow: var(--shadow-md);
-  animation: pop 0.25s ease;
+  max-width: 620px;
+  max-height: 88vh;
+
+  overflow-y: auto;
+
+  background: white;
+
+  border-radius: 24px;
+
+  box-shadow: var(--shadow-lg);
+
+  animation: modalUp 0.25s ease;
 }
 
-@keyframes pop {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+.view__box {
+  max-width: 760px;
 }
 
-/* ================= MODAL HEADER ================= */
+/* =========================================================
+   MODAL HEADER
+========================================================= */
+
 .modal__header {
+  padding: 18px 22px;
+
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 18px;
+  justify-content: space-between;
+
+  border-bottom: 1px solid var(--border);
 }
 
 .modal__header h3 {
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 19px;
+  font-weight: 800;
 }
 
 .modal__header button {
+  width: 36px;
+  height: 36px;
+
   border: none;
-  background: transparent;
-  font-size: 20px;
+  border-radius: 50%;
+
+  background: #f1f5f9;
+
+  color: var(--text-soft);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   cursor: pointer;
+
+  transition: 0.22s ease;
 }
 
-/* ================= FORM ================= */
+.modal__header button:hover {
+  background: #fee2e2;
+  color: var(--danger);
+}
+
+/* =========================================================
+   VIEW MODAL
+========================================================= */
+
+.view__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 16px;
+
+  padding: 22px;
+}
+
+.view__column {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.view__field {
+  background: var(--soft);
+
+  border: 1px solid #edf2f7;
+
+  border-radius: 16px;
+
+  padding: 15px;
+}
+
+.view__field label {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: var(--text-soft);
+
+  font-size: 11px;
+  font-weight: 700;
+
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.view__value {
+  color: var(--text);
+
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.view__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 8px 14px;
+
+  border-radius: 999px;
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.view__badge.paid {
+  background: var(--success-bg);
+  color: #166534;
+}
+
+.view__badge.unpaid {
+  background: var(--danger-bg);
+  color: #991b1b;
+}
+
+/* =========================================================
+   FORM
+========================================================= */
+
 .modal__form {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 16px;
+
+  padding: 22px;
 }
 
 .form__group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 7px;
 }
 
 .form__group.full {
@@ -260,117 +665,220 @@
 }
 
 .form__group label {
-  font-size: 13px;
-  color: var(--muted);
+  color: var(--text-soft);
+
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .form__group input,
 .form__group select {
-  height: 42px;
+  height: 46px;
+
+  border-radius: 14px;
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 0 12px;
-  outline: none;
-  transition: 0.2s;
+
+  background: white;
+
+  padding: 0 14px;
+
+  color: var(--text);
+
+  font-size: 13px;
+  font-weight: 600;
+
+  transition: 0.25s ease;
 }
 
 .form__group input:focus,
 .form__group select:focus {
+  outline: none;
+
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+
+  box-shadow:
+    0 0 0 4px rgba(55, 111, 255, 0.10);
 }
 
-/* ================= CHECKBOX ================= */
+/* =========================================================
+   CHECKBOX
+========================================================= */
+
 .checkbox {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-weight: 500;
+
+  background: var(--soft);
+
+  border: 1px solid var(--border);
+
+  border-radius: 14px;
+
+  padding: 14px;
+
+  cursor: pointer;
 }
 
-/* ================= SAVE BUTTON ================= */
+.checkbox input {
+  width: 17px;
+  height: 17px;
+
+  accent-color: var(--primary);
+}
+
+/* =========================================================
+   ACTIONS
+========================================================= */
+
 .modal__actions {
-  margin-top: 18px;
+  padding: 0 22px 22px;
+
   display: flex;
   justify-content: flex-end;
 }
 
-.modal__actions button {
-  background: var(--primary);
-  color: white;
+.save-btn {
+  height: 46px;
+
   border: none;
-  padding: 10px 16px;
-  border-radius: 10px;
-  font-weight: 600;
+  border-radius: 14px;
+
+  padding: 0 20px;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  background: linear-gradient(
+    135deg,
+    var(--primary),
+    var(--primary-dark)
+  );
+
+  color: white;
+
+  font-size: 13px;
+  font-weight: 700;
+
   cursor: pointer;
-  transition: 0.2s;
+
+  transition: 0.25s ease;
 }
 
-.modal__actions button:hover {
-  background: var(--primary-hover);
+.save-btn:hover {
+  transform: translateY(-2px);
 }
 
-/* ================= VIEW GRID ================= */
-.view__grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
+.save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-.view__field {
-  background: #f8fafc;
-  padding: 10px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-}
+/* =========================================================
+   LOADING
+========================================================= */
 
-.view__field label {
-  font-size: 11px;
-  color: var(--muted);
-}
-
-.view__value {
+.loading-row {
+  font-size: 13px;
   font-weight: 600;
-  font-size: 14px;
-  margin-top: 3px;
+
+  color: var(--text-soft);
 }
 
-/* ================= BADGE ================= */
-.view__badge {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
+/* =========================================================
+   ANIMATIONS
+========================================================= */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-.view__badge.paid {
-  background: #dcfce7;
-  color: var(--green);
-}
-
-.view__badge.unpaid {
-  background: #fee2e2;
-  color: var(--red);
-}
-
-/* ================= RESPONSIVE ================= */
-@media (max-width: 768px) {
-  .students__header {
-    flex-direction: column;
-    gap: 12px;
-    align-items: flex-start;
+@keyframes modalUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
   }
 
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 992px) {
+  .view__grid,
   .modal__form {
     grid-template-columns: 1fr;
   }
 
-  .view__grid {
-    grid-template-columns: 1fr;
+  .form__group.full {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .students {
+    padding: 16px;
   }
 
-  .students__table {
-    font-size: 12px;
+  .students__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .primary-btn {
+    width: 100%;
+  }
+
+  .students__header h2 {
+    font-size: 24px;
+  }
+
+  .modal__box,
+  .view__box {
+    max-width: 100%;
+    border-radius: 20px;
+  }
+
+  .view__grid,
+  .modal__form {
+    padding: 18px;
+  }
+
+  .modal__actions {
+    padding: 0 18px 18px;
+  }
+}
+
+@media (max-width: 500px) {
+  .students__search input {
+    height: 48px;
+  }
+
+  .students__table th,
+  .students__table td {
+    padding: 13px;
+  }
+
+  .modal {
+    padding: 10px;
+  }
+
+  .modal__header {
+    padding: 16px 18px;
+  }
+
+  .modal__header h3 {
+    font-size: 17px;
   }
 }

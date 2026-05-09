@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "../../services/supabaseClient";
 import "./Teachers.css";
 
@@ -14,29 +15,37 @@ import {
   FiBookOpen,
   FiUsers,
   FiDollarSign,
-  FiCheckCircle,
+  FiCalendar,
+  FiAlertTriangle,
+  FiUserPlus,
 } from "react-icons/fi";
 
 export default function Teachers({ activeBranch }) {
   const branchId = activeBranch?.id;
 
-  // ================= STATE =================
+  // ==========================================================================
+  // STATES
+  // ==========================================================================
   const [teachers, setTeachers] = useState([]);
   const [courses, setCourses] = useState([]);
   const [students, setStudents] = useState([]);
 
   const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState("");
+  const [saving, setSaving] = useState(false);
 
-  // MODALS
+  const [search, setSearch] = useState("");
+  const [filterCourse, setFilterCourse] = useState("all");
+
+  // Modal States
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
+
   const [viewOpen, setViewOpen] = useState(false);
   const [viewData, setViewData] = useState(null);
 
   const [editId, setEditId] = useState(null);
 
-  // FORM
+  // Form State
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -44,58 +53,110 @@ export default function Teachers({ activeBranch }) {
     salary_paid: false,
     last_payment: "",
     next_payment: "",
+    notes: "",
   });
 
-  // ================= FETCH =================
-  const fetchData = async () => {
+  // ==========================================================================
+  // FETCH DATA
+  // ==========================================================================
+  const fetchData = useCallback(async () => {
     if (!branchId) return;
 
     setLoading(true);
 
-    const [t, c, s] = await Promise.all([
-      supabase.from("teachers").select("*").eq("branch_id", branchId),
-      supabase.from("courses").select("*").eq("branch_id", branchId),
-      supabase.from("students").select("*").eq("branch_id", branchId),
-    ]);
+    try {
+      const [tRes, cRes, sRes] = await Promise.all([
+        supabase
+          .from("teachers")
+          .select("*")
+          .eq("branch_id", branchId)
+          .order("created_at", { ascending: false }),
 
-    setTeachers(t.data || []);
-    setCourses(c.data || []);
-    setStudents(s.data || []);
+        supabase
+          .from("courses")
+          .select("*")
+          .eq("branch_id", branchId),
 
-    setLoading(false);
-  };
+        supabase
+          .from("students")
+          .select("*")
+          .eq("branch_id", branchId),
+      ]);
+
+      if (tRes.error) throw tRes.error;
+
+      setTeachers(tRes.data || []);
+      setCourses(cRes.data || []);
+      setStudents(sRes.data || []);
+    } catch (err) {
+      console.error("Error while loading data:", err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [branchId]);
 
   useEffect(() => {
     fetchData();
-  }, [branchId]);
+  }, [fetchData]);
 
-  // ================= HELPERS =================
-  const getCourseName = (id) => courses.find((c) => c.id === id)?.name || "—";
+  // ==========================================================================
+  // HELPERS
+  // ==========================================================================
+  const getCourseName = (id) =>
+    courses.find((c) => c.id === id)?.name || "Course not assigned";
 
-  const getStudentsCount = (id) =>
-    students.filter((s) => s.teacher_id === id).length;
-
-  const getIncome = (id) =>
-    students
-      .filter((s) => s.teacher_id === id && s.paid)
-      .reduce(
-        (sum, s) =>
-          sum + ((s.monthly_fee || 0) * (s.teacher_percent || 0)) / 100,
-        0,
+  const getTeacherStats = useCallback(
+    (teacherId) => {
+      const teacherStudents = students.filter(
+        (s) => s.teacher_id === teacherId 
       );
 
-  // ================= VIEW =================
-  const openView = (t) => {
-    setViewData(t);
-    setViewOpen(true);
-  };
+      const activeStudents = teacherStudents.filter(
+        (s) => s.status === "active" || s.paid
+      ).length;
 
-  // ================= INPUT =================
-  const handleChange = (e) => {
+      const totalIncome = teacherStudents
+        .filter((s) => s.paid)
+        .reduce((sum, s) => {
+          const fee = s.monthly_fee || 0;
+          const percent = s.teacher_percent || 0;
+
+          return sum + (fee * percent) / 100;
+        }, 0);
+
+      return {
+        count: teacherStudents.length,
+        active: activeStudents,
+        income: totalIncome,
+      };
+    },
+    [students]
+  );
+
+  // ==========================================================================
+  // FILTER
+  // ==========================================================================
+  const filteredTeachers = useMemo(() => {
+    return teachers.filter((t) => {
+      const matchesSearch =
+        t.name.toLowerCase().includes(search.toLowerCase()) ||
+        (t.phone && t.phone.includes(search));
+
+      const matchesCourse =
+        filterCourse === "all" || t.course_id === filterCourse;
+
+      return matchesSearch && matchesCourse;
+    });
+  }, [teachers, search, filterCourse]);
+
+  // ==========================================================================
+  // HANDLERS
+  // ==========================================================================
+  const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
 
-    setForm((p) => ({
-      ...p,
+    setForm((prev) => ({
+      ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
   };
@@ -108,320 +169,559 @@ export default function Teachers({ activeBranch }) {
       salary_paid: false,
       last_payment: "",
       next_payment: "",
+      notes: "",
     });
+
     setEditId(null);
     setModalOpen(false);
   };
 
-  // ================= EDIT =================
-  const openEdit = (t) => {
+  const openEditModal = (teacher) => {
+    setEditId(teacher.id);
+
     setForm({
-      name: t.name || "",
-      phone: t.phone || "",
-      course_id: t.course_id || "",
-      salary_paid: t.salary_paid || false,
-      last_payment: t.last_payment || "",
-      next_payment: t.next_payment || "",
+      name: teacher.name || "",
+      phone: teacher.phone || "",
+      course_id: teacher.course_id || "",
+      salary_paid: teacher.salary_paid || false,
+      last_payment: teacher.last_payment || "",
+      next_payment: teacher.next_payment || "",
+      notes: teacher.notes || "",
     });
 
-    setEditId(t.id);
     setModalOpen(true);
   };
 
-  // ================= SAVE =================
-  const handleSubmit = async (e) => {
+  const handleSaveTeacher = async (e) => {
     e.preventDefault();
 
-    if (!form.name.trim()) return alert("Name required");
+    if (!form.name.trim()) return;
 
-    setLoading(true);
+    setSaving(true);
 
-    const payload = {
+    const teacherData = {
+      ...form,
       branch_id: branchId,
-      name: form.name,
-      phone: form.phone,
       course_id: form.course_id || null,
-      salary_paid: form.salary_paid,
-      last_payment: form.last_payment || null,
-      next_payment: form.next_payment || null,
+      updated_at: new Date(),
     };
 
-    if (editId) {
-      await supabase.from("teachers").update(payload).eq("id", editId);
-    } else {
-      await supabase.from("teachers").insert(payload);
+    try {
+      if (editId) {
+        const { error } = await supabase
+          .from("teachers")
+          .update(teacherData)
+          .eq("id", editId);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("teachers")
+          .insert([teacherData]);
+
+        if (error) throw error;
+      }
+
+      resetForm();
+      fetchData();
+    } catch (err) {
+      alert("Error: " + err.message);
+    } finally {
+      setSaving(false);
     }
-
-    setLoading(false);
-    resetForm();
-    fetchData();
   };
 
-  // ================= DELETE =================
-  const handleDelete = async () => {
-    await supabase.from("teachers").delete().eq("id", deleteId);
-    setDeleteId(null);
-    fetchData();
+  const confirmDelete = async () => {
+    try {
+      const { error } = await supabase
+        .from("teachers")
+        .delete()
+        .eq("id", deleteId);
+
+      if (error) throw error;
+
+      setDeleteId(null);
+      fetchData();
+    } catch (err) {
+      alert("An error occurred while deleting");
+    }
   };
 
-  // ================= FILTER =================
-  const filtered = useMemo(() => {
-    return teachers.filter((t) =>
-      t.name.toLowerCase().includes(search.toLowerCase()),
+  // ==========================================================================
+  // MODALS
+  // ==========================================================================
+  const renderAllModals = () => {
+    return createPortal(
+      <>
+        {/* VIEW MODAL */}
+        {viewOpen && viewData && (
+          <div
+            className="portal-overlay"
+            onClick={() => setViewOpen(false)}
+          >
+            <div
+              className="portal-modal-card view-teacher-modal"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="modal-top-accent"></div>
+
+              <button
+                className="close-x-btn"
+                onClick={() => setViewOpen(false)}
+              >
+                <FiX />
+              </button>
+
+              <div className="modal-body-content">
+                <div className="profile-section">
+                  <div className="profile-avatar">
+                    <FiUser />
+                  </div>
+
+                  <h2 className="profile-name">{viewData.name}</h2>
+
+                  <p className="profile-role">
+                    Professional Teacher
+                  </p>
+
+                  <div
+                    className={`status-label ${
+                      viewData.salary_paid
+                        ? "paid"
+                        : "pending"
+                    }`}
+                  >
+                    {viewData.salary_paid
+                      ? "Salary Paid"
+                      : "Payment Pending"}
+                  </div>
+                </div>
+
+                <div className="info-grid-details">
+                  <div className="info-item">
+                    <label>
+                      <FiPhone /> Phone
+                    </label>
+
+                    <span>
+                      {viewData.phone || "Not provided"}
+                    </span>
+                  </div>
+
+                  <div className="info-item">
+                    <label>
+                      <FiBookOpen /> Specialization
+                    </label>
+
+                    <span>
+                      {getCourseName(viewData.course_id)}
+                    </span>
+                  </div>
+
+                  <div className="info-item">
+                    <label>
+                      <FiUsers /> Total Students
+                    </label>
+
+                    <span>
+                      {getTeacherStats(viewData.id).count} students
+                    </span>
+                  </div>
+
+                  <div className="info-item">
+                    <label>
+                      <FiDollarSign /> Monthly Income
+                    </label>
+
+                    <span className="income-highlight">
+                      {getTeacherStats(
+                        viewData.id
+                      ).income.toLocaleString()}{" "}
+                      UZS
+                    </span>
+                  </div>
+                </div>
+
+                <div className="payment-timeline">
+                  <h4>
+                    <FiCalendar /> Payment Timeline
+                  </h4>
+
+                  <div className="timeline-row">
+                    <div className="t-point">
+                      <small>Last Payment</small>
+
+                      <p>{viewData.last_payment || "—"}</p>
+                    </div>
+
+                    <div className="t-divider"></div>
+
+                    <div className="t-point">
+                      <small>Next Payment</small>
+
+                      <p>{viewData.next_payment || "—"}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ADD / EDIT MODAL */}
+        {modalOpen && (
+          <div className="portal-overlay" onClick={resetForm}>
+            <div
+              className="portal-modal-card form-modal"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="modal-header-standard">
+                <h3>
+                  {editId ? (
+                    <>
+                      <FiEdit /> Edit Teacher
+                    </>
+                  ) : (
+                    <>
+                      <FiUserPlus /> Add New Teacher
+                    </>
+                  )}
+                </h3>
+
+                <button
+                  className="close-icon-btn"
+                  onClick={resetForm}
+                >
+                  <FiX />
+                </button>
+              </div>
+
+              <form
+                onSubmit={handleSaveTeacher}
+                className="modal-form-main"
+              >
+                <div className="input-group-full">
+                  <label>Teacher Full Name *</label>
+
+                  <input
+                    name="name"
+                    value={form.name}
+                    onChange={handleInputChange}
+                    placeholder="Example: John Smith"
+                    required
+                  />
+                </div>
+
+                <div className="input-row-double">
+                  <div className="input-group-half">
+                    <label>Phone Number</label>
+
+                    <input
+                      name="phone"
+                      value={form.phone}
+                      onChange={handleInputChange}
+                      placeholder="+998"
+                    />
+                  </div>
+
+                  <div className="input-group-half">
+                    <label>Specialization</label>
+
+                    <select
+                      name="course_id"
+                      value={form.course_id}
+                      onChange={handleInputChange}
+                    >
+                      <option value="">
+                        Select course
+                      </option>
+
+                      {courses.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="input-row-double">
+                  <div className="input-group-half">
+                    <label>Last Payment Date</label>
+
+                    <input
+                      type="date"
+                      name="last_payment"
+                      value={form.last_payment}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+
+                  <div className="input-group-half">
+                    <label>Next Payment Date</label>
+
+                    <input
+                      type="date"
+                      name="next_payment"
+                      value={form.next_payment}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+
+                <div className="checkbox-control-wrapper">
+                  <div className="custom-checkbox-row">
+                    <input
+                      type="checkbox"
+                      id="salary_paid"
+                      name="salary_paid"
+                      checked={form.salary_paid}
+                      onChange={handleInputChange}
+                    />
+
+                    <label htmlFor="salary_paid">
+                      Salary has been paid for this month
+                    </label>
+                  </div>
+                </div>
+
+                <div className="form-actions-footer">
+                  <button
+                    type="button"
+                    className="btn-cancel-form"
+                    onClick={resetForm}
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="submit"
+                    className="btn-submit-form"
+                    disabled={saving}
+                  >
+                    {saving ? (
+                      "Saving..."
+                    ) : (
+                      <>
+                        <FiSave /> Save
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* DELETE MODAL */}
+        {deleteId && (
+          <div
+            className="portal-overlay"
+            onClick={() => setDeleteId(null)}
+          >
+            <div
+              className="portal-modal-card confirm-modal"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="confirm-icon-wrapper">
+                <FiAlertTriangle />
+              </div>
+
+              <h3>Delete Teacher</h3>
+
+              <p>
+                Are you sure you want to delete this
+                teacher? This action cannot be undone.
+              </p>
+
+              <div className="confirm-footer-btns">
+                <button
+                  className="btn-no"
+                  onClick={() => setDeleteId(null)}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  className="btn-yes"
+                  onClick={confirmDelete}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </>,
+      document.body
     );
-  }, [teachers, search]);
+  };
 
-  // ================= UI =================
+  // ==========================================================================
+  // UI
+  // ==========================================================================
   return (
-    <div className="teachers-main-container">
-      <div className="teachers-top-bar">
-        <div className="teachers-info-header">
-          <h2 className="branch-title-text">{activeBranch?.name || "Branch"} • Teachers</h2>
-          <p className="branch-subtitle-text">Manage all teachers in your branch</p>
+    <div className="teachers-page-container">
+      {/* HEADER */}
+      <header className="teachers-header-box">
+        <div className="title-area">
+          <h1 className="page-main-title">
+            {activeBranch?.name || "Branch"} • Teachers
+          </h1>
+
+          <p className="page-description">
+            Teachers list and financial monitoring
+          </p>
         </div>
 
-        <button className="add-teacher-btn" onClick={() => setModalOpen(true)}>
+        <button
+          className="btn-prime-add"
+          onClick={() => setModalOpen(true)}
+        >
           <FiPlus /> Add Teacher
         </button>
-      </div>
-      
+      </header>
+
       {/* SEARCH */}
-      <div className="teachers-search-wrapper">
-        <FiSearch className="search-icon-fixed" />
-        <input
-          className="search-input-field"
-          placeholder="Search teacher..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      <div className="teachers-controls-bar">
+        <div className="search-input-field">
+          <FiSearch className="search-icon-fixed" />
+
+          <input
+            type="text"
+            placeholder="Search by name or phone..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+
+        <select
+          className="filter-dropdown-select"
+          value={filterCourse}
+          onChange={(e) => setFilterCourse(e.target.value)}
+        >
+          <option value="all">All Courses</option>
+
+          {courses.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* TABLE */}
-      <div className="teachers-list-table-box">
-        <table className="teachers-data-table">
+      <div className="teachers-table-overflow">
+        <table className="modern-data-table">
           <thead>
             <tr>
               <th>#</th>
-              <th>Name</th>
+              <th>Teacher Name</th>
               <th>Phone</th>
-              <th>Course</th>
+              <th>Specialization</th>
               <th>Students</th>
               <th>Income</th>
               <th>Status</th>
-              <th>Actions</th>
+              <th className="text-center">Actions</th>
             </tr>
           </thead>
 
           <tbody>
-            {filtered.map((t, i) => (
-              <tr
-                key={t.id}
-                className="table-body-row"
-                onClick={() => openView(t)}
-              >
-                <td>{i + 1}</td>
-                <td className="teacher-name-col">{t.name}</td>
-                <td>{t.phone}</td>
-                <td>{getCourseName(t.course_id)}</td>
-                <td>{getStudentsCount(t.id)}</td>
-                <td className="income-amount-col">{getIncome(t.id).toFixed(0)} so'm</td>
-                <td className={`status-cell ${t.salary_paid ? "status-paid" : "status-unpaid"}`}>
-                  {t.salary_paid ? "Paid" : "Unpaid"}
-                </td>
-
-                <td className="actions-col" onClick={(e) => e.stopPropagation()}>
-                  <button className="action-btn-edit" onClick={() => openEdit(t)}>
-                    <FiEdit />
-                  </button>
-                  <button className="action-btn-delete" onClick={() => setDeleteId(t.id)}>
-                    <FiTrash2 />
-                  </button>
+            {loading ? (
+              <tr>
+                <td colSpan="8" className="td-loader">
+                  Loading data...
                 </td>
               </tr>
-            ))}
+            ) : filteredTeachers.length === 0 ? (
+              <tr>
+                <td colSpan="8" className="td-empty">
+                  No data found
+                </td>
+              </tr>
+            ) : (
+              filteredTeachers.map((t, idx) => {
+                const stats = getTeacherStats(t.id);
+
+                return (
+                  <tr
+                    key={t.id}
+                    onClick={() => {
+                      setViewData(t);
+                      setViewOpen(true);
+                    }}
+                  >
+                    <td>{idx + 1}</td>
+
+                    <td className="font-bold-name">
+                      {t.name}
+                    </td>
+
+                    <td>{t.phone || "—"}</td>
+
+                    <td>
+                      <span className="badge-course">
+                        {getCourseName(t.course_id)}
+                      </span>
+                    </td>
+
+                    <td>
+                      <FiUsers
+                        style={{ marginRight: "5px" }}
+                      />
+                      {stats.count} students
+                    </td>
+
+                    <td className="price-col">
+                      {stats.income.toLocaleString()} UZS
+                    </td>
+
+                    <td>
+                      <span
+                        className={`status-pill-small ${
+                          t.salary_paid
+                            ? "paid"
+                            : "unpaid"
+                        }`}
+                      >
+                        {t.salary_paid
+                          ? "Paid"
+                          : "Unpaid"}
+                      </span>
+                    </td>
+
+                    <td
+                      className="actions-cell-row"
+                      onClick={(e) =>
+                        e.stopPropagation()
+                      }
+                    >
+                      <button
+                        className="row-btn edit"
+                        onClick={() => openEditModal(t)}
+                      >
+                        <FiEdit />
+                      </button>
+
+                      <button
+                        className="row-btn delete"
+                        onClick={() =>
+                          setDeleteId(t.id)
+                        }
+                      >
+                        <FiTrash2 />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>
 
-      {/* ================= VIEW MODAL ================= */}
-      {viewOpen && viewData && (
-        <div className="overlay-modal">
-          <div className="modal-container-box view-mode">
-            <div className="modal-header-section">
-              <h3 className="modal-title-text">Teacher Details</h3>
-              <button className="modal-close-trigger" onClick={() => setViewOpen(false)}>
-                <FiX />
-              </button>
-            </div>
-
-            <div className="details-info-grid">
-              <div className="detail-stat-card">
-                <FiUser className="stat-icon" />
-                <div className="stat-content">
-                  <p className="stat-label">Name</p>
-                  <h4 className="stat-value">{viewData.name}</h4>
-                </div>
-              </div>
-
-              <div className="detail-stat-card">
-                <FiPhone className="stat-icon" />
-                <div className="stat-content">
-                  <p className="stat-label">Phone</p>
-                  <h4 className="stat-value">{viewData.phone}</h4>
-                </div>
-              </div>
-
-              <div className="detail-stat-card">
-                <FiBookOpen className="stat-icon" />
-                <div className="stat-content">
-                  <p className="stat-label">Course</p>
-                  <h4 className="stat-value">{getCourseName(viewData.course_id)}</h4>
-                </div>
-              </div>
-
-              <div className="detail-stat-card">
-                <FiUsers className="stat-icon" />
-                <div className="stat-content">
-                  <p className="stat-label">Students</p>
-                  <h4 className="stat-value">{getStudentsCount(viewData.id)}</h4>
-                </div>
-              </div>
-
-              <div className="detail-stat-card">
-                <FiDollarSign className="stat-icon" />
-                <div className="stat-content">
-                  <p className="stat-label">Income</p>
-                  <h4 className="stat-value">{getIncome(viewData.id).toFixed(0)} so'm</h4>
-                </div>
-              </div>
-
-              <div className="detail-stat-card">
-                <FiCheckCircle className="stat-icon" />
-                <div className="stat-content">
-                  <p className="stat-label">Status</p>
-                  <h4 className={`stat-value status-text ${viewData.salary_paid ? "status-paid" : "status-unpaid"}`}>
-                    {viewData.salary_paid ? "Paid" : "Unpaid"}
-                  </h4>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ================= FORM MODAL ================= */}
-      {modalOpen && (
-        <div className="overlay-modal">
-          <div className="modal-container-box">
-            <div className="modal-header-section">
-              <h3 className="modal-title-text">{editId ? "Edit Teacher" : "Add Teacher"}</h3>
-              <button className="modal-close-trigger" onClick={resetForm}>
-                <FiX />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="teacher-entry-form">
-              {/* NAME */}
-              <div className="form-input-group">
-                <label className="field-label">Teacher Name</label>
-                <input
-                  className="field-input"
-                  name="name"
-                  value={form.name}
-                  onChange={handleChange}
-                  placeholder="Enter teacher name"
-                />
-              </div>
-
-              {/* PHONE */}
-              <div className="form-input-group">
-                <label className="field-label">Phone Number</label>
-                <input
-                  className="field-input"
-                  name="phone"
-                  value={form.phone}
-                  onChange={handleChange}
-                  placeholder="+998 90 123 45 67"
-                />
-              </div>
-
-              {/* COURSE */}
-              <div className="form-input-group">
-                <label className="field-label">Course</label>
-                <select
-                  className="field-select"
-                  name="course_id"
-                  value={form.course_id}
-                  onChange={handleChange}
-                >
-                  <option value="">Select course</option>
-                  {courses.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* LAST PAYMENT */}
-              <div className="form-input-group">
-                <label className="field-label">Last Payment Date</label>
-                <input
-                  className="field-date-picker"
-                  type="date"
-                  name="last_payment"
-                  value={form.last_payment}
-                  onChange={handleChange}
-                />
-              </div>
-
-              {/* NEXT PAYMENT */}
-              <div className="form-input-group">
-                <label className="field-label">Next Payment Date</label>
-                <input
-                  className="field-date-picker"
-                  type="date"
-                  name="next_payment"
-                  value={form.next_payment}
-                  onChange={handleChange}
-                />
-              </div>
-
-              {/* STATUS */}
-              <div className="form-checkbox-control">
-                <label className="checkbox-container">
-                  <input
-                    type="checkbox"
-                    className="hidden-checkbox"
-                    name="salary_paid"
-                    checked={form.salary_paid}
-                    onChange={handleChange}
-                  />
-                  <span className="checkbox-label-text">Salary Paid</span>
-                </label>
-              </div>
-
-              {/* BUTTON */}
-              <button type="submit" className="form-submit-btn">
-                <FiSave /> Save Teacher
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* DELETE */}
-      {deleteId && (
-        <div className="overlay-modal">
-          <div className="modal-container-box confirm-box">
-            <p className="confirm-message-text">Delete teacher?</p>
-            <div className="confirm-btn-group">
-              <button className="confirm-yes-btn" onClick={handleDelete}>Yes</button>
-              <button className="confirm-no-btn" onClick={() => setDeleteId(null)}>No</button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* MODALS */}
+      {renderAllModals()}
     </div>
   );
 }

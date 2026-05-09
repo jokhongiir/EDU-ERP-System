@@ -1,411 +1,1046 @@
-/* ================= ROOT ================= */
-:root {
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
+/* =========================================================
+   TEACHERS • ULTRA PROFESSIONAL UI
+   MODERN • CLEAN • PREMIUM
+   MATCHED WITH STUDENTS.CSS
+========================================================= */
 
-  --bg: #f8fafc;
+:root {
+  --primary: #376fff;
+  --primary-dark: #1a56db;
+  --primary-light: #eef4ff;
+
+  --bg: #f4f7fb;
   --card: #ffffff;
+  --soft: #f8fbff;
 
   --text: #0f172a;
-  --muted: #64748b;
+  --text-soft: #64748b;
+  --muted: #94a3b8;
 
   --border: #e2e8f0;
 
-  --green: #10b981;
-  --red: #ef4444;
+  --success: #16a34a;
+  --success-bg: #dcfce7;
 
-  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 12px 30px rgba(0, 0, 0, 0.08);
+  --danger: #ef4444;
+  --danger-bg: #fee2e2;
 
-  --radius: 14px;
+  --warning: #f59e0b;
+  --warning-bg: #fef3c7;
+
+  --shadow-sm: 0 3px 10px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 10px 28px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 18px 45px rgba(15, 23, 42, 0.15);
+
+  --radius: 20px;
 }
 
-/* ================= BASE ================= */
-.teachers-main-container {
-  font-family: "Inter", system-ui, sans-serif;
-}
+/* =========================================================
+   GLOBAL
+========================================================= */
 
-/* ================= TOP BAR ================= */
-.teachers-top-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 18px;
-}
-
-.teachers-info-header h2 {
-  font-size: 22px;
-  font-weight: 700;
+* {
   margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.branch-subtitle-text {
-  font-size: 13px;
-  color: var(--muted);
-  margin-top: 4px;
-}
-
-/* ================= ADD BUTTON ================= */
-.add-teacher-btn {
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 10px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  box-shadow: var(--shadow-sm);
-  transition: 0.2s;
-}
-
-.add-teacher-btn:hover {
-  background: var(--primary-hover);
-  transform: translateY(-2px);
-}
-
-/* ================= SEARCH ================= */
-.teachers-search-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  padding: 10px 14px;
-  border-radius: var(--radius);
-  max-width: 380px;
-  box-shadow: var(--shadow-sm);
-  margin-bottom: 18px;
-}
-
-.search-icon-fixed {
-  color: var(--muted);
-}
-
-.search-input-field {
-  border: none;
-  outline: none;
-  width: 100%;
-  font-size: 14px;
-  background: transparent;
-}
-
-/* ================= TABLE ================= */
-.teachers-list-table-box {
-  background: var(--card);
-  border-radius: var(--radius);
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-}
-
-.teachers-data-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.teachers-data-table thead {
-  background: #f1f5f9;
-}
-
-.teachers-data-table th {
-  text-align: left;
-  font-size: 12px;
-  padding: 14px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.table-body-row {
-  transition: 0.2s;
-  cursor: pointer;
-}
-
-.table-body-row:hover {
-  background: #f8fafc;
-}
-
-.teachers-data-table td {
-  text-align: left;
-  padding: 14px;
-  font-size: 14px;
-  border-bottom: 1px solid var(--border);
-}
-
-.teacher-name-col {
-  font-weight: 600;
+body {
+  background: var(--bg);
+  font-family: "Inter", sans-serif;
   color: var(--text);
 }
 
-.income-amount-col {
-  font-weight: 600;
-  color: var(--green);
+/* =========================================================
+   PAGE
+========================================================= */
+
+.teachers-page-container {
+  padding: 5px;
+      animation: fadeIn 0.7s ease;
+
 }
 
-/* ================= STATUS ================= */
-.status-cell {
-  font-size: 12px;
-  font-weight: 600;
-}
+/* =========================================================
+   HEADER
+========================================================= */
 
-.status-paid {
-  color: var(--green);
-}
-
-.status-unpaid {
-  color: var(--red);
-}
-
-/* ================= ACTIONS ================= */
-.actions-col {
+.teachers-header-box {
   display: flex;
-  gap: 8px;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+
+  margin-bottom: 20px;
 }
 
-.action-btn-edit,
-.action-btn-delete {
-  width: 34px;
-  height: 34px;
+.title-area {
+  display: flex;
+  flex-direction: column;
+}
+
+.page-main-title {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.page-description {
+  color: var(--text-soft);
+
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* =========================================================
+   BUTTON
+========================================================= */
+
+.btn-prime-add {
+  height: 46px;
+
   border: none;
-  border-radius: 8px;
-  cursor: pointer;
+  border-radius: 14px;
+
+  padding: 0 20px;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: 0.2s;
+  gap: 8px;
+
+  background: linear-gradient(
+    135deg,
+    var(--primary),
+    var(--primary-dark)
+  );
+
+  color: white;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: 0.25s ease;
+
+  box-shadow:
+    0 10px 24px rgba(55, 111, 255, 0.22);
 }
 
-.action-btn-edit {
-  background: #eff6ff;
+.btn-prime-add:hover {
+  transform: translateY(-2px);
+}
+
+/* =========================================================
+   CONTROLS
+========================================================= */
+
+.teachers-controls-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  margin-bottom: 20px;
+}
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+.search-input-field {
+  flex: 1;
+  position: relative;
+}
+
+.search-icon-fixed {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+
+  transform: translateY(-50%);
+
+  font-size: 17px;
+  color: var(--muted);
+}
+
+.search-input-field input {
+  width: 100%;
+  height: 50px;
+
+  border-radius: 16px;
+  border: 1px solid var(--border);
+
+  background: white;
+
+  padding: 0 16px 0 46px;
+
+  color: var(--text);
+
+  font-size: 13px;
+  font-weight: 600;
+
+  box-shadow: var(--shadow-sm);
+
+  transition: 0.25s ease;
+}
+
+.search-input-field input::placeholder {
+  color: var(--muted);
+}
+
+.search-input-field input:focus {
+  outline: none;
+
+  border-color: var(--primary);
+
+  box-shadow:
+    0 0 0 4px rgba(55, 111, 255, 0.10);
+}
+
+/* =========================================================
+   FILTER
+========================================================= */
+
+.filter-dropdown-select {
+  min-width: 200px;
+  height: 50px;
+
+  border-radius: 16px;
+  border: 1px solid var(--border);
+
+  background: white;
+
+  padding: 0 14px;
+
+  color: var(--text);
+
+  font-size: 13px;
+  font-weight: 700;
+
+  box-shadow: var(--shadow-sm);
+
+  cursor: pointer;
+
+  transition: 0.25s ease;
+    appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.filter-dropdown-select:focus {
+  
+  outline: none;
+
+  border-color: var(--primary);
+
+  box-shadow:
+    0 0 0 4px rgba(55, 111, 255, 0.10);
+}
+
+/* =========================================================
+   TABLE WRAPPER
+========================================================= */
+
+.teachers-table-overflow {
+  overflow-x: auto;
+
+  border-radius: 24px;
+
+  background: white;
+
+  border: 1px solid var(--border);
+
+  box-shadow: var(--shadow-md);
+}
+
+/* =========================================================
+   TABLE
+========================================================= */
+
+.modern-data-table {
+  width: 100%;
+  min-width: 1050px;
+
+  border-collapse: collapse;
+}
+
+.modern-data-table thead {
+  background: #f8fbff;
+}
+
+.modern-data-table th {
+  text-align: left;
+  padding: 16px;
+
+  color: var(--text-soft);
+
+  font-size: 11px;
+  font-weight: 800;
+
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.modern-data-table td {
+  text-align: left;
+
+  padding: 16px;
+
+  color: var(--text-soft);
+
+  font-size: 13px;
+  font-weight: 600;
+
+  border-bottom: 1px solid #edf2f7;
+
+  transition: 0.2s ease;
+}
+
+.modern-data-table tbody tr {
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.modern-data-table tbody tr:hover {
+  background: #f8fbff;
+}
+
+.font-bold-name {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.price-col {
+  color: var(--primary);
+  font-weight: 800;
+}
+
+/* =========================================================
+   BADGES
+========================================================= */
+
+.badge-course,
+.status-pill-small,
+.status-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 7px 12px;
+
+  border-radius: 999px;
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.badge-course {
+  background: var(--primary-light);
   color: var(--primary);
 }
 
-.action-btn-edit:hover {
+.status-pill-small.paid,
+.status-label.paid {
+  background: var(--success-bg);
+  color: #166534;
+}
+
+.status-pill-small.unpaid {
+  background: var(--danger-bg);
+  color: #991b1b;
+}
+
+.status-label.pending {
+  background: var(--warning-bg);
+  color: #92400e;
+}
+
+/* =========================================================
+   ACTION BUTTONS
+========================================================= */
+
+.actions-cell-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.row-btn {
+  width: 34px;
+  height: 34px;
+
+  border: none;
+  border-radius: 11px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 14px;
+
+  cursor: pointer;
+
+  transition: 0.22s ease;
+}
+
+.row-btn.edit {
+  background: #edf4ff;
+  color: var(--primary);
+}
+
+.row-btn.edit:hover {
   background: #dbeafe;
   transform: translateY(-2px);
 }
 
-.action-btn-delete {
-  background: #fee2e2;
-  color: var(--red);
+.row-btn.delete {
+  background: #fef2f2;
+  color: var(--danger);
 }
 
-.action-btn-delete:hover {
-  background: #fecaca;
+.row-btn.delete:hover {
+  background: #fee2e2;
   transform: translateY(-2px);
 }
 
-/* ================= MODAL ================= */
-.overlay-modal {
+/* =========================================================
+   EMPTY / LOADING
+========================================================= */
+
+.td-loader,
+.td-empty {
+  padding: 40px !important;
+
+  text-align: center;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  color: var(--text-soft);
+}
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+.portal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(6px);
+
+  background: rgba(15, 23, 42, 0.55);
+
+  backdrop-filter: blur(8px);
+
+  z-index: 9999;
+
   display: flex;
+  align-items: center;
   justify-content: center;
-  align-items: center;
-  z-index: 999;
-  padding: 20px;
+
+  padding: 18px;
+
+  animation: fadeIn 0.25s ease;
 }
 
-.modal-container-box {
-  background: #fff;
+/* =========================================================
+   MODAL BOX
+========================================================= */
+
+.portal-modal-card {
   width: 100%;
-  max-width: 650px;
-  border-radius: 18px;
-  padding: 22px;
-  box-shadow: var(--shadow-md);
-  animation: pop 0.25s ease;
+  max-width: 620px;
+  max-height: 88vh;
+
+  overflow-y: auto;
+
+  background: white;
+
+  border-radius: 24px;
+
+  box-shadow: var(--shadow-lg);
+
+  animation: modalUp 0.25s ease;
+
+  position: relative;
 }
 
-@keyframes pop {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+.view-teacher-modal {
+  max-width: 760px;
 }
 
-/* ================= MODAL HEADER ================= */
-.modal-header-section {
+.modal-top-accent {
+  height: 4px;
+
+  background: linear-gradient(
+    90deg,
+    var(--primary),
+    #60a5fa
+  );
+}
+
+/* =========================================================
+   CLOSE BUTTON
+========================================================= */
+
+.close-x-btn,
+.close-icon-btn {
+  width: 36px;
+  height: 36px;
+
+  border: none;
+  border-radius: 50%;
+
+  background: #f1f5f9;
+
+  color: var(--text-soft);
+
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 18px;
+  justify-content: center;
+
+  cursor: pointer;
+
+  transition: 0.22s ease;
 }
 
-.modal-title-text {
+.close-x-btn:hover,
+.close-icon-btn:hover {
+  background: #fee2e2;
+  color: var(--danger);
+}
+
+.close-x-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+}
+
+/* =========================================================
+   MODAL HEADER
+========================================================= */
+
+.modal-header-standard {
+  padding: 18px 22px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-header-standard h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
   font-size: 18px;
+  font-weight: 800;
+}
+
+/* =========================================================
+   VIEW MODAL
+========================================================= */
+
+.modal-body-content {
+  padding: 22px;
+}
+
+.profile-section {
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+.profile-avatar {
+  width: 82px;
+  height: 82px;
+
+  margin: 0 auto 14px;
+
+  border-radius: 50%;
+
+  background: linear-gradient(
+    135deg,
+    var(--primary),
+    #60a5fa
+  );
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: white;
+
+  font-size: 28px;
+
+  box-shadow:
+    0 10px 24px rgba(55, 111, 255, 0.22);
+}
+
+.profile-name {
+  font-size: 22px;
+  font-weight: 800;
+
+  color: var(--text);
+}
+
+.profile-role {
+  margin-top: 5px;
+
+  color: var(--text-soft);
+
+  font-size: 13px;
+}
+
+/* =========================================================
+   INFO GRID
+========================================================= */
+
+.info-grid-details {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 16px;
+
+  margin-bottom: 20px;
+}
+
+.info-item {
+  background: var(--soft);
+
+  border: 1px solid #edf2f7;
+
+  border-radius: 16px;
+
+  padding: 15px;
+}
+
+.info-item label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  margin-bottom: 7px;
+
+  color: var(--text-soft);
+
+  font-size: 11px;
+  font-weight: 700;
+
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.info-item span {
+  color: var(--text);
+
+  font-size: 14px;
   font-weight: 700;
 }
 
-.modal-close-trigger {
-  background: transparent;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
+.income-highlight {
+  color: var(--success);
 }
 
-/* ================= FORM ================= */
-.teacher-entry-form {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
+/* =========================================================
+   PAYMENT
+========================================================= */
+
+.payment-timeline {
+  background: var(--soft);
+
+  border-radius: 18px;
+
+  padding: 18px;
 }
 
-.form-input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.field-label {
-  font-size: 13px;
-  color: var(--muted);
-}
-
-.field-input,
-.field-select,
-.field-date-picker {
-  height: 42px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 0 12px;
-  outline: none;
-  transition: 0.2s;
-}
-
-.field-input:focus,
-.field-select:focus,
-.field-date-picker:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-/* ================= CHECKBOX ================= */
-.form-checkbox-control {
-  grid-column: span 2;
+.payment-timeline h4 {
   display: flex;
   align-items: center;
+  gap: 8px;
+
+  margin-bottom: 14px;
+
+  font-size: 15px;
+  font-weight: 800;
 }
 
-.checkbox-container {
+.timeline-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.t-point {
+  flex: 1;
+}
+
+.t-point small {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: var(--muted);
+
+  font-size: 10px;
+  font-weight: 700;
+
+  text-transform: uppercase;
+}
+
+.t-point p {
+  color: var(--text);
+
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.t-divider {
+  width: 60px;
+  height: 2px;
+
+  background: #cbd5e1;
+}
+
+/* =========================================================
+   FORM
+========================================================= */
+
+.modal-form-main {
+  padding: 22px;
+}
+
+.input-row-double {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 14px;
+
+  margin-bottom: 16px;
+}
+
+.input-group-full,
+.input-group-half {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.input-group-full {
+  margin-bottom: 16px;
+}
+
+.input-group-full label,
+.input-group-half label {
+  color: var(--text-soft);
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.input-group-full input,
+.input-group-half input,
+.input-group-half select {
+  height: 46px;
+
+  border-radius: 14px;
+  border: 1px solid var(--border);
+
+  background: white;
+
+  padding: 0 14px;
+
+  color: var(--text);
+
+  font-size: 13px;
+  font-weight: 600;
+
+  transition: 0.25s ease;
+}
+
+.input-group-full input:focus,
+.input-group-half input:focus,
+.input-group-half select:focus {
+  outline: none;
+
+  border-color: var(--primary);
+
+  box-shadow:
+    0 0 0 4px rgba(55, 111, 255, 0.10);
+}
+
+/* =========================================================
+   CHECKBOX
+========================================================= */
+
+.checkbox-control-wrapper {
+  margin-top: 8px;
+}
+
+.custom-checkbox-row {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-weight: 500;
+
+  background: var(--soft);
+
+  border: 1px solid var(--border);
+
+  border-radius: 14px;
+
+  padding: 14px;
 }
 
-/* ================= SUBMIT ================= */
-.form-submit-btn {
-  grid-column: span 2;
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 10px;
-  font-weight: 600;
-  cursor: pointer;
+.custom-checkbox-row input {
+  width: 17px;
+  height: 17px;
+
+  accent-color: var(--primary);
+}
+
+.custom-checkbox-row label {
+  color: var(--text);
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* =========================================================
+   FOOTER BUTTONS
+========================================================= */
+
+.form-actions-footer,
+.confirm-footer-btns {
   display: flex;
-  justify-content: center;
-  gap: 8px;
-  transition: 0.2s;
+  justify-content: flex-end;
+  gap: 10px;
+
+  margin-top: 20px;
 }
 
-.form-submit-btn:hover {
-  background: var(--primary-hover);
+.btn-cancel-form,
+.btn-submit-form,
+.btn-no,
+.btn-yes {
+  height: 44px;
+
+  border: none;
+  border-radius: 14px;
+
+  padding: 0 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: 0.25s ease;
+}
+
+.btn-cancel-form,
+.btn-no {
+  background: #f1f5f9;
+  color: var(--text-soft);
+}
+
+.btn-cancel-form:hover,
+.btn-no:hover {
+  background: #e2e8f0;
+}
+
+.btn-submit-form {
+  background: linear-gradient(
+    135deg,
+    var(--primary),
+    var(--primary-dark)
+  );
+
+  color: white;
+}
+
+.btn-submit-form:hover {
   transform: translateY(-2px);
 }
 
-/* ================= VIEW ================= */
-.details-info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
+.btn-submit-form:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-.detail-stat-card {
-  background: #f8fafc;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 12px;
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.stat-icon {
-  color: var(--primary);
-  font-size: 20px;
-}
-
-.stat-label {
-  font-size: 11px;
-  color: var(--muted);
-}
-
-.stat-value {
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.status-text.status-paid {
-  color: var(--green);
-}
-
-.status-text.status-unpaid {
-  color: var(--red);
-}
-
-/* ================= CONFIRM ================= */
-.confirm-box {
-  text-align: center;
-}
-
-.confirm-message-text {
-  font-size: 16px;
-  margin-bottom: 14px;
-}
-
-.confirm-btn-group {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-}
-
-.confirm-yes-btn {
-  background: var(--red);
+.btn-yes {
+  background: var(--danger);
   color: white;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 8px;
 }
 
-.confirm-no-btn {
-  background: #e2e8f0;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 8px;
+.btn-yes:hover {
+  background: #dc2626;
 }
 
-/* ================= RESPONSIVE ================= */
+/* =========================================================
+   DELETE MODAL
+========================================================= */
+
+.confirm-modal {
+  max-width: 400px;
+
+  text-align: center;
+
+  padding: 24px;
+}
+
+.confirm-icon-wrapper {
+  width: 74px;
+  height: 74px;
+
+  margin: 0 auto 16px;
+
+  border-radius: 50%;
+
+  background: #fef2f2;
+
+  color: var(--danger);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 32px;
+}
+
+.confirm-modal h3 {
+  margin-bottom: 8px;
+
+  color: var(--text);
+
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.confirm-modal p {
+  color: var(--text-soft);
+
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* =========================================================
+   ANIMATIONS
+========================================================= */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 992px) {
+  .info-grid-details,
+  .input-row-double {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
-  .teacher-entry-form {
-    grid-template-columns: 1fr;
+  .teachers-page-container {
+    padding: 16px;
   }
 
-  .details-info-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .teachers-top-bar {
+  .teachers-header-box,
+  .teachers-controls-bar {
     flex-direction: column;
-    gap: 12px;
-    align-items: flex-start;
+    align-items: stretch;
+  }
+
+  .btn-prime-add,
+  .filter-dropdown-select {
+    width: 100%;
+  }
+
+  .portal-modal-card,
+  .view-teacher-modal {
+    max-width: 100%;
+    border-radius: 20px;
+  }
+
+  .timeline-row,
+  .form-actions-footer,
+  .confirm-footer-btns {
+    flex-direction: column;
+  }
+
+  .t-divider {
+    width: 2px;
+    height: 35px;
+  }
+
+  .modal-body-content,
+  .modal-form-main {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 500px) {
+  .page-main-title {
+    font-size: 24px;
+  }
+
+  .search-input-field input,
+  .filter-dropdown-select {
+    height: 48px;
+  }
+
+  .modern-data-table th,
+  .modern-data-table td {
+    padding: 13px;
+  }
+
+  .portal-overlay {
+    padding: 10px;
+  }
+
+  .modal-header-standard {
+    padding: 16px 18px;
+  }
+
+  .modal-header-standard h3 {
+    font-size: 17px;
+  }
+
+  .profile-avatar {
+    width: 74px;
+    height: 74px;
+
+    font-size: 26px;
+  }
+
+  .profile-name {
+    font-size: 20px;
   }
 }
