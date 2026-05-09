@@ -53,7 +53,11 @@ export default function Groups({ activeBranch }) {
     setLoading(true);
     try {
       const [g, t, c, s] = await Promise.all([
-        supabase.from("groups").select("*").eq("branch_id", branchId).order("created_at", { ascending: false }),
+        supabase
+          .from("groups")
+          .select("*")
+          .eq("branch_id", branchId)
+          .order("created_at", { ascending: false }),
         supabase.from("teachers").select("*").eq("branch_id", branchId),
         supabase.from("courses").select("*").eq("branch_id", branchId),
         supabase.from("students").select("*").eq("branch_id", branchId),
@@ -87,9 +91,12 @@ export default function Groups({ activeBranch }) {
   }, [modalOpen, selectedGroup]);
 
   // ================= HELPERS =================
-  const getTeacher = (id) => teachers.find((t) => t.id === id)?.name || "Unassigned";
-  const getCourse = (id) => courses.find((c) => c.id === id)?.name || "No course";
-  const getStudentsCount = (groupId) => students.filter((s) => s.group_id === groupId).length;
+  const getTeacher = (id) =>
+    teachers.find((t) => t.id === id)?.name || "Unassigned";
+  const getCourse = (id) =>
+    courses.find((c) => c.id === id)?.name || "No course";
+  const getStudentsCount = (groupId) =>
+    students.filter((s) => s.group_id === groupId).length;
 
   const getScheduleLabel = (type) => {
     const labels = { odd: "Odd days", even: "Even days", all: "Every day" };
@@ -167,8 +174,10 @@ export default function Groups({ activeBranch }) {
   const filteredGroups = useMemo(() => {
     return groups.filter((g) => {
       const matchSearch = g.name.toLowerCase().includes(search.toLowerCase());
-      const matchCourse = !filterCourse || String(g.course_id) === String(filterCourse);
-      const matchTeacher = !filterTeacher || String(g.teacher_id) === String(filterTeacher);
+      const matchCourse =
+        !filterCourse || String(g.course_id) === String(filterCourse);
+      const matchTeacher =
+        !filterTeacher || String(g.teacher_id) === String(filterTeacher);
       return matchSearch && matchCourse && matchTeacher;
     });
   }, [groups, search, filterCourse, filterTeacher]);
@@ -295,8 +304,8 @@ export default function Groups({ activeBranch }) {
                   {saving
                     ? "Saving..."
                     : editId
-                    ? "Save Changes"
-                    : "Create Group"}
+                      ? "Save Changes"
+                      : "Create Group"}
                 </button>
               </form>
             </div>
@@ -359,7 +368,7 @@ export default function Groups({ activeBranch }) {
           </div>
         )}
       </>,
-      document.body
+      document.body,
     );
   };
 
@@ -367,11 +376,12 @@ export default function Groups({ activeBranch }) {
     <div className="groups-container">
       {/* HEADER */}
       <div className="groups-top-bar">
-        <div className="groups-titles">
-          <h2 className="groups-main-title">
+        <div className="title-area">
+          <h1 className="page-main-title">
             {activeBranch?.name || "Branch"} • Groups
-          </h2>
-          <p className="groups-sub-title">
+          </h1>
+
+          <p className="page-description">
             Manage class schedules, teachers, and groups
           </p>
         </div>
