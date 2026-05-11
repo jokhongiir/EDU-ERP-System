@@ -44,6 +44,7 @@ export default function Sidebar({
 
     // 👇 calendar-based attendance (real ERP feel)
     { name: "Attendance", icon: CalendarCheck, path: "attendance" },
+    { name: "Profile", icon: CalendarCheck, path: "profile" },
   ];
 
   const basePath = activeBranch

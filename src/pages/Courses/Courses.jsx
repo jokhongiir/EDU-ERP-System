@@ -10,6 +10,7 @@ import {
   FiTrash2,
   FiX,
   FiEdit3,
+  FiHome,
 } from "react-icons/fi";
 
 import "./Courses.css";
@@ -29,31 +30,62 @@ export default function Courses({ activeBranch }) {
 
   const branchId = activeBranch?.id;
 
-  // =========================================
-  // FETCH DATA
-  // =========================================
+  // =========================================================
+  // FETCH ALL DATA FROM ALL BRANCHES
+  // =========================================================
 
   const fetchData = useCallback(async () => {
-    if (!branchId) return;
-
     setLoading(true);
 
     try {
-      const [coursesRes, groupsRes, teachersRes] = await Promise.all([
+      // =========================================
+      // GET USER
+      // =========================================
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) return;
+
+      // =========================================
+      // GET ALL BRANCHES
+      // =========================================
+
+      const { data: branches, error: branchError } =
+        await supabase
+          .from("branches")
+          .select("*")
+          .eq("owner_uid", user.id);
+
+      if (branchError) throw branchError;
+
+      const branchIds =
+        branches?.map((b) => b.id) || [];
+
+      // =========================================
+      // FETCH ALL TABLES
+      // =========================================
+
+      const [
+        coursesRes,
+        groupsRes,
+        teachersRes,
+      ] = await Promise.all([
         supabase
           .from("courses")
           .select("*")
-          .eq("branch_id", branchId),
+          .in("branch_id", branchIds),
 
         supabase
           .from("groups")
           .select("*")
-          .eq("branch_id", branchId),
+          .in("branch_id", branchIds),
 
         supabase
           .from("teachers")
           .select("*")
-          .eq("branch_id", branchId),
+          .in("branch_id", branchIds),
       ]);
 
       setCourses(coursesRes.data || []);
@@ -64,15 +96,15 @@ export default function Courses({ activeBranch }) {
     } finally {
       setLoading(false);
     }
-  }, [branchId]);
+  }, []);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  // =========================================
+  // =========================================================
   // SCROLL LOCK
-  // =========================================
+  // =========================================================
 
   useEffect(() => {
     if (modalMode) {
@@ -86,13 +118,18 @@ export default function Courses({ activeBranch }) {
     };
   }, [modalMode]);
 
-  // =========================================
+  // =========================================================
   // HELPERS
-  // =========================================
+  // =========================================================
 
   const getStats = (courseId) => {
-    const courseGroups = groups.filter((g) => g.course_id === courseId);
-    const courseTeachers = teachers.filter((t) => t.course_id === courseId);
+    const courseGroups = groups.filter(
+      (g) => g.course_id === courseId
+    );
+
+    const courseTeachers = teachers.filter(
+      (t) => t.course_id === courseId
+    );
 
     return {
       groupsCount: courseGroups.length,
@@ -102,12 +139,14 @@ export default function Courses({ activeBranch }) {
   };
 
   const sortedCourses = useMemo(() => {
-    return [...courses].sort((a, b) => a.name.localeCompare(b.name));
+    return [...courses].sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
   }, [courses]);
 
-  // =========================================
-  // ACTIONS
-  // =========================================
+  // =========================================================
+  // CREATE / EDIT
+  // =========================================================
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -117,22 +156,28 @@ export default function Courses({ activeBranch }) {
     setActionLoading(true);
 
     try {
+      // CREATE
       if (modalMode === "create") {
         await supabase.from("courses").insert({
           name: courseName,
           branch_id: branchId,
+          branch_name: activeBranch?.name,
         });
       }
 
+      // EDIT
       if (modalMode === "edit") {
         await supabase
           .from("courses")
-          .update({ name: courseName })
+          .update({
+            name: courseName,
+          })
           .eq("id", selectedCourse.id);
       }
 
       setCourseName("");
       setModalMode(null);
+
       fetchData();
     } catch (err) {
       alert(err.message);
@@ -140,6 +185,10 @@ export default function Courses({ activeBranch }) {
       setActionLoading(false);
     }
   };
+
+  // =========================================================
+  // DELETE
+  // =========================================================
 
   const handleDelete = async (id) => {
     const confirmDelete = window.confirm(
@@ -149,69 +198,122 @@ export default function Courses({ activeBranch }) {
     if (!confirmDelete) return;
 
     try {
-      await supabase.from("courses").delete().eq("id", id);
-      setCourses((prev) => prev.filter((item) => item.id !== id));
+      await supabase
+        .from("courses")
+        .delete()
+        .eq("id", id);
+
+      setCourses((prev) =>
+        prev.filter((item) => item.id !== id)
+      );
     } catch (err) {
       alert("Delete failed");
     }
   };
 
-  // =========================================
-  // MODAL RENDER
-  // =========================================
+  // =========================================================
+  // MODAL
+  // =========================================================
 
   const renderModal = () => {
     if (!modalMode) return null;
 
     return createPortal(
-      <div className="cr-modal-overlay" onClick={() => setModalMode(null)}>
-        <div className="cr-modal-content" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="cr-modal-overlay"
+        onClick={() => setModalMode(null)}
+      >
+        <div
+          className="cr-modal-content"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="cr-modal-header">
             <h3>
-              {modalMode === "create" && "Create New Course"}
-              {modalMode === "edit" && "Edit Course"}
-              {modalMode === "details" && "Course Details"}
+              {modalMode === "create" &&
+                "Create New Course"}
+
+              {modalMode === "edit" &&
+                "Edit Course"}
+
+              {modalMode === "details" &&
+                "Course Details"}
             </h3>
-            <button className="cr-close-modal" onClick={() => setModalMode(null)}>
+
+            <button
+              className="cr-close-modal"
+              onClick={() => setModalMode(null)}
+            >
               <FiX />
             </button>
           </div>
 
+          {/* DETAILS */}
           {modalMode === "details" ? (
             <div className="cr-details-view">
+
+              <div className="cr-detail-card">
+                <span>Branch</span>
+
+                <strong>
+                  {selectedCourse.branch_name ||
+                    "Unknown"}
+                </strong>
+              </div>
+
               <div className="cr-detail-card">
                 <span>Total Groups</span>
+
                 <strong>
-                  {getStats(selectedCourse.id).groupsCount} active groups
+                  {
+                    getStats(selectedCourse.id)
+                      .groupsCount
+                  }{" "}
+                  active groups
                 </strong>
               </div>
 
               <div className="cr-detail-card">
                 <span>Teachers</span>
+
                 <div className="cr-tags-wrapper">
-                  {getStats(selectedCourse.id).teacherList.length > 0 ? (
-                    getStats(selectedCourse.id).teacherList.map((teacher) => (
-                      <div key={teacher.id} className="cr-tag">
+                  {getStats(selectedCourse.id)
+                    .teacherList.length > 0 ? (
+                    getStats(
+                      selectedCourse.id
+                    ).teacherList.map((teacher) => (
+                      <div
+                        key={teacher.id}
+                        className="cr-tag"
+                      >
                         {teacher.name}
                       </div>
                     ))
                   ) : (
-                    <p className="cr-no-data">No teachers assigned yet.</p>
+                    <p className="cr-no-data">
+                      No teachers assigned yet.
+                    </p>
                   )}
                 </div>
               </div>
+
             </div>
           ) : (
-            <form className="cr-modal-form" onSubmit={handleSubmit}>
+            <form
+              className="cr-modal-form"
+              onSubmit={handleSubmit}
+            >
               <div className="cr-input-group">
                 <label>Course Name</label>
+
                 <input
                   type="text"
                   autoFocus
                   required
                   placeholder="e.g. Frontend Development"
                   value={courseName}
-                  onChange={(e) => setCourseName(e.target.value)}
+                  onChange={(e) =>
+                    setCourseName(e.target.value)
+                  }
                 />
               </div>
 
@@ -234,20 +336,25 @@ export default function Courses({ activeBranch }) {
     );
   };
 
-  // =========================================
-  // MAIN JSX
-  // =========================================
+  // =========================================================
+  // UI
+  // =========================================================
 
   return (
     <div className="cr-module-root">
+
       {/* HEADER */}
+
       <div className="cr-header-section">
+
         <div className="title-area">
           <h1 className="page-main-title">
-            {activeBranch?.name || "Branch"} • Courses
+            All Branch Courses
           </h1>
+
           <p className="page-description">
-            Manage educational directions and professional courses
+            Manage all educational courses
+            across branches
           </p>
         </div>
 
@@ -261,46 +368,68 @@ export default function Courses({ activeBranch }) {
           <FiPlus />
           New Course
         </button>
+
       </div>
 
-      {/* CONTENT */}
+      {/* LOADING */}
+
       {loading ? (
         <div className="cr-grid-layout">
+
           {[...Array(6)].map((_, index) => (
-            <div key={index} className="cr-course-card cr-skeleton-card">
+            <div
+              key={index}
+              className="cr-course-card cr-skeleton-card"
+            >
               <div className="cr-skeleton-top-line skeleton shimmer"></div>
+
               <div className="cr-card-body">
+
                 <div className="cr-skeleton-icon skeleton shimmer"></div>
+
                 <div className="cr-skeleton-title skeleton shimmer"></div>
+
                 <div className="cr-skeleton-text skeleton shimmer"></div>
+
                 <div className="cr-skeleton-text short skeleton shimmer"></div>
-                <div className="cr-card-stats">
-                  <div className="cr-skeleton-stat skeleton shimmer"></div>
-                  <div className="cr-skeleton-stat short skeleton shimmer"></div>
-                </div>
+
               </div>
-              <div className="cr-card-actions">
-                <div className="cr-skeleton-btn skeleton shimmer"></div>
-                <div className="cr-skeleton-btn skeleton shimmer"></div>
-              </div>
+
             </div>
           ))}
+
         </div>
       ) : sortedCourses.length === 0 ? (
+
         <div className="cr-empty-state">
+
           <div className="cr-empty-icon-wrapper">
             <FiBookOpen />
           </div>
+
           <h3>No Courses Found</h3>
-          <p>No courses have been added to this branch yet.</p>
+
+          <p>
+            No courses available yet.
+          </p>
+
         </div>
+
       ) : (
+
         <div className="cr-grid-layout">
+
           {sortedCourses.map((course) => {
             const stats = getStats(course.id);
+
             return (
-              <div key={course.id} className="cr-course-card">
+              <div
+                key={course.id}
+                className="cr-course-card"
+              >
+
                 <div className="cr-card-top-line"></div>
+
                 <div
                   className="cr-card-body"
                   onClick={() => {
@@ -308,23 +437,47 @@ export default function Courses({ activeBranch }) {
                     setModalMode("details");
                   }}
                 >
+
                   <div className="cr-card-icon">
                     <FiBookOpen />
                   </div>
-                  <h3 className="cr-course-name">{course.name}</h3>
+
+                  <h3 className="cr-course-name">
+                    {course.name}
+                  </h3>
+
+                  {/* BRANCH */}
+
+                  <div className="cr-branch-pill">
+                    <FiHome />
+                    <span>
+                      {course.branch_name ||
+                        "Unknown Branch"}
+                    </span>
+                  </div>
+
+                  {/* STATS */}
+
                   <div className="cr-card-stats">
+
                     <span>
                       <FiLayers />
                       {stats.groupsCount} Groups
                     </span>
+
                     <span>
                       <FiUsers />
                       {stats.teachersCount} Teachers
                     </span>
+
                   </div>
+
                 </div>
 
+                {/* ACTIONS */}
+
                 <div className="cr-card-actions">
+
                   <button
                     className="cr-action-btn"
                     onClick={() => {
@@ -335,16 +488,22 @@ export default function Courses({ activeBranch }) {
                   >
                     <FiEdit3 />
                   </button>
+
                   <button
                     className="cr-action-btn cr-del-btn"
-                    onClick={() => handleDelete(course.id)}
+                    onClick={() =>
+                      handleDelete(course.id)
+                    }
                   >
                     <FiTrash2 />
                   </button>
+
                 </div>
+
               </div>
             );
           })}
+
         </div>
       )}
 

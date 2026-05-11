@@ -18,17 +18,17 @@ import {
   FiCalendar,
   FiAlertTriangle,
   FiUserPlus,
+  FiMapPin,
 } from "react-icons/fi";
 
 export default function Teachers({ activeBranch }) {
-  const branchId = activeBranch?.id;
-
   // ==========================================================================
   // STATES
   // ==========================================================================
   const [teachers, setTeachers] = useState([]);
   const [courses, setCourses] = useState([]);
   const [students, setStudents] = useState([]);
+  const [branches, setBranches] = useState([]);
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -57,30 +57,55 @@ export default function Teachers({ activeBranch }) {
   });
 
   // ==========================================================================
-  // FETCH DATA
+  // FETCH ALL BRANCHES DATA
   // ==========================================================================
-  const fetchData = useCallback(async () => {
-    if (!branchId) return;
 
+  const fetchData = useCallback(async () => {
     setLoading(true);
 
     try {
+      const { data: authData } = await supabase.auth.getUser();
+
+      const user = authData?.user;
+
+      if (!user) return;
+
+      // ================= GET ALL BRANCHES =================
+      const { data: branchesData, error: branchError } = await supabase
+        .from("branches")
+        .select("*")
+        .eq("owner_uid", user.id);
+
+      if (branchError) throw branchError;
+
+      setBranches(branchesData || []);
+
+      const branchIds = (branchesData || []).map((b) => b.id);
+
+      if (branchIds.length === 0) {
+        setTeachers([]);
+        setCourses([]);
+        setStudents([]);
+        return;
+      }
+
+      // ================= FETCH ALL DATA =================
       const [tRes, cRes, sRes] = await Promise.all([
         supabase
           .from("teachers")
           .select("*")
-          .eq("branch_id", branchId)
+          .in("branch_id", branchIds)
           .order("created_at", { ascending: false }),
 
         supabase
           .from("courses")
           .select("*")
-          .eq("branch_id", branchId),
+          .in("branch_id", branchIds),
 
         supabase
           .from("students")
           .select("*")
-          .eq("branch_id", branchId),
+          .in("branch_id", branchIds),
       ]);
 
       if (tRes.error) throw tRes.error;
@@ -93,7 +118,7 @@ export default function Teachers({ activeBranch }) {
     } finally {
       setLoading(false);
     }
-  }, [branchId]);
+  }, []);
 
   useEffect(() => {
     fetchData();
@@ -102,13 +127,17 @@ export default function Teachers({ activeBranch }) {
   // ==========================================================================
   // HELPERS
   // ==========================================================================
+
   const getCourseName = (id) =>
     courses.find((c) => c.id === id)?.name || "Course not assigned";
+
+  const getBranchName = (id) =>
+    branches.find((b) => b.id === id)?.name || "Unknown Branch";
 
   const getTeacherStats = useCallback(
     (teacherId) => {
       const teacherStudents = students.filter(
-        (s) => s.teacher_id === teacherId 
+        (s) => s.teacher_id === teacherId
       );
 
       const activeStudents = teacherStudents.filter(
@@ -136,6 +165,7 @@ export default function Teachers({ activeBranch }) {
   // ==========================================================================
   // FILTER
   // ==========================================================================
+
   const filteredTeachers = useMemo(() => {
     return teachers.filter((t) => {
       const matchesSearch =
@@ -152,6 +182,7 @@ export default function Teachers({ activeBranch }) {
   // ==========================================================================
   // HANDLERS
   // ==========================================================================
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
 
@@ -201,7 +232,7 @@ export default function Teachers({ activeBranch }) {
 
     const teacherData = {
       ...form,
-      branch_id: branchId,
+      branch_id: activeBranch?.id,
       course_id: form.course_id || null,
       updated_at: new Date(),
     };
@@ -250,6 +281,7 @@ export default function Teachers({ activeBranch }) {
   // ==========================================================================
   // MODALS
   // ==========================================================================
+
   const renderAllModals = () => {
     return createPortal(
       <>
@@ -310,7 +342,7 @@ export default function Teachers({ activeBranch }) {
 
                   <div className="info-item">
                     <label>
-                      <FiBookOpen /> Specialization
+                      <FiBookOpen /> Course
                     </label>
 
                     <span>
@@ -320,7 +352,17 @@ export default function Teachers({ activeBranch }) {
 
                   <div className="info-item">
                     <label>
-                      <FiUsers /> Total Students
+                      <FiMapPin /> Branch
+                    </label>
+
+                    <span>
+                      {getBranchName(viewData.branch_id)}
+                    </span>
+                  </div>
+
+                  <div className="info-item">
+                    <label>
+                      <FiUsers /> Students
                     </label>
 
                     <span>
@@ -330,14 +372,11 @@ export default function Teachers({ activeBranch }) {
 
                   <div className="info-item">
                     <label>
-                      <FiDollarSign /> Monthly Income
+                      <FiDollarSign /> Income
                     </label>
 
                     <span className="income-highlight">
-                      {getTeacherStats(
-                        viewData.id
-                      ).income.toLocaleString()}{" "}
-                      UZS
+                      {getTeacherStats(viewData.id).income.toLocaleString()} UZS
                     </span>
                   </div>
                 </div>
@@ -350,7 +389,6 @@ export default function Teachers({ activeBranch }) {
                   <div className="timeline-row">
                     <div className="t-point">
                       <small>Last Payment</small>
-
                       <p>{viewData.last_payment || "—"}</p>
                     </div>
 
@@ -358,7 +396,6 @@ export default function Teachers({ activeBranch }) {
 
                     <div className="t-point">
                       <small>Next Payment</small>
-
                       <p>{viewData.next_payment || "—"}</p>
                     </div>
                   </div>
@@ -530,8 +567,7 @@ export default function Teachers({ activeBranch }) {
               <h3>Delete Teacher</h3>
 
               <p>
-                Are you sure you want to delete this
-                teacher? This action cannot be undone.
+                Are you sure you want to delete this teacher?
               </p>
 
               <div className="confirm-footer-btns">
@@ -560,17 +596,18 @@ export default function Teachers({ activeBranch }) {
   // ==========================================================================
   // UI
   // ==========================================================================
+
   return (
     <div className="teachers-page-container">
       {/* HEADER */}
       <header className="teachers-header-box">
         <div className="title-area">
           <h1 className="page-main-title">
-            {activeBranch?.name || "Branch"} • Teachers
+            All Branch Teachers
           </h1>
 
           <p className="page-description">
-            Teachers list and financial monitoring
+            Teachers from all branches are displayed here
           </p>
         </div>
 
@@ -617,8 +654,9 @@ export default function Teachers({ activeBranch }) {
             <tr>
               <th>#</th>
               <th>Teacher Name</th>
+              <th>Branch</th>
               <th>Phone</th>
-              <th>Specialization</th>
+              <th>Course</th>
               <th>Students</th>
               <th>Income</th>
               <th>Status</th>
@@ -629,13 +667,13 @@ export default function Teachers({ activeBranch }) {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="8" className="td-loader">
+                <td colSpan="9" className="td-loader">
                   Loading data...
                 </td>
               </tr>
             ) : filteredTeachers.length === 0 ? (
               <tr>
-                <td colSpan="8" className="td-empty">
+                <td colSpan="9" className="td-empty">
                   No data found
                 </td>
               </tr>
@@ -657,6 +695,12 @@ export default function Teachers({ activeBranch }) {
                       {t.name}
                     </td>
 
+                    <td>
+                      <span className="badge-course">
+                        {getBranchName(t.branch_id)}
+                      </span>
+                    </td>
+
                     <td>{t.phone || "—"}</td>
 
                     <td>
@@ -666,9 +710,7 @@ export default function Teachers({ activeBranch }) {
                     </td>
 
                     <td>
-                      <FiUsers
-                        style={{ marginRight: "5px" }}
-                      />
+                      <FiUsers style={{ marginRight: "5px" }} />
                       {stats.count} students
                     </td>
 
@@ -684,9 +726,7 @@ export default function Teachers({ activeBranch }) {
                             : "unpaid"
                         }`}
                       >
-                        {t.salary_paid
-                          ? "Paid"
-                          : "Unpaid"}
+                        {t.salary_paid ? "Paid" : "Unpaid"}
                       </span>
                     </td>
 

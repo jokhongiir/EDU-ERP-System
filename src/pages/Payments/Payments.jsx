@@ -1,16 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { supabase } from "../../services/supabaseClient";
-import "./Payments.css";
-
 import {
-  FiSearch,
-  FiX,
-  FiCheckCircle,
-  FiCreditCard,
-  FiEdit2,
-  FiSave,
-  FiUser,
+  FiSearch, FiX, FiCheckCircle, FiCreditCard,
+  FiEdit2, FiSave, FiCalendar, FiTrendingUp,
+  FiDollarSign, FiAlertCircle, FiFilter, FiRefreshCw
 } from "react-icons/fi";
+import "./Payments.css";
 
 export default function Payments({ activeBranch }) {
   const branchId = activeBranch?.id;
@@ -19,100 +14,97 @@ export default function Payments({ activeBranch }) {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all"); // all, paid, unpaid
 
   const [editOpen, setEditOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [editData, setEditData] = useState(null);
+  const [saving, setSaving] = useState(false);
 
-  // ================= FORMAT UZS =================
-  const formatSum = (value) => {
-    if (!value) return "0 so'm";
-    return new Intl.NumberFormat("uz-UZ").format(value) + " so'm";
-  };
+  // ================= UTILS =================
+  const formatCurrency = (value = 0) =>
+    new Intl.NumberFormat("en-US").format(value) + " UZS";
 
-  // ================= FETCH =================
-  const fetchData = async () => {
+  const getTodayStr = () => new Date().toISOString().slice(0, 10);
+
+  // ================= DATA FETCHING =================
+  const fetchPayments = useCallback(async (showSilent = false) => {
     if (!branchId) return;
+    if (!showSilent) setLoading(true);
 
-    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("students")
+        .select(`*, courses(name), teachers(name), groups(name)`)
+        .eq("branch_id", branchId)
+        .order("created_at", { ascending: false });
 
-    const { data, error } = await supabase
-      .from("students")
-      .select("*, courses(name), teachers(name), groups(name)")
-      .eq("branch_id", branchId);
+      if (error) throw error;
 
-    if (error) {
-      console.error(error);
+      // 1. Check for expired payments
+      const today = getTodayStr();
+      const expiredIds = data
+        .filter(s => s.paid && s.next_payment_date && s.next_payment_date <= today)
+        .map(s => s.id);
+
+      // 2. Batch update expired in background if any found
+      if (expiredIds.length > 0) {
+        await supabase
+          .from("students")
+          .update({ paid: false })
+          .in("id", expiredIds);
+        
+        // Refresh local data after auto-update
+        fetchPayments(true);
+      } else {
+        setStudents(data || []);
+      }
+    } catch (err) {
+      console.error("Fetch error:", err.message);
+    } finally {
       setLoading(false);
-      return;
     }
-
-    setStudents(data || []);
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchData();
   }, [branchId]);
 
-  // ================= TOGGLE PAYMENT =================
-  const togglePayment = async (student) => {
-    const newPaid = !student.paid;
+  useEffect(() => {
+    fetchPayments();
+  }, [fetchPayments]);
 
-    // optimistic UI
-    setStudents((prev) =>
-      prev.map((s) =>
-        s.id === student.id ? { ...s, paid: newPaid } : s
-      )
-    );
+  // ================= CORE ACTIONS =================
+  const togglePayment = async (student) => {
+    const isNowPaid = !student.paid;
+    const today = getTodayStr();
+    
+    // Professional Logic: If paying, set next due to 30 days from today
+    let nextDate = student.next_payment_date;
+    if (isNowPaid) {
+      const d = new Date();
+      d.setDate(d.getDate() + 30);
+      nextDate = d.toISOString().slice(0, 10);
+    }
+
+    // Optimistic Update
+    const oldStudents = [...students];
+    setStudents(prev => prev.map(s => 
+      s.id === student.id ? { ...s, paid: isNowPaid, next_payment_date: nextDate } : s
+    ));
 
     const { error } = await supabase
       .from("students")
       .update({
-        paid: newPaid,
-        payment_date: newPaid
-          ? new Date().toISOString().slice(0, 10)
-          : null,
+        paid: isNowPaid,
+        payment_date: isNowPaid ? today : null,
+        next_payment_date: nextDate
       })
       .eq("id", student.id);
 
     if (error) {
-      alert(error.message);
-
-      // rollback
-      setStudents((prev) =>
-        prev.map((s) =>
-          s.id === student.id ? { ...s, paid: student.paid } : s
-        )
-      );
+      setStudents(oldStudents);
+      alert("Update failed: " + error.message);
     }
-  };
-
-  // ================= EDIT =================
-  const openEdit = (student) => {
-    setEditData({
-      id: student.id,
-      monthly_fee: student.monthly_fee || 0,
-      paid: student.paid || false,
-      payment_date: student.payment_date || "",
-      next_payment_date: student.next_payment_date || "",
-    });
-
-    setEditOpen(true);
-  };
-
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-
-    setEditData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
   };
 
   const handleSave = async () => {
     if (!editData?.id) return;
-
     setSaving(true);
 
     const { error } = await supabase
@@ -126,205 +118,203 @@ export default function Payments({ activeBranch }) {
       .eq("id", editData.id);
 
     setSaving(false);
-
-    if (error) {
-      alert(error.message);
-      return;
-    }
+    if (error) return alert(error.message);
 
     setEditOpen(false);
-    fetchData();
+    fetchPayments(true);
   };
 
-  // ================= SEARCH =================
-  const filtered = useMemo(() => {
-    return students.filter((s) =>
-      `${s.first_name} ${s.last_name}`
-        .toLowerCase()
-        .includes(search.toLowerCase())
-    );
-  }, [students, search]);
+  // ================= FILTERING & SEARCH =================
+  const processedStudents = useMemo(() => {
+    return students
+      .filter((s) => {
+        const matchesSearch = `${s.first_name} ${s.last_name}`
+          .toLowerCase()
+          .includes(search.toLowerCase());
+        
+        const matchesFilter = 
+          filterStatus === "all" ? true :
+          filterStatus === "paid" ? s.paid === true :
+          s.paid === false;
 
-  // ================= STATUS =================
-  const getStatus = (s) => {
-    if (s.paid) return "paid";
-    if (s.monthly_fee > 0) return "unpaid";
-    return "partial";
-  };
+        return matchesSearch && matchesFilter;
+      });
+  }, [students, search, filterStatus]);
 
-  // ================= UI =================
+  // STATS
+  const stats = useMemo(() => {
+    const paid = students.filter(s => s.paid);
+    return {
+      total: paid.reduce((sum, s) => sum + (s.monthly_fee || 0), 0),
+      countPaid: paid.length,
+      countUnpaid: students.length - paid.length
+    };
+  }, [students]);
+
   return (
-    <div className="payments">
+    <div className="payments-container">
+      {/* HEADER SECTION */}
+      <header className="payments-header">
+        <div className="header-info">
+          <h1>{activeBranch?.name || "Management"} Payments</h1>
+          <p>Automated billing system for {students.length} active students</p>
+        </div>
+        <button className="refresh-btn" onClick={() => fetchPayments()} disabled={loading}>
+          <FiRefreshCw className={loading ? "spin" : ""} />
+        </button>
+      </header>
 
-      {/* HEADER */}
-      <div className="payments__header">
-        <div>
-          <h2>{activeBranch?.name || "Branch"} • Payments</h2>
-          <p>Professional payment management system</p>
+      {/* STATS BAR */}
+      <section className="stats-grid">
+        <div className="stat-card">
+          <div className="icon-box income"><FiDollarSign /></div>
+          <div className="stat-val">
+            <h3>{formatCurrency(stats.total)}</h3>
+            <span>Total Collected</span>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="icon-box paid"><FiCheckCircle /></div>
+          <div className="stat-val">
+            <h3>{stats.countPaid}</h3>
+            <span>Paid This Month</span>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="icon-box unpaid"><FiAlertCircle /></div>
+          <div className="stat-val">
+            <h3>{stats.countUnpaid}</h3>
+            <span>Pending Payments</span>
+          </div>
+        </div>
+      </section>
+
+      {/* TOOLBAR */}
+      <div className="table-toolbar">
+        <div className="search-wrapper">
+          <FiSearch />
+          <input 
+            type="text" 
+            placeholder="Search students..." 
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        
+        <div className="filter-wrapper">
+          <FiFilter />
+          <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+            <option value="all">All Students</option>
+            <option value="paid">Paid Only</option>
+            <option value="unpaid">Unpaid/Due</option>
+          </select>
         </div>
       </div>
 
-      {/* SEARCH */}
-      <div className="payments__search">
-        <FiSearch />
-        <input
-          placeholder="Search student..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
-
-      {/* TABLE */}
-      {loading ? (
-        <div className="payments__empty">Loading...</div>
-      ) : filtered.length === 0 ? (
-        <div className="payments__empty">
-          <FiUser size={40} />
-          <p>No students found</p>
-        </div>
-      ) : (
-        <table className="payments__table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Student</th>
-              <th>Course</th>
-              <th>Fee</th>
-              <th>Status</th>
-              <th>Next Payment</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {filtered.map((s, i) => (
-              <tr key={s.id}>
-                <td>{i + 1}</td>
-
-                <td>
-                  {s.first_name} {s.last_name}
-                </td>
-
-                <td>{s.courses?.name || "-"}</td>
-
-                <td>
-                  <FiCreditCard style={{ marginRight: 6 }} />
-                  {formatSum(s.monthly_fee)}
-                </td>
-
-                <td>
-                  <span className={`status ${getStatus(s)}`}>
-                    {s.paid ? (
-                      <>
-                        <FiCheckCircle /> Paid
-                      </>
-                    ) : (
-                      "Unpaid"
-                    )}
-                  </span>
-                </td>
-
-                <td>{s.next_payment_date || "-"}</td>
-
-                <td>
-                  <div className="payments__actions">
-
-                    {/* EDIT */}
-                    <button onClick={() => openEdit(s)}>
-                      <FiEdit2 />
-                    </button>
-
-                    {/* PAY / UNPAY */}
-                    <button
-                      onClick={() => togglePayment(s)}
-                      className={s.paid ? "btn-unpay" : "btn-pay"}
-                    >
-                      <FiCreditCard />
-                      {s.paid ? "Unpay" : "Pay"}
-                    </button>
-
-                  </div>
-                </td>
+      {/* DATA TABLE */}
+      <div className="table-container">
+        {loading ? (
+          <div className="professional-loader">
+            <div className="skeleton-row" />
+            <div className="skeleton-row" />
+            <div className="skeleton-row" />
+          </div>
+        ) : (
+          <table className="modern-table">
+            <thead>
+              <tr>
+                <th>Student Details</th>
+                <th>Course Info</th>
+                <th>Monthly Fee</th>
+                <th>Payment Status</th>
+                <th>Next Due Date</th>
+                <th align="right">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+            </thead>
+            <tbody>
+              {processedStudents.map((s) => (
+                <tr key={s.id} className={!s.paid ? "row-unpaid" : ""}>
+                  <td>
+                    <div className="user-cell">
+                      <div className="avatar">{s.first_name[0]}{s.last_name[0]}</div>
+                      <div>
+                        <div className="full-name">{s.first_name} {s.last_name}</div>
+                        <div className="sub-text">{s.groups?.name || "No Group"}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span className="course-tag">{s.courses?.name || "N/A"}</span>
+                  </td>
+                  <td className="fee-cell">{formatCurrency(s.monthly_fee)}</td>
+                  <td>
+                    <span className={`badge ${s.paid ? "bg-success" : "bg-danger"}`}>
+                      {s.paid ? "COLLECTED" : "OVERDUE"}
+                    </span>
+                  </td>
+                  <td>
+                    <div className={`due-date ${!s.paid ? "text-danger" : ""}`}>
+                      <FiCalendar /> {s.next_payment_date || "Set Date"}
+                    </div>
+                  </td>
+                  <td align="right">
+                    <div className="action-btns">
+                      <button className="icon-btn edit" onClick={() => {setEditData(s); setEditOpen(true);}}>
+                        <FiEdit2 />
+                      </button>
+                      <button 
+                        className={`action-pill ${s.paid ? "is-paid" : "is-unpaid"}`}
+                        onClick={() => togglePayment(s)}
+                      >
+                        <FiCreditCard /> {s.paid ? "Refund" : "Collect"}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
 
-      {/* ================= MODAL ================= */}
+      {/* EDIT MODAL */}
       {editOpen && editData && (
-        <div className="modal">
-          <div className="modal__box">
-
-            <div className="modal__header">
-              <h3>Edit Payment</h3>
-              <button onClick={() => setEditOpen(false)}>
-                <FiX />
+        <div className="professional-modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2>Payment Settings</h2>
+              <button onClick={() => setEditOpen(false)}><FiX /></button>
+            </div>
+            <div className="modal-form">
+              <div className="input-grid">
+                <div className="form-item">
+                  <label>Monthly Fee</label>
+                  <input type="number" name="monthly_fee" value={editData.monthly_fee} onChange={handleChange} />
+                </div>
+                <div className="form-item">
+                  <label>Next Due Date</label>
+                  <input type="date" name="next_payment_date" value={editData.next_payment_date || ""} onChange={handleChange} />
+                </div>
+              </div>
+              <div className="form-checkbox">
+                <input type="checkbox" id="paidCheck" name="paid" checked={editData.paid} onChange={handleChange} />
+                <label htmlFor="paidCheck">Mark as Paid for current cycle</label>
+              </div>
+            </div>
+            <div className="modal-actions">
+              <button className="btn-cancel" onClick={() => setEditOpen(false)}>Cancel</button>
+              <button className="btn-primary" onClick={handleSave} disabled={saving}>
+                {saving ? "Processing..." : "Save Changes"}
               </button>
             </div>
-
-            <div className="modal__form">
-
-              {/* MONTHLY FEE */}
-              <div className="form__group">
-                <label>Oylik to‘lov (so'm)</label>
-                <input
-                  name="monthly_fee"
-                  value={editData.monthly_fee}
-                  onChange={handleChange}
-                  type="number"
-                  placeholder="500000"
-                />
-              </div>
-
-              {/* PAYMENT DATE */}
-              <div className="form__group">
-                <label>To‘lov sanasi</label>
-                <input
-                  type="date"
-                  name="payment_date"
-                  value={editData.payment_date}
-                  onChange={handleChange}
-                />
-              </div>
-
-              {/* NEXT PAYMENT */}
-              <div className="form__group">
-                <label>Keyingi to‘lov sanasi</label>
-                <input
-                  type="date"
-                  name="next_payment_date"
-                  value={editData.next_payment_date}
-                  onChange={handleChange}
-                />
-              </div>
-
-              {/* PAID */}
-              <div className="form__group">
-                <label className="checkbox">
-                  <input
-                    type="checkbox"
-                    name="paid"
-                    checked={editData.paid}
-                    onChange={handleChange}
-                  />
-                  To‘lov qilindi
-                </label>
-              </div>
-
-            </div>
-
-            <div className="modal__actions">
-              <button onClick={handleSave} disabled={saving}>
-                <FiSave />
-                {saving ? "Saving..." : "Save"}
-              </button>
-            </div>
-
           </div>
         </div>
       )}
-
     </div>
   );
+
+  function handleChange(e) {
+    const { name, value, type, checked } = e.target;
+    setEditData(prev => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+  }
 }
