@@ -4,6 +4,8 @@ import Auth from "./pages/Auth/Auth";
 import CreateBranch from "./pages/CreateBranch/CreateBranch";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import StudentsPage from "./pages/Students/Students";
+import { Analytics } from "@vercel/analytics/react";
+
 
 export default function App() {
   const [centerName, setCenterName] = useState(""); // global center name
@@ -20,6 +22,8 @@ export default function App() {
         {/* Redirect unknown paths */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
+      <Analytics />
     </Router>
+    
   );
 }
