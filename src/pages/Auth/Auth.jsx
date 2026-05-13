@@ -116,7 +116,7 @@ export default function Auth() {
               className="authImage"
             />
 
-            <h1 className="authLogo">Edu ERP</h1>
+            <h1 className="authLogo">Education ERP System</h1>
 
             <p className="authText">
               Smart Education Management System for modern learning centers.
