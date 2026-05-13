@@ -1,13 +1,15 @@
 import { NavLink, useNavigate } from "react-router-dom";
+import { memo, useMemo, useCallback } from "react";
 import {
-  LayoutDashboard,   // dashboard
-  Users,             // students
-  UserCog,           // teachers (professional)
-  BookOpen,          // courses
-  Layers,            // groups
-  UserPlus,          // add students
-  Wallet,            // payments
-  CalendarCheck,     // attendance
+  LayoutDashboard,
+  Users,
+  UserCog,
+  BookOpen,
+  Layers,
+  UserPlus,
+  Wallet,
+  CalendarCheck,
+  User,
   LogOut,
 } from "lucide-react";
 
@@ -15,55 +17,46 @@ import { supabase } from "../../services/supabaseClient";
 import "./Sidebar.css";
 import logo from "../../assets/logo2.png";
 
-export default function Sidebar({
-  collapsed,
-  mobileOpen,
-  activeBranch,
-  setMobileOpen,
-}) {
+function Sidebar({ collapsed, mobileOpen, activeBranch, setMobileOpen }) {
   const navigate = useNavigate();
 
-  // ================= PROFESSIONAL MENU =================
-  const menu = [
-    { name: "Dashboard", icon: LayoutDashboard, path: "" },
+  // ================= BASE PATH =================
+  const basePath = useMemo(() => {
+    return activeBranch
+      ? `/dashboard/${activeBranch.id}`
+      : "/dashboard";
+  }, [activeBranch]);
 
-    { name: "Students", icon: Users, path: "students" },
+  // ================= MENU CONFIG (SCALABLE) =================
+  const menu = useMemo(
+    () => [
+      { label: "Dashboard", icon: LayoutDashboard, path: "" },
+      { label: "Students", icon: Users, path: "students" },
+      { label: "Teachers", icon: UserCog, path: "teachers" },
+      { label: "Courses", icon: BookOpen, path: "courses" },
+      { label: "Groups", icon: Layers, path: "groups" },
+      { label: "Add Students", icon: UserPlus, path: "addstudents" },
+      { label: "Payments", icon: Wallet, path: "payments" },
+      { label: "Attendance", icon: CalendarCheck, path: "attendance" },
+      { label: "Profile", icon: User, path: "profile" },
+    ],
+    []
+  );
 
-    // 👇 better than GraduationCap
-    { name: "Teachers", icon: UserCog, path: "teachers" },
-
-    { name: "Courses", icon: BookOpen, path: "courses" },
-
-    // 👇 better structure representation
-    { name: "Groups", icon: Layers, path: "groups" },
-
-    { name: "Add Students", icon: UserPlus, path: "addstudents" },
-
-    // 👇 finance icon instead of CreditCard
-    { name: "Payments", icon: Wallet, path: "payments" },
-
-    // 👇 calendar-based attendance (real ERP feel)
-    { name: "Attendance", icon: CalendarCheck, path: "attendance" },
-    { name: "Profile", icon: CalendarCheck, path: "profile" },
-  ];
-
-  const basePath = activeBranch
-    ? `/dashboard/${activeBranch.id}`
-    : "/dashboard";
-
-  const handleLogout = async () => {
+  // ================= LOGOUT =================
+  const handleLogout = useCallback(async () => {
     try {
       await supabase.auth.signOut();
-      navigate("/login");
-      setMobileOpen(false);
+      navigate("/login", { replace: true });
+      setMobileOpen?.(false);
     } catch (err) {
       console.error("Logout error:", err.message);
     }
-  };
+  }, [navigate, setMobileOpen]);
 
-  const closeMobileMenu = () => {
-    if (setMobileOpen) setMobileOpen(false);
-  };
+  const closeMobileMenu = useCallback(() => {
+    setMobileOpen?.(false);
+  }, [setMobileOpen]);
 
   return (
     <aside
@@ -74,12 +67,12 @@ export default function Sidebar({
       {/* ================= HEADER ================= */}
       <div className="erpSidebar__header">
         <div className="erpSidebar__logoBox">
-          <img src={logo} alt="Logo" className="erpSidebar__logoImg" />
+          <img src={logo} alt="Edu ERP" className="erpSidebar__logoImg" />
 
           {!collapsed && (
             <div className="erpSidebar__logoText">
               <h2>Edu ERP</h2>
-              <span>Education ERP System</span>
+              <span>Education Management</span>
             </div>
           )}
         </div>
@@ -87,23 +80,19 @@ export default function Sidebar({
 
       {/* ================= NAV ================= */}
       <nav className="erpSidebar__nav">
-        {menu.map((item, idx) => {
-          const Icon = item.icon;
-
-          return (
-            <NavLink
-              key={idx}
-              to={`${basePath}/${item.path}`}
-              onClick={closeMobileMenu}
-              className={({ isActive }) =>
-                `erpSidebar__link ${isActive ? "isActive" : ""}`
-              }
-            >
-              <Icon className="erpSidebar__icon" />
-              {!collapsed && <span>{item.name}</span>}
-            </NavLink>
-          );
-        })}
+        {menu.map(({ label, icon: Icon, path }) => (
+          <NavLink
+            key={path}
+            to={`${basePath}/${path}`}
+            onClick={closeMobileMenu}
+            className={({ isActive }) =>
+              `erpSidebar__link ${isActive ? "isActive" : ""}`
+            }
+          >
+            <Icon className="erpSidebar__icon" />
+            {!collapsed && <span>{label}</span>}
+          </NavLink>
+        ))}
       </nav>
 
       {/* ================= FOOTER ================= */}
@@ -116,3 +105,5 @@ export default function Sidebar({
     </aside>
   );
 }
+
+export default memo(Sidebar);
