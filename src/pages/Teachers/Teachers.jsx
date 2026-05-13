@@ -603,7 +603,7 @@ export default function Teachers({ activeBranch }) {
       <header className="teachers-header-box">
         <div className="title-area">
           <h1 className="page-main-title">
-            All Branch Teachers
+            All Branch • Teachers
           </h1>
 
           <p className="page-description">

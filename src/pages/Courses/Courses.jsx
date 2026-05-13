@@ -349,7 +349,7 @@ export default function Courses({ activeBranch }) {
 
         <div className="title-area">
           <h1 className="page-main-title">
-            All Branch Courses
+            All Branch • Courses
           </h1>
 
           <p className="page-description">
