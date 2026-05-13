@@ -174,7 +174,7 @@ export default function Auth() {
             </button>
           </form>
 
-          <p
+          {/* <p
             className="authSwitch"
             onClick={() => {
               setIsRegister(!isRegister);
@@ -184,7 +184,7 @@ export default function Auth() {
             {isRegister
               ? "Already have an account? Login"
               : "Don't have an account? Sign up"}
-          </p>
+          </p> */}
         </div>
       </div>
     </div>
