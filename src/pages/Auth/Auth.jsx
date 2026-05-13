@@ -173,8 +173,8 @@ export default function Auth() {
               )}
             </button>
           </form>
-
-          {/* <p
+{/* 
+          <p
             className="authSwitch"
             onClick={() => {
               setIsRegister(!isRegister);
