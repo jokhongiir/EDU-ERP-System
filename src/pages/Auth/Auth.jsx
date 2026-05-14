@@ -173,7 +173,7 @@ export default function Auth() {
               )}
             </button>
           </form>
-{/* 
+
           <p
             className="authSwitch"
             onClick={() => {
@@ -184,7 +184,7 @@ export default function Auth() {
             {isRegister
               ? "Already have an account? Login"
               : "Don't have an account? Sign up"}
-          </p> */}
+          </p>
         </div>
       </div>
     </div>
