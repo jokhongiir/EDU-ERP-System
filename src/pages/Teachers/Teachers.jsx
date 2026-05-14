@@ -97,15 +97,9 @@ export default function Teachers({ activeBranch }) {
           .in("branch_id", branchIds)
           .order("created_at", { ascending: false }),
 
-        supabase
-          .from("courses")
-          .select("*")
-          .in("branch_id", branchIds),
+        supabase.from("courses").select("*").in("branch_id", branchIds),
 
-        supabase
-          .from("students")
-          .select("*")
-          .in("branch_id", branchIds),
+        supabase.from("students").select("*").in("branch_id", branchIds),
       ]);
 
       if (tRes.error) throw tRes.error;
@@ -137,11 +131,11 @@ export default function Teachers({ activeBranch }) {
   const getTeacherStats = useCallback(
     (teacherId) => {
       const teacherStudents = students.filter(
-        (s) => s.teacher_id === teacherId
+        (s) => s.teacher_id === teacherId,
       );
 
       const activeStudents = teacherStudents.filter(
-        (s) => s.status === "active" || s.paid
+        (s) => s.status === "active" || s.paid,
       ).length;
 
       const totalIncome = teacherStudents
@@ -159,7 +153,7 @@ export default function Teachers({ activeBranch }) {
         income: totalIncome,
       };
     },
-    [students]
+    [students],
   );
 
   // ==========================================================================
@@ -246,9 +240,7 @@ export default function Teachers({ activeBranch }) {
 
         if (error) throw error;
       } else {
-        const { error } = await supabase
-          .from("teachers")
-          .insert([teacherData]);
+        const { error } = await supabase.from("teachers").insert([teacherData]);
 
         if (error) throw error;
       }
@@ -287,10 +279,7 @@ export default function Teachers({ activeBranch }) {
       <>
         {/* VIEW MODAL */}
         {viewOpen && viewData && (
-          <div
-            className="portal-overlay"
-            onClick={() => setViewOpen(false)}
-          >
+          <div className="portal-overlay" onClick={() => setViewOpen(false)}>
             <div
               className="portal-modal-card view-teacher-modal"
               onClick={(e) => e.stopPropagation()}
@@ -312,20 +301,14 @@ export default function Teachers({ activeBranch }) {
 
                   <h2 className="profile-name">{viewData.name}</h2>
 
-                  <p className="profile-role">
-                    Professional Teacher
-                  </p>
+                  <p className="profile-role">Professional Teacher</p>
 
                   <div
                     className={`status-label ${
-                      viewData.salary_paid
-                        ? "paid"
-                        : "pending"
+                      viewData.salary_paid ? "paid" : "pending"
                     }`}
                   >
-                    {viewData.salary_paid
-                      ? "Salary Paid"
-                      : "Payment Pending"}
+                    {viewData.salary_paid ? "Salary Paid" : "Payment Pending"}
                   </div>
                 </div>
 
@@ -335,9 +318,7 @@ export default function Teachers({ activeBranch }) {
                       <FiPhone /> Phone
                     </label>
 
-                    <span>
-                      {viewData.phone || "Not provided"}
-                    </span>
+                    <span>{viewData.phone || "Not provided"}</span>
                   </div>
 
                   <div className="info-item">
@@ -345,9 +326,7 @@ export default function Teachers({ activeBranch }) {
                       <FiBookOpen /> Course
                     </label>
 
-                    <span>
-                      {getCourseName(viewData.course_id)}
-                    </span>
+                    <span>{getCourseName(viewData.course_id)}</span>
                   </div>
 
                   <div className="info-item">
@@ -355,9 +334,7 @@ export default function Teachers({ activeBranch }) {
                       <FiMapPin /> Branch
                     </label>
 
-                    <span>
-                      {getBranchName(viewData.branch_id)}
-                    </span>
+                    <span>{getBranchName(viewData.branch_id)}</span>
                   </div>
 
                   <div className="info-item">
@@ -365,9 +342,7 @@ export default function Teachers({ activeBranch }) {
                       <FiUsers /> Students
                     </label>
 
-                    <span>
-                      {getTeacherStats(viewData.id).count} students
-                    </span>
+                    <span>{getTeacherStats(viewData.id).count} students</span>
                   </div>
 
                   <div className="info-item">
@@ -425,18 +400,12 @@ export default function Teachers({ activeBranch }) {
                   )}
                 </h3>
 
-                <button
-                  className="close-icon-btn"
-                  onClick={resetForm}
-                >
+                <button className="close-icon-btn" onClick={resetForm}>
                   <FiX />
                 </button>
               </div>
 
-              <form
-                onSubmit={handleSaveTeacher}
-                className="modal-form-main"
-              >
+              <form onSubmit={handleSaveTeacher} className="modal-form-main">
                 <div className="input-group-full">
                   <label>Teacher Full Name *</label>
 
@@ -469,9 +438,7 @@ export default function Teachers({ activeBranch }) {
                       value={form.course_id}
                       onChange={handleInputChange}
                     >
-                      <option value="">
-                        Select course
-                      </option>
+                      <option value="">Select course</option>
 
                       {courses.map((c) => (
                         <option key={c.id} value={c.id}>
@@ -552,10 +519,7 @@ export default function Teachers({ activeBranch }) {
 
         {/* DELETE MODAL */}
         {deleteId && (
-          <div
-            className="portal-overlay"
-            onClick={() => setDeleteId(null)}
-          >
+          <div className="portal-overlay" onClick={() => setDeleteId(null)}>
             <div
               className="portal-modal-card confirm-modal"
               onClick={(e) => e.stopPropagation()}
@@ -566,22 +530,14 @@ export default function Teachers({ activeBranch }) {
 
               <h3>Delete Teacher</h3>
 
-              <p>
-                Are you sure you want to delete this teacher?
-              </p>
+              <p>Are you sure you want to delete this teacher?</p>
 
               <div className="confirm-footer-btns">
-                <button
-                  className="btn-no"
-                  onClick={() => setDeleteId(null)}
-                >
+                <button className="btn-no" onClick={() => setDeleteId(null)}>
                   Cancel
                 </button>
 
-                <button
-                  className="btn-yes"
-                  onClick={confirmDelete}
-                >
+                <button className="btn-yes" onClick={confirmDelete}>
                   Delete
                 </button>
               </div>
@@ -589,7 +545,7 @@ export default function Teachers({ activeBranch }) {
           </div>
         )}
       </>,
-      document.body
+      document.body,
     );
   };
 
@@ -602,19 +558,14 @@ export default function Teachers({ activeBranch }) {
       {/* HEADER */}
       <header className="teachers-header-box">
         <div className="title-area">
-          <h1 className="page-main-title">
-            All Branch • Teachers
-          </h1>
+          <h1 className="page-main-title">All Branch • Teachers</h1>
 
           <p className="page-description">
             Teachers from all branches are displayed here
           </p>
         </div>
 
-        <button
-          className="btn-prime-add"
-          onClick={() => setModalOpen(true)}
-        >
+        <button className="btn-prime-add" onClick={() => setModalOpen(true)}>
           <FiPlus /> Add Teacher
         </button>
       </header>
@@ -663,14 +614,57 @@ export default function Teachers({ activeBranch }) {
               <th className="text-center">Actions</th>
             </tr>
           </thead>
-
           <tbody>
             {loading ? (
-              <tr>
-                <td colSpan="9" className="td-loader">
-                  Loading data...
-                </td>
-              </tr>
+              Array.from({ length: 8 }).map((_, idx) => (
+                <tr key={idx}>
+                  <td>
+                    <div className="teacher-skeleton sk-id"></div>
+                  </td>
+
+                  <td>
+                    <div className="teacher-user-cell">
+                      <div className="teacher-skeleton sk-avatar"></div>
+
+                      <div className="teacher-user-info">
+                        <div className="teacher-skeleton sk-name"></div>
+                        <div className="teacher-skeleton sk-sub"></div>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td>
+                    <div className="teacher-skeleton sk-badge"></div>
+                  </td>
+
+                  <td>
+                    <div className="teacher-skeleton sk-phone"></div>
+                  </td>
+
+                  <td>
+                    <div className="teacher-skeleton sk-badge"></div>
+                  </td>
+
+                  <td>
+                    <div className="teacher-skeleton sk-students"></div>
+                  </td>
+
+                  <td>
+                    <div className="teacher-skeleton sk-income"></div>
+                  </td>
+
+                  <td>
+                    <div className="teacher-skeleton sk-status"></div>
+                  </td>
+
+                  <td>
+                    <div className="teacher-actions-loading">
+                      <div className="teacher-skeleton sk-btn"></div>
+                      <div className="teacher-skeleton sk-btn"></div>
+                    </div>
+                  </td>
+                </tr>
+              ))
             ) : filteredTeachers.length === 0 ? (
               <tr>
                 <td colSpan="9" className="td-empty">
@@ -691,9 +685,7 @@ export default function Teachers({ activeBranch }) {
                   >
                     <td>{idx + 1}</td>
 
-                    <td className="font-bold-name">
-                      {t.name}
-                    </td>
+                    <td className="font-bold-name">{t.name}</td>
 
                     <td>
                       <span className="badge-course">
@@ -721,9 +713,7 @@ export default function Teachers({ activeBranch }) {
                     <td>
                       <span
                         className={`status-pill-small ${
-                          t.salary_paid
-                            ? "paid"
-                            : "unpaid"
+                          t.salary_paid ? "paid" : "unpaid"
                         }`}
                       >
                         {t.salary_paid ? "Paid" : "Unpaid"}
@@ -732,9 +722,7 @@ export default function Teachers({ activeBranch }) {
 
                     <td
                       className="actions-cell-row"
-                      onClick={(e) =>
-                        e.stopPropagation()
-                      }
+                      onClick={(e) => e.stopPropagation()}
                     >
                       <button
                         className="row-btn edit"
@@ -745,9 +733,7 @@ export default function Teachers({ activeBranch }) {
 
                       <button
                         className="row-btn delete"
-                        onClick={() =>
-                          setDeleteId(t.id)
-                        }
+                        onClick={() => setDeleteId(t.id)}
                       >
                         <FiTrash2 />
                       </button>

@@ -283,17 +283,48 @@ export default function Students({ activeBranch }) {
 
           <tbody>
             {loading ? (
-              Array.from({ length: 7 }).map((_, i) => (
-                <tr key={`loading-${i}`}>
-                  <td
-                    colSpan="8"
-                    style={{
-                      textAlign: "center",
-                      padding: "1.5rem",
-                      color: "#666",
-                    }}
-                  >
-                    <div className="loading-row">Loading data...</div>
+              Array.from({ length: 8 }).map((_, i) => (
+                <tr key={i}>
+                  <td>
+                    <div className="skeleton skeleton-id"></div>
+                  </td>
+
+                  <td>
+                    <div className="student-user">
+                      <div className="skeleton skeleton-avatar"></div>
+
+                      <div className="student-user-info">
+                        <div className="skeleton skeleton-name"></div>
+                        <div className="skeleton skeleton-sub"></div>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td>
+                    <div className="skeleton skeleton-phone"></div>
+                  </td>
+
+                  <td>
+                    <div className="skeleton skeleton-badge"></div>
+                  </td>
+
+                  <td>
+                    <div className="skeleton skeleton-badge"></div>
+                  </td>
+
+                  <td>
+                    <div className="skeleton skeleton-badge"></div>
+                  </td>
+
+                  <td>
+                    <div className="skeleton skeleton-status"></div>
+                  </td>
+
+                  <td>
+                    <div className="student-actions-loading">
+                      <div className="skeleton skeleton-btn"></div>
+                      <div className="skeleton skeleton-btn"></div>
+                    </div>
                   </td>
                 </tr>
               ))
