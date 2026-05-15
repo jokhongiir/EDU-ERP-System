@@ -20,6 +20,7 @@ export default function Auth() {
     centerName: "",
   });
 
+  // ================= INPUT CHANGE =================
   const handleChange = (e) => {
     setForm((prev) => ({
       ...prev,
@@ -27,11 +28,10 @@ export default function Auth() {
     }));
   };
 
-  // ================= AUTH =================
+  // ================= MAIN AUTH =================
   const handleAuth = async (e) => {
     if (e) e.preventDefault();
-
-    if (loading) return; // 🔥 prevent double submit
+    if (loading) return;
 
     setLoading(true);
     setError("");
@@ -40,7 +40,7 @@ export default function Auth() {
       const { email, password, centerName } = form;
 
       if (!email || !password) {
-        throw new Error("Email va parol kiritilishi shart!");
+        throw new Error("Email va parol kiritish majburiy!");
       }
 
       // ================= REGISTER =================
@@ -54,7 +54,7 @@ export default function Auth() {
         });
 
         if (signUpError) throw signUpError;
-        if (!data?.user) throw new Error("Register error!");
+        if (!data?.user) throw new Error("Registration failed!");
 
         setUserId(data.user.id);
         setShowBranchModal(true);
@@ -62,7 +62,7 @@ export default function Auth() {
 
       // ================= LOGIN =================
       else {
-        const { data, error: signInError } =
+        const { data: authData, error: signInError } =
           await supabase.auth.signInWithPassword({
             email,
             password,
@@ -70,7 +70,9 @@ export default function Auth() {
 
         if (signInError) throw signInError;
 
-        const user = data.user;
+        const user = authData?.user;
+
+        if (!user) throw new Error("Login failed!");
 
         const { data: branches, error: branchError } = await supabase
           .from("branches")
@@ -87,20 +89,20 @@ export default function Auth() {
         }
       }
 
-      // 🔥 optional reset after success
+      // reset form after success
       setForm({
         email: "",
         password: "",
         centerName: "",
       });
     } catch (err) {
-      setError(err.message || "Xatolik yuz berdi!");
+      setError(err.message || "Unexpected error occurred");
     } finally {
       setLoading(false);
     }
   };
 
-  // ================= BRANCH =================
+  // ================= BRANCH CREATED =================
   const handleBranchCreated = (branch) => {
     setShowBranchModal(false);
 
@@ -118,7 +120,7 @@ export default function Auth() {
       />
 
       <div className="authCard">
-        {/* LEFT */}
+        {/* LEFT SIDE */}
         <div className="authLeft">
           <div className="authLeftContent">
             <img src={logo2} alt="logo" className="authImage" />
@@ -131,13 +133,13 @@ export default function Auth() {
           </div>
         </div>
 
-        {/* RIGHT */}
+        {/* RIGHT SIDE */}
         <div className="authRight">
           <h2 className="authTitle">
             {isRegister ? "Create Account" : "Welcome Back"}
           </h2>
 
-          {/* 🔥 ENTER WORKS HERE */}
+          {/* 🔥 FORM (ENTER WORKS 100%) */}
           <form onSubmit={handleAuth} className="authForm">
             {isRegister && (
               <input
@@ -146,6 +148,7 @@ export default function Auth() {
                 value={form.centerName}
                 onChange={handleChange}
                 className="authInput"
+                autoComplete="organization"
               />
             )}
 
@@ -184,10 +187,11 @@ export default function Auth() {
             </button>
           </form>
 
+          {/* SWITCH */}
           <p
             className="authSwitch"
             onClick={() => {
-              setIsRegister((p) => !p);
+              setIsRegister((prev) => !prev);
               setError("");
             }}
           >
