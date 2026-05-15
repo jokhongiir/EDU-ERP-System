@@ -1,109 +1,131 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../../services/supabaseClient";
+
 import {
   FiUsers,
   FiUserCheck,
   FiBookOpen,
   FiLayers,
   FiRefreshCw,
-  FiTrendingUp
+  FiTrendingUp,
 } from "react-icons/fi";
+
 import {
-  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
+
 import "./DashboardHome.css";
 
 export default function DashboardHome({ activeBranch }) {
-  const branchId = activeBranch?.id;
+  const ownerId = activeBranch?.owner_uid; // 🔥 IMPORTANT FIX
 
   const [data, setData] = useState({
     stats: { students: 0, teachers: 0, courses: 0, groups: 0 },
-    chartData: []
+    chartData: [],
   });
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  // ================= GLOBAL FETCH (ALL BRANCHES) =================
   const fetchDashboardData = useCallback(async () => {
-    if (!branchId) return;
+    if (!ownerId) return;
 
     try {
       setLoading(true);
 
-      const [st, tc, co, gr, allSt] = await Promise.all([
-        // branch-specific
-        supabase
-          .from("students")
-          .select("id", { count: "exact", head: true })
-          .eq("branch_id", branchId),
+      // 🔥 1. GET ALL BRANCH IDS FOR THIS USER
+      const { data: branches } = await supabase
+        .from("branches")
+        .select("id")
+        .eq("owner_uid", ownerId);
 
-        // 🔥 GLOBAL teachers (all branches)
-        supabase
-          .from("teachers")
-          .select("id", { count: "exact", head: true }),
+      const branchIds = (branches || []).map((b) => b.id);
 
-        // 🔥 GLOBAL courses (all branches)
-        supabase
-          .from("courses")
-          .select("id, name"),
+      if (branchIds.length === 0) return;
 
-        // branch-specific groups
-        supabase
-          .from("groups")
-          .select("id", { count: "exact", head: true })
-          .eq("branch_id", branchId),
+      // ================= GLOBAL COUNTS =================
+      const [studentsRes, teachersRes, coursesRes, groupsRes] =
+        await Promise.all([
+          supabase
+            .from("students")
+            .select("id", { count: "exact", head: true })
+            .in("branch_id", branchIds),
 
-        // branch-specific students (for chart relation)
-        supabase
-          .from("students")
-          .select("course_id")
-          .eq("branch_id", branchId),
-      ]);
+          supabase
+            .from("teachers")
+            .select("id", { count: "exact", head: true })
+            .in("branch_id", branchIds),
 
-      // chart data (students per course inside branch)
-      const chartMap = co.data?.map(course => ({
+          supabase
+            .from("courses")
+            .select("id", { count: "exact", head: true })
+            .in("branch_id", branchIds),
+
+          supabase
+            .from("groups")
+            .select("id", { count: "exact", head: true })
+            .in("branch_id", branchIds),
+        ]);
+
+      // ================= COURSE CHART =================
+      const { data: courses } = await supabase
+        .from("courses")
+        .select("id, name")
+        .in("branch_id", branchIds);
+
+      const { data: students } = await supabase
+        .from("students")
+        .select("course_id")
+        .in("branch_id", branchIds);
+
+      const chart = (courses || []).map((course) => ({
         name: course.name,
-        count: allSt.data?.filter(s => s.course_id === course.id).length || 0
-      })) || [];
+        count:
+          students?.filter((s) => s.course_id === course.id).length || 0,
+      }));
 
       setData({
         stats: {
-          students: st.count || 0,
-          teachers: tc.count || 0,
-          courses: co.data?.length || 0,
-          groups: gr.count || 0,
+          students: studentsRes.count || 0,
+          teachers: teachersRes.count || 0,
+          courses: coursesRes.count || 0,
+          groups: groupsRes.count || 0,
         },
-        chartData: chartMap.sort((a, b) => b.count - a.count)
+        chartData: chart,
       });
-
     } catch (err) {
       console.error("Dashboard error:", err);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [branchId]);
+  }, [ownerId]);
 
   useEffect(() => {
     fetchDashboardData();
   }, [fetchDashboardData]);
 
   const cards = [
-    { label: "Students", val: data.stats.students, icon: <FiUsers />, color: "var(--blue)" },
-    { label: "Teachers", val: data.stats.teachers, icon: <FiUserCheck />, color: "var(--emerald)" },
-    { label: "Courses", val: data.stats.courses, icon: <FiBookOpen />, color: "var(--amber)" },
-    { label: "Groups", val: data.stats.groups, icon: <FiLayers />, color: "var(--rose)" },
+    { label: "Students", val: data.stats.students, icon: <FiUsers />, color: "#3b82f6" },
+    { label: "Teachers", val: data.stats.teachers, icon: <FiUserCheck />, color: "#10b981" },
+    { label: "Courses", val: data.stats.courses, icon: <FiBookOpen />, color: "#f59e0b" },
+    { label: "Groups", val: data.stats.groups, icon: <FiLayers />, color: "#ef4444" },
   ];
 
   return (
     <div className="dash-wrapper">
 
-      {/* HEADER */}
       <div className="dash-header">
-        <div className="header-info">
+        <div>
           <h1>Analytics Overview</h1>
-          <p>{activeBranch?.name || "No branch selected"}</p>
+          <p>All Branches Summary</p>
         </div>
 
         <button
@@ -114,74 +136,43 @@ export default function DashboardHome({ activeBranch }) {
           }}
         >
           <FiRefreshCw />
-          {refreshing ? "Refreshing..." : "Refresh"}
+          Refresh
         </button>
       </div>
 
       {/* STATS */}
       <div className="stats-container">
         {cards.map((c, i) => (
-          <div key={i} className="stat-glass-card" style={{ "--accent": c.color }}>
-            <div className="stat-content">
-              <div className="stat-icon-box">{c.icon}</div>
-              <div className="stat-text">
-                <span className="stat-label">{c.label}</span>
-                <h2 className="stat-number">{loading ? "..." : c.val}</h2>
-              </div>
+          <div key={i} className="stat-card" style={{ borderColor: c.color }}>
+            <div className="icon">{c.icon}</div>
+            <div>
+              <h4>{c.label}</h4>
+              <h2>{loading ? "..." : c.val}</h2>
             </div>
-            <FiTrendingUp className="stat-deco" />
+            <FiTrendingUp className="trend" />
           </div>
         ))}
       </div>
 
       {/* CHART */}
       <div className="chart-section">
-        <div className="chart-info">
-          <h3>Course Activity</h3>
-          <p>Student distribution by course</p>
-        </div>
+        <h3>Course Activity (All Branches)</h3>
 
-        <div className="chart-canvas">
+        <div className="chart-box">
           {loading ? (
-            <div className="chart-skeleton" />
+            <div className="loading-skeleton" />
           ) : (
             <ResponsiveContainer width="100%" height={350}>
               <AreaChart data={data.chartData}>
-                <defs>
-                  <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--blue)" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="var(--blue)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-
-                <XAxis
-                  dataKey="name"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: "#94a3b8", fontSize: 12 }}
-                  dy={10}
-                />
-
-                <YAxis hide />
-
-                <Tooltip
-                  contentStyle={{
-                    borderRadius: "12px",
-                    border: "none",
-                    boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)"
-                  }}
-                />
-
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
                 <Area
                   type="monotone"
                   dataKey="count"
-                  stroke="var(--blue)"
-                  strokeWidth={3}
-                  fillOpacity={1}
-                  fill="url(#colorCount)"
-                  animationDuration={1500}
+                  stroke="#3b82f6"
+                  fill="#3b82f6"
                 />
               </AreaChart>
             </ResponsiveContainer>

@@ -10,10 +10,11 @@ import TeachersPage from "../Teachers/Teachers";
 import DashboardHome from "./DashboardHome";
 import CoursesPage from "../Courses/Courses";
 import GroupsPage from "../Groups/Groups";
-import PaymentsPage from "../Payments/Payments"
-import AttendancePage from "../Attendance/Attendance"
-import Profile from "../Profile/Profile"
-
+import PaymentsPage from "../Payments/Payments";
+import AttendancePage from "../Attendance/Attendance";
+import Profile from "../Profile/Profile";
+import Login from "../Auth/Login";
+import Register from "../Auth/Register";
 import { supabase } from "../../services/supabaseClient";
 import "./Dashboard.css";
 
@@ -57,7 +58,7 @@ export default function Dashboard({ centerName, setCenterName }) {
       }
 
       setCenterName(
-        data.user?.user_metadata?.centerName || "Education ERP System"
+        data.user?.user_metadata?.centerName || "Education ERP System",
       );
     };
 
@@ -72,10 +73,7 @@ export default function Dashboard({ centerName, setCenterName }) {
       centerName={centerName}
     >
       <Routes>
-        <Route
-          index
-          element={<DashboardHome activeBranch={activeBranch} />}
-        />
+        <Route index element={<DashboardHome activeBranch={activeBranch} />} />
 
         <Route
           path="students"
@@ -101,14 +99,17 @@ export default function Dashboard({ centerName, setCenterName }) {
           path="groups"
           element={<GroupsPage activeBranch={activeBranch} />}
         />
+
         <Route
           path="payments"
           element={<PaymentsPage activeBranch={activeBranch} />}
         />
+
         <Route
           path="attendance"
           element={<AttendancePage activeBranch={activeBranch} />}
         />
+
         <Route
           path="profile"
           element={<Profile activeBranch={activeBranch} />}
