@@ -2,7 +2,7 @@ import { useState } from "react";
 import { supabase } from "../../services/supabaseClient";
 import { useNavigate } from "react-router-dom";
 import BranchModal from "../BranchModal/BranchModal";
-import logo2 from '../../assets/logo2.png'
+import logo2 from "../../assets/logo2.png";
 import "./Auth.css";
 
 export default function Auth() {
@@ -21,12 +21,18 @@ export default function Auth() {
   });
 
   const handleChange = (e) => {
-    setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+    setForm((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
   };
 
-  // ================= MAIN AUTH LOGIC =================
+  // ================= AUTH =================
   const handleAuth = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
+
+    if (loading) return; // 🔥 prevent double submit
+
     setLoading(true);
     setError("");
 
@@ -34,10 +40,10 @@ export default function Auth() {
       const { email, password, centerName } = form;
 
       if (!email || !password) {
-        throw new Error("Please fill in both email and password.");
+        throw new Error("Email va parol kiritilishi shart!");
       }
 
-      // 1. REGISTER LOGIC
+      // ================= REGISTER =================
       if (isRegister) {
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
@@ -48,16 +54,15 @@ export default function Auth() {
         });
 
         if (signUpError) throw signUpError;
-        if (!data.user)
-          throw new Error("An error occurred during registration.");
+        if (!data?.user) throw new Error("Register error!");
 
         setUserId(data.user.id);
         setShowBranchModal(true);
       }
 
-      // 2. LOGIN LOGIC
+      // ================= LOGIN =================
       else {
-        const { data: authData, error: signInError } =
+        const { data, error: signInError } =
           await supabase.auth.signInWithPassword({
             email,
             password,
@@ -65,9 +70,8 @@ export default function Auth() {
 
         if (signInError) throw signInError;
 
-        const user = authData.user;
+        const user = data.user;
 
-        // 🔥 CHECK BRANCH (Professional logic to prevent accidental modal triggers)
         const { data: branches, error: branchError } = await supabase
           .from("branches")
           .select("id")
@@ -75,25 +79,31 @@ export default function Auth() {
 
         if (branchError) throw branchError;
 
-        // If no branches are found, force branch creation
         if (!branches || branches.length === 0) {
           setUserId(user.id);
           setShowBranchModal(true);
         } else {
-          // If a branch exists, redirect to the first available dashboard
           navigate(`/dashboard/${branches[0].id}`);
         }
       }
+
+      // 🔥 optional reset after success
+      setForm({
+        email: "",
+        password: "",
+        centerName: "",
+      });
     } catch (err) {
-      setError(err.message || "An unexpected error occurred.");
+      setError(err.message || "Xatolik yuz berdi!");
     } finally {
       setLoading(false);
     }
   };
 
-  // ================= AFTER BRANCH CREATION =================
+  // ================= BRANCH =================
   const handleBranchCreated = (branch) => {
     setShowBranchModal(false);
+
     if (branch?.id) {
       navigate(`/dashboard/${branch.id}`);
     }
@@ -108,13 +118,10 @@ export default function Auth() {
       />
 
       <div className="authCard">
+        {/* LEFT */}
         <div className="authLeft">
           <div className="authLeftContent">
-            <img
-              src={logo2} // o‘zing image qo‘y (public papkaga)
-              alt="education"
-              className="authImage"
-            />
+            <img src={logo2} alt="logo" className="authImage" />
 
             <h1 className="authLogo">Education ERP System</h1>
 
@@ -124,11 +131,13 @@ export default function Auth() {
           </div>
         </div>
 
+        {/* RIGHT */}
         <div className="authRight">
           <h2 className="authTitle">
             {isRegister ? "Create Account" : "Welcome Back"}
           </h2>
 
+          {/* 🔥 ENTER WORKS HERE */}
           <form onSubmit={handleAuth} className="authForm">
             {isRegister && (
               <input
@@ -137,7 +146,6 @@ export default function Auth() {
                 value={form.centerName}
                 onChange={handleChange}
                 className="authInput"
-                required
               />
             )}
 
@@ -148,7 +156,7 @@ export default function Auth() {
               onChange={handleChange}
               className="authInput"
               type="email"
-              required
+              autoComplete="email"
             />
 
             <input
@@ -158,26 +166,28 @@ export default function Auth() {
               onChange={handleChange}
               className="authInput"
               type="password"
-              required
+              autoComplete="current-password"
             />
 
             {error && <div className="authError">{error}</div>}
 
-            <button type="submit" className="authButton" disabled={loading}>
-              {loading ? (
-                <span className="loader">Processing...</span>
-              ) : isRegister ? (
-                "Sign Up"
-              ) : (
-                "Login"
-              )}
+            <button
+              type="submit"
+              className="authButton"
+              disabled={loading}
+            >
+              {loading
+                ? "Processing..."
+                : isRegister
+                ? "Sign Up"
+                : "Login"}
             </button>
           </form>
 
           <p
             className="authSwitch"
             onClick={() => {
-              setIsRegister(!isRegister);
+              setIsRegister((p) => !p);
               setError("");
             }}
           >
