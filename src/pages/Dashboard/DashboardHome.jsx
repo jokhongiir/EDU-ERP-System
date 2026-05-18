@@ -154,7 +154,7 @@ export default function DashboardHome({ activeBranch }) {
       {/* ================= HEADER SECTION ================= */}
       <div className="dashboard-header">
         <div className="header-title-box">
-          <h1>{activeBranch?.name} Dashboard</h1>
+          <h1>{activeBranch?.name} • Dashboard</h1>
           <p>Real-time analytics and branch performance overview</p>
         </div>
 
