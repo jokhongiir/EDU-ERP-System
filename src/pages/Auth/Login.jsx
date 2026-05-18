@@ -107,10 +107,10 @@ export default function Login() {
             </button>
           </form>
 
-          <p className="authSwitch">
+          {/* <p className="authSwitch">
             Don’t have account?{" "}
             <Link to="/register">Sign up</Link>
-          </p>
+          </p> */}
         </div>
       </div>
     </div>

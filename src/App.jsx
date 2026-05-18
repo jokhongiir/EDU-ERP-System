@@ -17,7 +17,7 @@ export default function App() {
 
         {/* AUTH */}
         <Route path="/" element={<Login setCenterName={setCenterName} />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/registerforeducationerpsystem" element={<Register />} />
 
         {/* DASHBOARD (PROTECTED AREA) */}
         <Route
