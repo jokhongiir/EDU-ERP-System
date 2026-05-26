@@ -1,4 +1,18 @@
 {
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.eduerp.uz"
+        }
+      ],
+      "destination": "https://eduerp.uz/$1",
+      "permanent": true
+    }
+  ],
+
   "rewrites": [
     {
       "source": "/(.*)",

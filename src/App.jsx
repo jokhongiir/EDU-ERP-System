@@ -1,5 +1,13 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+
 import { useState } from "react";
+
+// import Landing from "./components/Landing/Landing";
 
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
@@ -13,13 +21,31 @@ export default function App() {
 
   return (
     <Router>
+
       <Routes>
 
-        {/* AUTH */}
-        <Route path="/" element={<Login setCenterName={setCenterName} />} />
-        <Route path="/registerforeducationerpsystem" element={<Register />} />
+        {/* ================= LANDING PAGE ================= */}
+        <Route
+          path="/"
+          element={<Login/>}
+        />
 
-        {/* DASHBOARD (PROTECTED AREA) */}
+        {/* ================= AUTH ================= */}
+        {/* <Route
+          path="/login"
+          element={
+            <Login
+              setCenterName={setCenterName}
+            />
+          }
+        /> */}
+
+        <Route
+          path="/registerforeducationerpsystem"
+          element={<Register />}
+        />
+
+        {/* ================= DASHBOARD ================= */}
         <Route
           path="/dashboard/:id/*"
           element={
@@ -30,12 +56,16 @@ export default function App() {
           }
         />
 
-        {/* fallback */}
-        <Route path="*" element={<Navigate to="/" />} />
+        {/* ================= FALLBACK ================= */}
+        <Route
+          path="*"
+          element={<Navigate to="/" />}
+        />
 
       </Routes>
 
       <Analytics />
+
     </Router>
   );
 }
