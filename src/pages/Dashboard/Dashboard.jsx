@@ -77,6 +77,8 @@ export default function Dashboard({ centerName, setCenterName }) {
     >
       <Routes>
         <Route index element={<DashboardHome activeBranch={activeBranch} />} />
+        <Route path="forgot-password" element={<ForgotPassword />} />
+        <Route path="update-password" element={<UpdatePassword />} />
 
         <Route
           path="students"
@@ -117,8 +119,6 @@ export default function Dashboard({ centerName, setCenterName }) {
           path="profile"
           element={<Profile activeBranch={activeBranch} />}
         />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/update-password" element={<UpdatePassword />} />
 
         <Route path="*" element={<div>Page not found</div>} />
       </Routes>

@@ -11,7 +11,8 @@ import { useState } from "react";
 
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
-
+import ForgotPassword from "./pages/Auth/ForgotPassword";
+import UpdatePassword from "./pages/Auth/UpdatePassword";
 import Dashboard from "./pages/Dashboard/Dashboard";
 
 import { Analytics } from "@vercel/analytics/react";
@@ -21,14 +22,11 @@ export default function App() {
 
   return (
     <Router>
-
       <Routes>
-
         {/* ================= LANDING PAGE ================= */}
-        <Route
-          path="/"
-          element={<Login/>}
-        />
+        <Route path="/" element={<Login />} />
+        <Route path="/update-password" element={<UpdatePassword />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
 
         {/* ================= AUTH ================= */}
         {/* <Route
@@ -40,32 +38,21 @@ export default function App() {
           }
         /> */}
 
-        <Route
-          path="/registerforeducationerpsystem"
-          element={<Register />}
-        />
+        <Route path="/registerforeducationerpsystem" element={<Register />} />
 
         {/* ================= DASHBOARD ================= */}
         <Route
           path="/dashboard/:id/*"
           element={
-            <Dashboard
-              centerName={centerName}
-              setCenterName={setCenterName}
-            />
+            <Dashboard centerName={centerName} setCenterName={setCenterName} />
           }
         />
 
         {/* ================= FALLBACK ================= */}
-        <Route
-          path="*"
-          element={<Navigate to="/" />}
-        />
-
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
 
       <Analytics />
-
     </Router>
   );
 }

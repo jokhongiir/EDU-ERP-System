@@ -57,15 +57,15 @@ export default function Login() {
       if (error) throw error;
 
       const user = data?.user;
-      const session = data?.session;
+      if (!user) throw new Error("Login failed");
 
-      if (!user || !session) throw new Error("Login failed");
-
-      // ⭐ REMEMBER ME LOGIC
-      if (rememberMe) {
-        localStorage.setItem("sb-session", JSON.stringify(session));
-      } else {
-        sessionStorage.setItem("sb-session", JSON.stringify(session));
+      // ❗ REMEMBER ME HERE (REAL WAY)
+      if (!rememberMe) {
+        // session-only (tab yopilsa logout bo‘lishiga yaqin)
+        await supabase.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        });
       }
 
       const { data: branches } = await supabase
@@ -84,6 +84,18 @@ export default function Login() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleReset = async (e) => {
+    e.preventDefault();
+
+    console.log("RESET CLICKED");
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: "http://localhost:5173/update-password",
+    });
+
+    console.log(error);
   };
 
   return (

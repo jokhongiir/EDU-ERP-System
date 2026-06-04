@@ -1,9 +1,13 @@
 import { useState } from "react";
 import { supabase } from "../../services/supabaseClient";
 import { Link } from "react-router-dom";
-import "./Auth.css";
-
-import { FiMail, FiArrowRight } from "react-icons/fi";
+import {
+  FiMail,
+  FiCheckCircle,
+  FiAlertCircle,
+  FiArrowLeft,
+} from "react-icons/fi";
+import "./ForgotPassword.css";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -14,74 +18,88 @@ export default function ForgotPassword() {
   const handleReset = async (e) => {
     e.preventDefault();
 
-    if (!email.trim()) {
-      setError("Email is required");
-      return;
-    }
-
     setLoading(true);
     setError("");
     setMessage("");
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${window.location.origin}/update-password`,
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: "http://localhost:5173/update-password",
       });
 
       if (error) throw error;
 
-      setMessage("Password reset link sent to your email!");
+      setMessage(
+        `Password reset link has been sent to ${email}. Please check your inbox and spam folder.`
+      );
+
+      setEmail("");
     } catch (err) {
-      setError(err.message || "Something went wrong");
+      setError(err.message || "Failed to send reset email.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="authWrapper">
-      <div className="authCard">
-        <div className="authLeft">
-          <div className="authLeftContent">
-            <h1 className="authLogo">Reset Password</h1>
-            <p className="authText">
-              Enter your email and we’ll send you a reset link
-            </p>
+    <div className="forgotWrapper">
+      <div className="forgotCard">
+        <div className="forgotHeader">
+          <div className="forgotIcon">
+            <FiMail />
           </div>
-        </div>
 
-        <div className="authRight">
-          <h2 className="authTitle">Forgot Password</h2>
+          <h1>Forgot Password?</h1>
 
-          <form className="authForm" onSubmit={handleReset}>
-            {/* EMAIL */}
-            <div className="inputGroup">
-              <FiMail className="inputIcon" />
-
-              <input
-                type="email"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="authInput"
-              />
-            </div>
-
-            {/* MESSAGE */}
-            {message && <div className="authSuccess">{message}</div>}
-            {error && <div className="authError">{error}</div>}
-
-            {/* BUTTON */}
-            <button className="authButton" disabled={loading}>
-              {loading ? "Sending..." : "Send Reset Link"}
-              <FiArrowRight />
-            </button>
-          </form>
-
-          <p className="authSwitch">
-            Back to <Link to="/">Login</Link>
+          <p>
+            Enter your email address and we'll send you a secure link to reset
+            your password.
           </p>
         </div>
+
+        <form onSubmit={handleReset} className="forgotForm">
+          <div className="inputGroup">
+            <FiMail className="inputIcon" />
+
+            <input
+              type="email"
+              placeholder="Enter your email address"
+              value={email}
+              required
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+
+          {message && (
+            <div className="successBox">
+              <FiCheckCircle />
+              <div>
+                <strong>Email Sent Successfully</strong>
+                <p>{message}</p>
+              </div>
+            </div>
+          )}
+
+          {error && (
+            <div className="errorBox">
+              <FiAlertCircle />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            className="resetButton"
+            disabled={loading}
+          >
+            {loading ? "Sending..." : "Send Reset Link"}
+          </button>
+        </form>
+
+        <Link to="/" className="backLink">
+          <FiArrowLeft />
+          Back to Login
+        </Link>
       </div>
     </div>
   );
