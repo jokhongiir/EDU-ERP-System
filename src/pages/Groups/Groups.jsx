@@ -125,35 +125,52 @@ export default function Groups({ activeBranch }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.name.trim()) return alert("Group name is required");
+    // If the name is empty, just stop the execution
+    if (!form.name.trim()) return;
 
     setSaving(true);
+
     const payload = {
-      ...form,
-      branch_id: branchId,
+      name: form.name,
       teacher_id: form.teacher_id || null,
       course_id: form.course_id || null,
+      start_date: form.start_date || null,
+      start_time: form.start_time || null,
+      end_time: form.end_time || null,
+      schedule_type: form.schedule_type,
+      branch_id: branchId,
     };
 
     try {
+      let result;
       if (editId) {
-        await supabase.from("groups").update(payload).eq("id", editId);
+        result = await supabase.from("groups").update(payload).eq("id", editId);
       } else {
-        await supabase.from("groups").insert(payload);
+        result = await supabase.from("groups").insert([payload]);
       }
+
+      if (result.error) {
+        throw result.error;
+      }
+
       resetForm();
       fetchData();
     } catch (err) {
-      alert(err.message);
+      console.error("Supabase operation failed:", err.message);
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!confirm("Are you sure you want to delete this group?")) return;
-    await supabase.from("groups").delete().eq("id", id);
-    setGroups((prev) => prev.filter((g) => g.id !== id));
+    // Directly deleting without browser's native confirm popup
+    const { error } = await supabase.from("groups").delete().eq("id", id);
+
+    if (error) {
+      console.error("Failed to delete group:", error.message);
+    } else {
+      setGroups((prev) => prev.filter((g) => g.id !== id));
+    }
   };
 
   const handleEdit = (g) => {
