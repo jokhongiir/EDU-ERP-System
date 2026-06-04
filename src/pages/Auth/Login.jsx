@@ -148,7 +148,7 @@ export default function Login() {
 
         <div className="authRight">
           <div className="authHeader">
-            <h2 className="authTitle">Welcome Back 👋</h2>
+            <h2 className="authTitle">Welcome Back</h2>
 
             <p className="authSubtitle">Sign in to access your ERP dashboard</p>
           </div>
