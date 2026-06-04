@@ -53,19 +53,27 @@ export default function Attendance({ activeBranch }) {
     searchQuery,
   } = state;
 
-  const [modal, setModal] = useState({ open: false, message: "", type: "success" });
+  const [modal, setModal] = useState({
+    open: false,
+    message: "",
+    type: "success",
+  });
 
   // ================= HELPERS =================
-  const updateState = (payload) => setState((prev) => ({ ...prev, ...payload }));
+  const updateState = (payload) =>
+    setState((prev) => ({ ...prev, ...payload }));
 
   const cycleKey = useMemo(
     () => `${currentYear}-${currentMonth + 1}`,
-    [currentYear, currentMonth]
+    [currentYear, currentMonth],
   );
 
   const showModal = (message, type = "success") => {
     setModal({ open: true, message, type });
-    setTimeout(() => setModal({ open: false, message: "", type: "success" }), 2500);
+    setTimeout(
+      () => setModal({ open: false, message: "", type: "success" }),
+      2500,
+    );
   };
 
   // ================= DATA LOADING =================
@@ -78,15 +86,21 @@ export default function Attendance({ activeBranch }) {
     updateState({ groups: data || [] });
   }, [branchId]);
 
-  useEffect(() => { fetchGroups(); }, [fetchGroups]);
+  useEffect(() => {
+    fetchGroups();
+  }, [fetchGroups]);
 
   const fetchFullData = useCallback(async (groupId, month, year) => {
     updateState({ isLoading: true });
     const key = `${year}-${month + 1}`;
 
     const [studentsRes, attendanceRes] = await Promise.all([
-      supabase.from("students").select("*").eq("group_id", groupId).eq("paid", true),
-      supabase.from("attendance").select("*").eq("group_id", groupId).like("lesson_key", `${key}%`)
+      supabase.from("students").select("*").eq("group_id", groupId),
+      supabase
+        .from("attendance")
+        .select("*")
+        .eq("group_id", groupId)
+        .like("lesson_key", `${key}%`),
     ]);
 
     const map = {};
@@ -112,8 +126,14 @@ export default function Attendance({ activeBranch }) {
   const changeMonth = (direction) => {
     let newMonth = currentMonth + direction;
     let newYear = currentYear;
-    if (newMonth > 11) { newMonth = 0; newYear++; }
-    if (newMonth < 0) { newMonth = 11; newYear--; }
+    if (newMonth > 11) {
+      newMonth = 0;
+      newYear++;
+    }
+    if (newMonth < 0) {
+      newMonth = 11;
+      newYear--;
+    }
 
     updateState({ currentMonth: newMonth, currentYear: newYear });
     if (selectedGroup) fetchFullData(selectedGroup.id, newMonth, newYear);
@@ -136,7 +156,12 @@ export default function Attendance({ activeBranch }) {
     Object.entries(attendanceMap).forEach(([sId, lessons]) => {
       Object.entries(lessons).forEach(([key, val]) => {
         if (val !== originalAttendanceMap[sId]?.[key]) {
-          rows.push({ student_id: sId, group_id: selectedGroup.id, lesson_key: key, present: val });
+          rows.push({
+            student_id: sId,
+            group_id: selectedGroup.id,
+            lesson_key: key,
+            present: val,
+          });
         }
       });
     });
@@ -147,12 +172,16 @@ export default function Attendance({ activeBranch }) {
       return;
     }
 
-    const { error } = await supabase.from("attendance").upsert(rows, { onConflict: "student_id,lesson_key" });
+    const { error } = await supabase
+      .from("attendance")
+      .upsert(rows, { onConflict: "student_id,lesson_key" });
 
     if (error) {
       showModal("Error saving data", "error");
     } else {
-      updateState({ originalAttendanceMap: JSON.parse(JSON.stringify(attendanceMap)) });
+      updateState({
+        originalAttendanceMap: JSON.parse(JSON.stringify(attendanceMap)),
+      });
       showModal("Attendance saved successfully", "success");
     }
     updateState({ isSaving: false });
@@ -161,11 +190,20 @@ export default function Attendance({ activeBranch }) {
   // ================= COMPUTATIONS =================
   const lessons = useMemo(() => {
     if (!selectedGroup) return [];
-    const type = selectedGroup.lesson_days || "odd";
+
+    const type = selectedGroup.schedule_type || "all"; //  To'g'ri ustun nomi bog'landi
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
     const days = [];
+
     for (let i = 1; i <= daysInMonth; i++) {
-      if ((type === "odd" && i % 2 !== 0) || (type === "even" && i % 2 === 0)) days.push(i);
+      //  'all', 'odd' va 'even' holatlari to'liq qoplandi
+      if (
+        type === "all" ||
+        (type === "odd" && i % 2 !== 0) ||
+        (type === "even" && i % 2 === 0)
+      ) {
+        days.push(i);
+      }
     }
     return days.slice(0, MAX_LESSONS).map((day, i) => ({
       key: `${cycleKey}-L${i + 1}`,
@@ -175,8 +213,10 @@ export default function Attendance({ activeBranch }) {
   }, [selectedGroup, cycleKey, currentMonth, currentYear]);
 
   const filteredStudents = useMemo(() => {
-    return students.filter(s => 
-      `${s.first_name} ${s.last_name}`.toLowerCase().includes(searchQuery.toLowerCase())
+    return students.filter((s) =>
+      `${s.first_name} ${s.last_name}`
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()),
     );
   }, [students, searchQuery]);
 
@@ -193,20 +233,27 @@ export default function Attendance({ activeBranch }) {
       <header className="attendance-header">
         <div className="header-title">
           <h1>Attendance System</h1>
-          <p><FiHome /> {activeBranch?.name} / <FiLayers /> {selectedGroup?.name || "Select a group"}</p>
+          <p>
+            <FiHome /> {activeBranch?.name} / <FiLayers />{" "}
+            {selectedGroup?.name || "Select a group"}
+          </p>
         </div>
 
         <div className="header-actions">
           <div className="search-box">
             <FiSearch />
-            <input 
-              type="text" 
-              placeholder="Search student..." 
+            <input
+              type="text"
+              placeholder="Search student..."
               value={searchQuery}
               onChange={(e) => updateState({ searchQuery: e.target.value })}
             />
           </div>
-          <button className={`save-btn ${isSaving ? "loading" : ""}`} onClick={saveAttendance} disabled={isSaving || !selectedGroup}>
+          <button
+            className={`save-btn ${isSaving ? "loading" : ""}`}
+            onClick={saveAttendance}
+            disabled={isSaving || !selectedGroup}
+          >
             {isSaving ? <FiLoader className="spin" /> : <FiDatabase />}
             <span>{isSaving ? "Saving..." : "Save Changes"}</span>
           </button>
@@ -216,27 +263,39 @@ export default function Attendance({ activeBranch }) {
       {/* 🟢 STATS & INFO CARDS */}
       <section className="stats-row">
         <div className="stat-card-mini">
-          <div className="icon blue"><FiUsers /></div>
+          <div className="icon blue">
+            <FiUsers />
+          </div>
           <div className="data">
             <span>Students</span>
             <strong>{students.length} Total</strong>
           </div>
         </div>
         <div className="stat-card-mini">
-          <div className="icon orange"><FiClock /></div>
+          <div className="icon orange">
+            <FiClock />
+          </div>
           <div className="data">
             <span>Lesson Cycle</span>
             <strong>{MAX_LESSONS} Lessons</strong>
           </div>
         </div>
-        <div className={`stat-card-mini schedule ${selectedGroup?.lesson_days}`}>
-           <div className="icon">
-             {selectedGroup?.lesson_days === "odd" ? <FiMoon /> : <FiSun />}
-           </div>
-           <div className="data">
-             <span>Schedule</span>
-             <strong>{selectedGroup ? (selectedGroup.lesson_days === "odd" ? "Odd Days" : "Even Days") : "N/A"}</strong>
-           </div>
+        <div
+          className={`stat-card-mini schedule ${selectedGroup?.schedule_type}`}
+        >
+          <div className="icon">
+            {selectedGroup?.schedule_type === "even" ? <FiSun /> : <FiMoon />}
+          </div>
+          <div className="data">
+            <span>Schedule</span>
+            <strong>
+              {selectedGroup
+                ? selectedGroup.lesson_days === "odd"
+                  ? "Odd Days"
+                  : "Even Days"
+                : "N/A"}
+            </strong>
+          </div>
         </div>
       </section>
 
@@ -259,12 +318,19 @@ export default function Attendance({ activeBranch }) {
         {selectedGroup && (
           <div className="board-toolbar">
             <div className="month-picker">
-              <button onClick={() => changeMonth(-1)}><FiChevronLeft /></button>
+              <button onClick={() => changeMonth(-1)}>
+                <FiChevronLeft />
+              </button>
               <h3>
-                <FiCalendar /> 
-                {new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(new Date(currentYear, currentMonth))}
+                <FiCalendar />
+                {new Intl.DateTimeFormat("en-US", {
+                  month: "long",
+                  year: "numeric",
+                }).format(new Date(currentYear, currentMonth))}
               </h3>
-              <button onClick={() => changeMonth(1)}><FiChevronRight /></button>
+              <button onClick={() => changeMonth(1)}>
+                <FiChevronRight />
+              </button>
             </div>
           </div>
         )}
@@ -286,7 +352,9 @@ export default function Attendance({ activeBranch }) {
                       <span className="l-date">Day {l.day}</span>
                     </th>
                   ))}
-                  <th className="stats-head"><FiTrendingUp /></th>
+                  <th className="stats-head">
+                    <FiTrendingUp />
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -298,7 +366,9 @@ export default function Attendance({ activeBranch }) {
                         <td className="sticky-col">
                           <div className="student-info">
                             <div className="avatar">{s.first_name[0]}</div>
-                            <span>{s.first_name} {s.last_name}</span>
+                            <span>
+                              {s.first_name} {s.last_name}
+                            </span>
                           </div>
                         </td>
                         {lessons.map((l) => (
@@ -314,7 +384,9 @@ export default function Attendance({ activeBranch }) {
                           </td>
                         ))}
                         <td className="stats-cell">
-                          <div className={`percent-circle ${stats.percent > 70 ? 'good' : stats.percent > 40 ? 'warning' : 'bad'}`}>
+                          <div
+                            className={`percent-circle ${stats.percent > 70 ? "good" : stats.percent > 40 ? "warning" : "bad"}`}
+                          >
                             {stats.percent}%
                           </div>
                         </td>
@@ -335,7 +407,9 @@ export default function Attendance({ activeBranch }) {
           <div className="empty-state">
             <FiLayers size={48} />
             <h2>No Group Selected</h2>
-            <p>Please select a group from the list above to manage attendance.</p>
+            <p>
+              Please select a group from the list above to manage attendance.
+            </p>
           </div>
         )}
       </main>

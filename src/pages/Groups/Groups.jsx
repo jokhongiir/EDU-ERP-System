@@ -117,7 +117,7 @@ export default function Groups({ activeBranch }) {
       start_date: "",
       start_time: "",
       end_time: "",
-      schedule_type: "all",
+      schedule_type: "all", //  Boshlang'ich qiymat 'all' etib belgilandi
     });
     setEditId(null);
     setModalOpen(false);
