@@ -113,7 +113,7 @@ export default function Login() {
           <div className="authLeftContent">
             <img src={logo2} alt="Education ERP" className="authImage" />
 
-            <h1 className="authLogo">Education ERP</h1>
+            <h1 className="authLogo">Education ERP System</h1>
 
             <p className="authText">
               Smart education management system for academies, schools and
