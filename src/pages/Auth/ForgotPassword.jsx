@@ -27,15 +27,15 @@ export default function ForgotPassword() {
         redirectTo: "http://localhost:5173/update-password",
       });
 
-      if (error) throw error;
+      if (error) {
+        console.log(error);
+        throw error;
+      }
 
-      setMessage(
-        `Password reset link has been sent to ${email}. Please check your inbox and spam folder.`
-      );
-
-      setEmail("");
+      setMessage("Email sent successfully");
     } catch (err) {
-      setError(err.message || "Failed to send reset email.");
+      console.log("FULL ERROR:", err);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -87,11 +87,7 @@ export default function ForgotPassword() {
             </div>
           )}
 
-          <button
-            type="submit"
-            className="resetButton"
-            disabled={loading}
-          >
+          <button type="submit" className="resetButton" disabled={loading}>
             {loading ? "Sending..." : "Send Reset Link"}
           </button>
         </form>
