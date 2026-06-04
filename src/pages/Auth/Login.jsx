@@ -1,9 +1,18 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../../services/supabaseClient";
-import { useNavigate, Link } from "react-router-dom";
 import BranchModal from "../BranchModal/BranchModal";
 import logo2 from "../../assets/logo2.png";
-import "../Auth/Auth.css";
+import "./Auth.css";
+
+import {
+  FiMail,
+  FiLock,
+  FiEye,
+  FiEyeOff,
+  FiShield,
+  FiArrowRight,
+} from "react-icons/fi";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -15,47 +24,79 @@ export default function Login() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showBranchModal, setShowBranchModal] = useState(false);
-  const [userId, setUserId] = useState(null);
+
+  const [showPassword, setShowPassword] =
+    useState(false);
+
+  const [rememberMe, setRememberMe] =
+    useState(false);
+
+  const [showBranchModal, setShowBranchModal] =
+    useState(false);
+
+  const [userId, setUserId] =
+    useState(null);
 
   const handleChange = (e) => {
-    setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+    setForm((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
+
     if (loading) return;
 
-    setLoading(true);
     setError("");
 
-    try {
-      const { email, password } = form;
+    if (!form.email.trim()) {
+      setError("Please enter your email");
+      return;
+    }
 
+    if (!form.password.trim()) {
+      setError("Please enter your password");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
       const { data, error } =
         await supabase.auth.signInWithPassword({
-          email,
-          password,
+          email: form.email.trim(),
+          password: form.password,
         });
 
       if (error) throw error;
 
       const user = data?.user;
-      if (!user) throw new Error("Login failed");
 
-      const { data: branches } = await supabase
-        .from("branches")
-        .select("id")
-        .eq("owner_uid", user.id);
+      if (!user) {
+        throw new Error("Login failed");
+      }
+
+      const { data: branches } =
+        await supabase
+          .from("branches")
+          .select("id")
+          .eq("owner_uid", user.id);
 
       if (!branches || branches.length === 0) {
         setUserId(user.id);
         setShowBranchModal(true);
       } else {
-        navigate(`/dashboard/${branches[0].id}`);
+        navigate(
+          `/dashboard/${branches[0].id}`
+        );
       }
     } catch (err) {
-      setError(err.message);
+      setError(
+        err.message ||
+          "Something went wrong"
+      );
     } finally {
       setLoading(false);
     }
@@ -66,53 +107,192 @@ export default function Login() {
       <BranchModal
         open={showBranchModal}
         userId={userId}
-        onDone={(b) => navigate(`/dashboard/${b.id}`)}
+        onDone={(branch) =>
+          navigate(`/dashboard/${branch.id}`)
+        }
       />
 
       <div className="authCard">
+        {/* LEFT PANEL */}
+
         <div className="authLeft">
           <div className="authLeftContent">
-            <img src={logo2} className="authImage" />
-            <h1 className="authLogo">Education ERP</h1>
-            <p className="authText">Welcome back</p>
+            <img
+              src={logo2}
+              alt="Education ERP"
+              className="authImage"
+            />
+
+            <h1 className="authLogo">
+              Education ERP
+            </h1>
+
+            <p className="authText">
+              Smart education management
+              system for academies,
+              schools and learning centers.
+            </p>
+
+            <div className="statsBox">
+              <div className="statItem">
+                <h3>10K+</h3>
+                <span>Students</span>
+              </div>
+
+              <div className="statItem">
+                <h3>500+</h3>
+                <span>Teachers</span>
+              </div>
+
+              <div className="statItem">
+                <h3>120+</h3>
+                <span>Branches</span>
+              </div>
+            </div>
+
+            <div className="securityBadge">
+              <FiShield />
+              <span>
+                Enterprise Grade Security
+              </span>
+            </div>
           </div>
         </div>
 
+        {/* RIGHT PANEL */}
+
         <div className="authRight">
-          <h2 className="authTitle">Login</h2>
+          <div className="authHeader">
+            <h2 className="authTitle">
+              Welcome Back 👋
+            </h2>
 
-          <form className="authForm" onSubmit={handleLogin}>
-            <input
-              name="email"
-              placeholder="Email"
-              className="authInput"
-              value={form.email}
-              onChange={handleChange}
-              type="email"
-            />
+            <p className="authSubtitle">
+              Sign in to access your ERP
+              dashboard
+            </p>
+          </div>
 
-            <input
-              name="password"
-              placeholder="Password"
-              className="authInput"
-              value={form.password}
-              onChange={handleChange}
-              type="password"
-            />
+          <form
+            className="authForm"
+            onSubmit={handleLogin}
+          >
+            {/* EMAIL */}
 
-            {error && <div className="authError">{error}</div>}
+            <div className="inputGroup">
+              <FiMail className="inputIcon" />
 
-            <button className="authButton" disabled={loading}>
-              {loading ? "Logging in..." : "Login"}
+              <input
+                type="email"
+                name="email"
+                className="authInput"
+                placeholder="Email address"
+                value={form.email}
+                onChange={handleChange}
+                autoComplete="email"
+              />
+            </div>
+
+            {/* PASSWORD */}
+
+            <div className="inputGroup">
+              <FiLock className="inputIcon" />
+
+              <input
+                type={
+                  showPassword
+                    ? "text"
+                    : "password"
+                }
+                name="password"
+                className="authInput"
+                placeholder="Password"
+                value={form.password}
+                onChange={handleChange}
+                autoComplete="current-password"
+              />
+
+              <button
+                type="button"
+                className="eyeButton"
+                aria-label="Toggle password visibility"
+                onClick={() =>
+                  setShowPassword(
+                    !showPassword
+                  )
+                }
+              >
+                {showPassword ? (
+                  <FiEyeOff />
+                ) : (
+                  <FiEye />
+                )}
+              </button>
+            </div>
+
+            {/* OPTIONS */}
+
+            <div className="authOptions">
+              <label className="rememberMe">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) =>
+                    setRememberMe(
+                      e.target.checked
+                    )
+                  }
+                />
+
+                <span>Remember me</span>
+              </label>
+
+              <Link
+                to="/forgot-password"
+                className="forgotPassword"
+              >
+                Forgot password?
+              </Link>
+            </div>
+
+            {/* ERROR */}
+
+            {error && (
+              <div className="authError">
+                {error}
+              </div>
+            )}
+
+            {/* BUTTON */}
+
+            <button
+              type="submit"
+              className="authButton"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <span className="loader"></span>
+                  <span>Signing In...</span>
+                </>
+              ) : (
+                <>
+                  <span>Sign In</span>
+                  <FiArrowRight />
+                </>
+              )}
             </button>
           </form>
 
-          {/* <p className="authSwitch">
-            Don’t have account?{" "}
-            <Link to="/register">Sign up</Link>
-          </p> */}
+          <div className="authFooter">
+            <p>
+              Protected by Education ERP
+              Security Infrastructure
+            </p>
+          </div>
         </div>
       </div>
     </div>
   );
 }
+
