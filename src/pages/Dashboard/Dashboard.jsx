@@ -15,7 +15,10 @@ import AttendancePage from "../Attendance/Attendance";
 import Profile from "../Profile/Profile";
 import Login from "../Auth/Login";
 import Register from "../Auth/Register";
+import ForgotPassword from "../Auth/ForgotPassword";
+import UpdatePassword from "../Auth/UpdatePassword";
 import { supabase } from "../../services/supabaseClient";
+
 import "./Dashboard.css";
 
 export default function Dashboard({ centerName, setCenterName }) {
@@ -114,6 +117,8 @@ export default function Dashboard({ centerName, setCenterName }) {
           path="profile"
           element={<Profile activeBranch={activeBranch} />}
         />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/update-password" element={<UpdatePassword />} />
 
         <Route path="*" element={<div>Page not found</div>} />
       </Routes>
