@@ -25,17 +25,13 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const [showPassword, setShowPassword] =
-    useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  const [rememberMe, setRememberMe] =
-    useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
-  const [showBranchModal, setShowBranchModal] =
-    useState(false);
+  const [showBranchModal, setShowBranchModal] = useState(false);
 
-  const [userId, setUserId] =
-    useState(null);
+  const [userId, setUserId] = useState(null);
 
   const handleChange = (e) => {
     setForm((prev) => ({
@@ -50,53 +46,41 @@ export default function Login() {
     if (loading) return;
 
     setError("");
-
-    if (!form.email.trim()) {
-      setError("Please enter your email");
-      return;
-    }
-
-    if (!form.password.trim()) {
-      setError("Please enter your password");
-      return;
-    }
-
     setLoading(true);
 
     try {
-      const { data, error } =
-        await supabase.auth.signInWithPassword({
-          email: form.email.trim(),
-          password: form.password,
-        });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: form.email.trim(),
+        password: form.password,
+      });
 
       if (error) throw error;
 
       const user = data?.user;
+      const session = data?.session;
 
-      if (!user) {
-        throw new Error("Login failed");
+      if (!user || !session) throw new Error("Login failed");
+
+      // ⭐ REMEMBER ME LOGIC
+      if (rememberMe) {
+        localStorage.setItem("sb-session", JSON.stringify(session));
+      } else {
+        sessionStorage.setItem("sb-session", JSON.stringify(session));
       }
 
-      const { data: branches } =
-        await supabase
-          .from("branches")
-          .select("id")
-          .eq("owner_uid", user.id);
+      const { data: branches } = await supabase
+        .from("branches")
+        .select("id")
+        .eq("owner_uid", user.id);
 
       if (!branches || branches.length === 0) {
         setUserId(user.id);
         setShowBranchModal(true);
       } else {
-        navigate(
-          `/dashboard/${branches[0].id}`
-        );
+        navigate(`/dashboard/${branches[0].id}`);
       }
     } catch (err) {
-      setError(
-        err.message ||
-          "Something went wrong"
-      );
+      setError(err.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -107,9 +91,7 @@ export default function Login() {
       <BranchModal
         open={showBranchModal}
         userId={userId}
-        onDone={(branch) =>
-          navigate(`/dashboard/${branch.id}`)
-        }
+        onDone={(branch) => navigate(`/dashboard/${branch.id}`)}
       />
 
       <div className="authCard">
@@ -117,20 +99,13 @@ export default function Login() {
 
         <div className="authLeft">
           <div className="authLeftContent">
-            <img
-              src={logo2}
-              alt="Education ERP"
-              className="authImage"
-            />
+            <img src={logo2} alt="Education ERP" className="authImage" />
 
-            <h1 className="authLogo">
-              Education ERP
-            </h1>
+            <h1 className="authLogo">Education ERP</h1>
 
             <p className="authText">
-              Smart education management
-              system for academies,
-              schools and learning centers.
+              Smart education management system for academies, schools and
+              learning centers.
             </p>
 
             <div className="statsBox">
@@ -152,9 +127,7 @@ export default function Login() {
 
             <div className="securityBadge">
               <FiShield />
-              <span>
-                Enterprise Grade Security
-              </span>
+              <span>Enterprise Grade Security</span>
             </div>
           </div>
         </div>
@@ -163,20 +136,12 @@ export default function Login() {
 
         <div className="authRight">
           <div className="authHeader">
-            <h2 className="authTitle">
-              Welcome Back 👋
-            </h2>
+            <h2 className="authTitle">Welcome Back 👋</h2>
 
-            <p className="authSubtitle">
-              Sign in to access your ERP
-              dashboard
-            </p>
+            <p className="authSubtitle">Sign in to access your ERP dashboard</p>
           </div>
 
-          <form
-            className="authForm"
-            onSubmit={handleLogin}
-          >
+          <form className="authForm" onSubmit={handleLogin}>
             {/* EMAIL */}
 
             <div className="inputGroup">
@@ -199,11 +164,7 @@ export default function Login() {
               <FiLock className="inputIcon" />
 
               <input
-                type={
-                  showPassword
-                    ? "text"
-                    : "password"
-                }
+                type={showPassword ? "text" : "password"}
                 name="password"
                 className="authInput"
                 placeholder="Password"
@@ -216,17 +177,9 @@ export default function Login() {
                 type="button"
                 className="eyeButton"
                 aria-label="Toggle password visibility"
-                onClick={() =>
-                  setShowPassword(
-                    !showPassword
-                  )
-                }
+                onClick={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? (
-                  <FiEyeOff />
-                ) : (
-                  <FiEye />
-                )}
+                {showPassword ? <FiEyeOff /> : <FiEye />}
               </button>
             </div>
 
@@ -237,39 +190,24 @@ export default function Login() {
                 <input
                   type="checkbox"
                   checked={rememberMe}
-                  onChange={(e) =>
-                    setRememberMe(
-                      e.target.checked
-                    )
-                  }
+                  onChange={(e) => setRememberMe(e.target.checked)}
                 />
 
                 <span>Remember me</span>
               </label>
 
-              <Link
-                to="/forgot-password"
-                className="forgotPassword"
-              >
+              <Link to="/forgot-password" className="forgotPassword">
                 Forgot password?
               </Link>
             </div>
 
             {/* ERROR */}
 
-            {error && (
-              <div className="authError">
-                {error}
-              </div>
-            )}
+            {error && <div className="authError">{error}</div>}
 
             {/* BUTTON */}
 
-            <button
-              type="submit"
-              className="authButton"
-              disabled={loading}
-            >
+            <button type="submit" className="authButton" disabled={loading}>
               {loading ? (
                 <>
                   <span className="loader"></span>
@@ -285,14 +223,10 @@ export default function Login() {
           </form>
 
           <div className="authFooter">
-            <p>
-              Protected by Education ERP
-              Security Infrastructure
-            </p>
+            <p>Protected by Education ERP Security Infrastructure</p>
           </div>
         </div>
       </div>
     </div>
   );
 }
-
