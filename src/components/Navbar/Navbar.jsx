@@ -31,7 +31,6 @@ export default function Navbar({
 
   const dropdownRef = useRef();
 
-  // ================= USER =================
   useEffect(() => {
     const loadUser = async () => {
       const { data } = await supabase.auth.getUser();
@@ -40,7 +39,6 @@ export default function Navbar({
     loadUser();
   }, []);
 
-  // ================= CLOSE DROPDOWN =================
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (!dropdownRef.current?.contains(e.target)) {
@@ -52,7 +50,6 @@ export default function Navbar({
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  // ================= SAVE (CREATE / UPDATE) =================
   const handleSave = async () => {
     if (!form.name.trim()) return;
 
@@ -75,10 +72,8 @@ export default function Navbar({
       setEditingBranch(null);
       setForm({ name: "" });
 
-      // 🔥 auto refresh UI
       await refreshBranches?.();
 
-      // OPTIONAL: full reload (if you really want hard refresh)
       window.location.reload();
 
     } catch (err) {
@@ -86,7 +81,6 @@ export default function Navbar({
     }
   };
 
-  // ================= EDIT =================
   const handleEdit = (branch) => {
     setEditingBranch(branch);
     setForm({ name: branch.name });
@@ -94,14 +88,12 @@ export default function Navbar({
     setDropdownOpen(false);
   };
 
-  // ================= DELETE CLICK =================
   const handleDeleteClick = (branch) => {
     setSelectedBranch(branch);
     setDeleteModalOpen(true);
     setDropdownOpen(false);
   };
 
-  // ================= CONFIRM DELETE =================
   const handleDeleteConfirm = async () => {
     if (!selectedBranch) return;
 
@@ -114,10 +106,8 @@ export default function Navbar({
       setDeleteModalOpen(false);
       setSelectedBranch(null);
 
-      // 🔥 auto refresh UI
       await refreshBranches?.();
 
-      // OPTIONAL HARD REFRESH
       window.location.reload();
 
     } catch (err) {
@@ -127,8 +117,6 @@ export default function Navbar({
 
   return (
     <header className="erp-navbar">
-
-      {/* ================= LEFT ================= */}
       <div className="erp-navbar__left">
         <button className="erp-navbar__menu-btn" onClick={toggleSidebar}>
           <Menu size={22} />
@@ -144,10 +132,7 @@ export default function Navbar({
         </div>
       </div>
 
-      {/* ================= RIGHT ================= */}
       <div className="erp-navbar__right">
-
-        {/* BRANCH DROPDOWN */}
         <div className="erp-navbar__dropdown" ref={dropdownRef}>
 
           <button
@@ -203,7 +188,6 @@ export default function Navbar({
           )}
         </div>
 
-        {/* USER */}
         <div className="erp-navbar__user">
           <div className="erp-navbar__avatar">
             {user?.email?.charAt(0).toUpperCase()}
@@ -212,7 +196,6 @@ export default function Navbar({
         </div>
       </div>
 
-      {/* ================= CREATE / EDIT MODAL ================= */}
       {modalOpen && (
         <div className="erp-modal__overlay">
           <div className="erp-modal">
@@ -241,7 +224,6 @@ export default function Navbar({
         </div>
       )}
 
-      {/* ================= DELETE MODAL ================= */}
       {deleteModalOpen && (
         <div className="erp-modal__overlay">
           <div className="erp-modal erp-modal--danger">
