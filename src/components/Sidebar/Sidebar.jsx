@@ -20,14 +20,10 @@ import logo from "../../assets/logo2.png";
 function Sidebar({ collapsed, mobileOpen, activeBranch, setMobileOpen }) {
   const navigate = useNavigate();
 
-  // ================= BASE PATH =================
   const basePath = useMemo(() => {
-    return activeBranch
-      ? `/dashboard/${activeBranch.id}`
-      : "/dashboard";
+    return activeBranch ? `/dashboard/${activeBranch.id}` : "/dashboard";
   }, [activeBranch]);
 
-  // ================= MENU CONFIG (SCALABLE) =================
   const menu = useMemo(
     () => [
       { label: "Dashboard", icon: LayoutDashboard, path: "" },
@@ -40,10 +36,9 @@ function Sidebar({ collapsed, mobileOpen, activeBranch, setMobileOpen }) {
       { label: "Attendance", icon: CalendarCheck, path: "attendance" },
       { label: "Profile", icon: User, path: "profile" },
     ],
-    []
+    [],
   );
 
-  // ================= LOGOUT =================
   const handleLogout = useCallback(async () => {
     try {
       await supabase.auth.signOut();
@@ -64,7 +59,6 @@ function Sidebar({ collapsed, mobileOpen, activeBranch, setMobileOpen }) {
       ${collapsed ? "isCollapsed" : ""} 
       ${mobileOpen ? "isMobileOpen" : ""}`}
     >
-      {/* ================= HEADER ================= */}
       <div className="erpSidebar__header">
         <div className="erpSidebar__logoBox">
           <img src={logo} alt="Edu ERP" className="erpSidebar__logoImg" />
@@ -77,8 +71,6 @@ function Sidebar({ collapsed, mobileOpen, activeBranch, setMobileOpen }) {
           )}
         </div>
       </div>
-
-      {/* ================= NAV ================= */}
       <nav className="erpSidebar__nav">
         {menu.map(({ label, icon: Icon, path }) => (
           <NavLink
@@ -94,8 +86,6 @@ function Sidebar({ collapsed, mobileOpen, activeBranch, setMobileOpen }) {
           </NavLink>
         ))}
       </nav>
-
-      {/* ================= FOOTER ================= */}
       <div className="erpSidebar__footer">
         <button className="erpSidebar__logout" onClick={handleLogout}>
           <LogOut className="erpSidebar__icon" />

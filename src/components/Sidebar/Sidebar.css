@@ -1,6 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 
-/* ========== ROOT ========== */
 .erpSidebar {
   width: 280px;
   height: 100vh;
@@ -25,12 +24,10 @@
   overflow: hidden;
 }
 
-/* COLLAPSED */
 .erpSidebar.isCollapsed {
   width: 85px;
 }
 
-/* MOBILE */
 .erpSidebar.isMobileOpen {
   transform: translateX(0);
 }
@@ -41,20 +38,17 @@
   }
 }
 
-/* ================= HEADER ================= */
 .erpSidebar__header {
   padding: 22px 18px;
   border-bottom: 1px solid #f1f5f9;
 }
 
-/* LOGO BOX */
 .erpSidebar__logoBox {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-/* LOGO IMAGE */
 .erpSidebar__logoImg {
   width: 44px;
   height: 44px;
@@ -67,7 +61,6 @@
   transition: 0.3s;
 }
 
-/* LOGO TEXT */
 .erpSidebar__logoText h2 {
   font-size: 18px;
   font-weight: 700;
@@ -81,7 +74,6 @@
   color: #94a3b8;
 }
 
-/* ================= NAV ================= */
 .erpSidebar__nav {
   flex: 1;
   padding: 14px 10px;
@@ -91,7 +83,6 @@
   gap: 6px;
 }
 
-/* LINK */
 .erpSidebar__link {
   display: flex;
   align-items: center;
@@ -113,7 +104,6 @@
   position: relative;
 }
 
-/* ICON */
 .erpSidebar__icon {
   width: 20px;
   height: 20px;
@@ -123,7 +113,6 @@
   transition: 0.2s ease;
 }
 
-/* HOVER */
 .erpSidebar__link:hover {
   background: #f4f7ff;
   color: #2563eb;
@@ -131,7 +120,6 @@
   transform: translateX(5px);
 }
 
-/* ACTIVE */
 .erpSidebar__link.isActive {
   background: linear-gradient(135deg, #2563eb, #3b82f6);
   color: #ffffff;
@@ -143,7 +131,6 @@
   border-radius: 12px;
 }
 
-/* ACTIVE LEFT INDICATOR */
 .erpSidebar__link.isActive::before {
   content: "";
   position: absolute;
@@ -159,13 +146,11 @@
   border-radius: 10px;
 }
 
-/* ================= FOOTER ================= */
 .erpSidebar__footer {
   padding: 14px;
   border-top: 1px solid #f1f5f9;
 }
 
-/* LOGOUT */
 .erpSidebar__logout {
   width: 100%;
 
@@ -189,13 +174,11 @@
   transition: all 0.2s ease;
 }
 
-/* LOGOUT HOVER */
 .erpSidebar__logout:hover {
   background: #ffe4e6;
   transform: translateY(-2px);
 }
 
-/* ================= COLLAPSED MODE ================= */
 .erpSidebar.isCollapsed .erpSidebar__link {
   justify-content: center;
 }
@@ -212,12 +195,10 @@
   display: none;
 }
 
-/* ICON HOVER EFFECT */
 .erpSidebar__link:hover .erpSidebar__icon {
   transform: scale(1.15);
 }
 
-/* SMOOTH ANIMATIONS */
 .erpSidebar__link,
 .erpSidebar__logout,
 .erpSidebar__logoImg {
