@@ -1,8 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 
-/* =========================================================
-   CSS VARIABLES & DESIGN SYSTEM
-========================================================= */
 :root {
   --primary: #2563eb;
   --primary-hover: #1d4ed8;
@@ -21,9 +18,6 @@
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* =========================================================
-   GLOBAL RESET
-========================================================= */
 * {
   margin: 0;
   padding: 0;
@@ -47,13 +41,12 @@ a {
   color: inherit;
 }
 
-button, input, textarea {
+button,
+input,
+textarea {
   font-family: inherit;
 }
 
-/* =========================================================
-   LAYOUT UTILITIES
-========================================================= */
 .container {
   width: 100%;
   max-width: 1400px;
@@ -64,15 +57,20 @@ button, input, textarea {
 .landing {
   width: 100%;
   overflow: hidden;
-  background: 
-    radial-gradient(circle at top left, rgba(37,99,235,0.06), transparent 30%),
-    radial-gradient(circle at bottom right, rgba(59,130,246,0.06), transparent 30%),
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(37, 99, 235, 0.06),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at bottom right,
+      rgba(59, 130, 246, 0.06),
+      transparent 30%
+    ),
     var(--bg-main);
 }
 
-/* =========================================================
-   HEADER SECTION
-========================================================= */
 .header {
   width: 100%;
   position: fixed;
@@ -93,7 +91,6 @@ button, input, textarea {
   justify-content: space-between;
 }
 
-/* Logo */
 .logo {
   display: flex;
   align-items: center;
@@ -126,7 +123,6 @@ button, input, textarea {
   display: block;
 }
 
-/* Navigation */
 .nav {
   display: flex;
   align-items: center;
@@ -161,7 +157,6 @@ button, input, textarea {
   width: 100%;
 }
 
-/* Right Header Actions */
 .header-right {
   display: flex;
   align-items: center;
@@ -219,9 +214,6 @@ button, input, textarea {
   box-shadow: 0 12px 30px rgba(37, 99, 235, 0.25);
 }
 
-/* =========================================================
-   HERO SECTION
-========================================================= */
 .hero {
   width: 100%;
   min-height: 100vh;
@@ -272,8 +264,14 @@ button, input, textarea {
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); opacity: 1; }
-  100% { transform: scale(2.5); opacity: 0; }
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
 }
 
 .hero-left h1 {
@@ -298,8 +296,8 @@ button, input, textarea {
   margin-bottom: 48px;
 }
 
-/* BUTTONS COMPONENTS */
-.primary-btn, .secondary-btn {
+.primary-btn,
+.secondary-btn {
   border: none;
   outline: none;
   cursor: pointer;
@@ -340,7 +338,6 @@ button, input, textarea {
   transform: translateY(-2px);
 }
 
-/* STATS */
 .hero-stats {
   display: flex;
   gap: 20px;
@@ -374,9 +371,6 @@ button, input, textarea {
   font-size: 14px;
 }
 
-/* =========================================================
-   DASHBOARD PREVIEW CARD
-========================================================= */
 .dashboard-card {
   width: 100%;
   border-radius: var(--radius-lg);
@@ -405,9 +399,15 @@ button, input, textarea {
   height: 12px;
   border-radius: 50%;
 }
-.red { background: #ff5f57; }
-.yellow { background: #febc2e; }
-.green { background: #28c840; }
+.red {
+  background: #ff5f57;
+}
+.yellow {
+  background: #febc2e;
+}
+.green {
+  background: #28c840;
+}
 
 .dashboard-content {
   padding: 24px;
@@ -475,10 +475,10 @@ button, input, textarea {
   border: 1px solid var(--border-color);
 }
 
-/* =========================================================
-   COMMON SECTION STYLES
-========================================================= */
-.about, .features, .faq, .contact {
+.about,
+.features,
+.faq,
+.contact {
   padding: 100px 0;
 }
 
@@ -510,9 +510,6 @@ button, input, textarea {
   line-height: 1.7;
 }
 
-/* =========================================================
-   ABOUT SECTION
-========================================================= */
 .about-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -595,10 +592,6 @@ button, input, textarea {
   color: var(--text-muted);
   line-height: 1.8;
 }
-
-/* =========================================================
-   FEATURES SECTION
-========================================================= */
 .features-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -647,9 +640,6 @@ button, input, textarea {
   line-height: 1.7;
 }
 
-/* =========================================================
-   FAQ SECTION (INTERACTIVE ACCORDION)
-========================================================= */
 .faq-wrapper {
   max-width: 800px;
   margin: 0 auto;
@@ -723,9 +713,6 @@ button, input, textarea {
   line-height: 1.7;
 }
 
-/* =========================================================
-   CONTACT SECTION
-========================================================= */
 .contact-wrapper {
   display: grid;
   grid-template-columns: 400px 1fr;
@@ -777,7 +764,8 @@ button, input, textarea {
   margin-bottom: 20px;
 }
 
-.input-group input, .input-group textarea {
+.input-group input,
+.input-group textarea {
   width: 100%;
   padding: 16px 20px;
   border-radius: var(--radius-sm);
@@ -789,15 +777,13 @@ button, input, textarea {
   transition: var(--transition);
 }
 
-.input-group input:focus, .input-group textarea:focus {
+.input-group input:focus,
+.input-group textarea:focus {
   border-color: var(--primary);
   background: white;
   box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
 }
 
-/* =========================================================
-   FOOTER SECTION
-========================================================= */
 .footer {
   padding: 40px 0;
   background: var(--bg-card);
@@ -822,19 +808,18 @@ button, input, textarea {
   font-size: 14px;
 }
 
-/* =========================================================
-   RESPONSIVE (RESPONSIVE DESIGN)
-========================================================= */
 @media (max-width: 1200px) {
-  .hero-container, .about-container, .contact-wrapper {
+  .hero-container,
+  .about-container,
+  .contact-wrapper {
     grid-template-columns: 1fr;
     gap: 40px;
   }
-  
+
   .dashboard-card {
     transform: none !important;
   }
-  
+
   .hero-left h1 {
     font-size: 52px;
   }
@@ -850,27 +835,28 @@ button, input, textarea {
   .container {
     padding: 0 20px;
   }
-  
+
   .nav {
-    display: none; /* Mobil menyu alohida qilinishi tavsiya etiladi */
+    display: none;
   }
-  
-  .section-header h2, .about-left h2 {
+
+  .section-header h2,
+  .about-left h2 {
     font-size: 32px;
   }
-  
+
   .hero-left h1 {
     font-size: 40px;
   }
-  
+
   .features-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .hero-stats {
     flex-direction: column;
   }
-  
+
   .footer-container {
     flex-direction: column;
     text-align: center;
@@ -881,14 +867,15 @@ button, input, textarea {
   .hero-buttons {
     flex-direction: column;
   }
-  
+
   .header-right {
     width: 100%;
     flex-direction: column-reverse;
     gap: 12px;
   }
-  
-  .language-switcher, .login-btn {
+
+  .language-switcher,
+  .login-btn {
     width: 100%;
     justify-content: center;
   }

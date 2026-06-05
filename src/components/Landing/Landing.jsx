@@ -20,7 +20,7 @@ import {
 
 const Landing = () => {
   const [lang, setLang] = useState("EN");
-  const [activeFaq, setActiveFaq] = useState(null); // FAQ akordeon boshqaruvi
+  const [activeFaq, setActiveFaq] = useState(null);
 
   const faqData = [
     {
@@ -51,13 +51,11 @@ const Landing = () => {
 
   const handleContactSubmit = (e) => {
     e.preventDefault();
-    // Bu yerga backend integratsiyasini yozish mumkin
     alert("Message sent successfully!");
   };
 
   return (
     <div className="landing">
-      {/* HEADER */}
       <header className="header">
         <div className="container header-container">
           <div className="logo">
@@ -96,8 +94,6 @@ const Landing = () => {
           </div>
         </div>
       </header>
-
-      {/* HERO SECTION */}
       <section className="hero" id="home">
         <div className="container hero-container">
           <div className="hero-left">
@@ -181,8 +177,6 @@ const Landing = () => {
           </div>
         </div>
       </section>
-
-      {/* ABOUT SECTION */}
       <section className="about" id="about">
         <div className="container about-container">
           <div className="about-left">
@@ -225,8 +219,6 @@ const Landing = () => {
           </div>
         </div>
       </section>
-
-      {/* FEATURES SECTION */}
       <section className="features" id="features">
         <div className="container">
           <div className="section-header">
@@ -237,12 +229,36 @@ const Landing = () => {
 
           <div className="features-grid">
             {[
-              { icon: <FiUsers />, title: "Student Management", desc: "Manage all students and groups professionally." },
-              { icon: <FiBookOpen />, title: "Courses", desc: "Create and manage courses and schedules easily." },
-              { icon: <FiBarChart2 />, title: "Analytics", desc: "Real-time statistics and performance reports." },
-              { icon: <FiShield />, title: "Security", desc: "Advanced security and protected user data." },
-              { icon: <FiGlobe />, title: "Multi Language", desc: "Uzbek, Russian and English language support." },
-              { icon: <FiMonitor />, title: "Responsive UI", desc: "Fully responsive and modern user interface." },
+              {
+                icon: <FiUsers />,
+                title: "Student Management",
+                desc: "Manage all students and groups professionally.",
+              },
+              {
+                icon: <FiBookOpen />,
+                title: "Courses",
+                desc: "Create and manage courses and schedules easily.",
+              },
+              {
+                icon: <FiBarChart2 />,
+                title: "Analytics",
+                desc: "Real-time statistics and performance reports.",
+              },
+              {
+                icon: <FiShield />,
+                title: "Security",
+                desc: "Advanced security and protected user data.",
+              },
+              {
+                icon: <FiGlobe />,
+                title: "Multi Language",
+                desc: "Uzbek, Russian and English language support.",
+              },
+              {
+                icon: <FiMonitor />,
+                title: "Responsive UI",
+                desc: "Fully responsive and modern user interface.",
+              },
             ].map((feat, index) => (
               <div className="feature-card" key={index}>
                 <div className="feature-icon">{feat.icon}</div>
@@ -253,8 +269,6 @@ const Landing = () => {
           </div>
         </div>
       </section>
-
-      {/* FAQ SECTION */}
       <section className="faq" id="faq">
         <div className="container">
           <div className="section-header">
@@ -268,7 +282,10 @@ const Landing = () => {
                 className={`faq-card ${activeFaq === index ? "active" : ""}`}
                 key={index}
               >
-                <button className="faq-question" onClick={() => toggleFaq(index)}>
+                <button
+                  className="faq-question"
+                  onClick={() => toggleFaq(index)}
+                >
                   <div className="faq-left">
                     <FiHelpCircle />
                     <h3>{item.question}</h3>
@@ -283,8 +300,6 @@ const Landing = () => {
           </div>
         </div>
       </section>
-
-      {/* CONTACT SECTION */}
       <section className="contact" id="contact">
         <div className="container">
           <div className="section-header">
@@ -326,7 +341,11 @@ const Landing = () => {
                 <input type="email" placeholder="Email Address" required />
               </div>
               <div className="input-group">
-                <textarea rows="6" placeholder="Write your message..." required></textarea>
+                <textarea
+                  rows="6"
+                  placeholder="Write your message..."
+                  required
+                ></textarea>
               </div>
               <button type="submit" className="primary-btn">
                 Send Message
@@ -336,8 +355,6 @@ const Landing = () => {
           </div>
         </div>
       </section>
-
-      {/* FOOTER */}
       <footer className="footer">
         <div className="container footer-container">
           <div>
