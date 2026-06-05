@@ -28,19 +28,7 @@ export default function App() {
         <Route path="/update-password" element={<UpdatePassword />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
-        {/* ================= AUTH ================= */}
-        {/* <Route
-          path="/login"
-          element={
-            <Login
-              setCenterName={setCenterName}
-            />
-          }
-        /> */}
-
         <Route path="/registerforeducationerpsystem" element={<Register />} />
-
-        {/* ================= DASHBOARD ================= */}
         <Route
           path="/dashboard/:id/*"
           element={
