@@ -26,7 +26,6 @@ const MAX_LESSONS = 12;
 export default function Attendance({ activeBranch }) {
   const branchId = activeBranch?.id;
 
-  // ================= STATE =================
   const [state, setState] = useState({
     groups: [],
     students: [],
@@ -59,7 +58,6 @@ export default function Attendance({ activeBranch }) {
     type: "success",
   });
 
-  // ================= HELPERS =================
   const updateState = (payload) =>
     setState((prev) => ({ ...prev, ...payload }));
 
@@ -76,7 +74,6 @@ export default function Attendance({ activeBranch }) {
     );
   };
 
-  // ================= DATA LOADING =================
   const fetchGroups = useCallback(async () => {
     if (!branchId) return;
     const { data } = await supabase
@@ -117,7 +114,6 @@ export default function Attendance({ activeBranch }) {
     });
   }, []);
 
-  // ================= ACTIONS =================
   const handleSelectGroup = (group) => {
     updateState({ selectedGroup: group });
     fetchFullData(group.id, currentMonth, currentYear);
@@ -187,16 +183,14 @@ export default function Attendance({ activeBranch }) {
     updateState({ isSaving: false });
   };
 
-  // ================= COMPUTATIONS =================
   const lessons = useMemo(() => {
     if (!selectedGroup) return [];
 
-    const type = selectedGroup.schedule_type || "all"; //  To'g'ri ustun nomi bog'landi
+    const type = selectedGroup.schedule_type || "all";
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
     const days = [];
 
     for (let i = 1; i <= daysInMonth; i++) {
-      //  'all', 'odd' va 'even' holatlari to'liq qoplandi
       if (
         type === "all" ||
         (type === "odd" && i % 2 !== 0) ||
@@ -226,10 +220,8 @@ export default function Attendance({ activeBranch }) {
     return { present, percent: Math.round((present / MAX_LESSONS) * 100) };
   };
 
-  // ================= RENDER =================
   return (
     <div className="attendance-pro-container">
-      {/* 🟢 TOP ACTION BAR */}
       <header className="attendance-header">
         <div className="header-title">
           <h1>Attendance System</h1>
@@ -260,7 +252,6 @@ export default function Attendance({ activeBranch }) {
         </div>
       </header>
 
-      {/* 🟢 STATS & INFO CARDS */}
       <section className="stats-row">
         <div className="stat-card-mini">
           <div className="icon blue">
@@ -299,7 +290,6 @@ export default function Attendance({ activeBranch }) {
         </div>
       </section>
 
-      {/* 🟢 GROUP SELECTOR (Scrollable) */}
       <nav className="group-navigation">
         {groups.map((group) => (
           <button
@@ -313,7 +303,6 @@ export default function Attendance({ activeBranch }) {
         ))}
       </nav>
 
-      {/* 🟢 MAIN ATTENDANCE INTERFACE */}
       <main className="attendance-board">
         {selectedGroup && (
           <div className="board-toolbar">
@@ -414,7 +403,6 @@ export default function Attendance({ activeBranch }) {
         )}
       </main>
 
-      {/* 🟢 TOAST MODAL */}
       {modal.open && (
         <div className={`toast-message ${modal.type} active`}>
           {modal.type === "success" && <FiCheckCircle />}
