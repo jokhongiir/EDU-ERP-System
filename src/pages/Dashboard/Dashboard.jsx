@@ -19,8 +19,6 @@ import ForgotPassword from "../Auth/ForgotPassword";
 import UpdatePassword from "../Auth/UpdatePassword";
 import { supabase } from "../../services/supabaseClient";
 
-import "./Dashboard.css";
-
 export default function Dashboard({ centerName, setCenterName }) {
   const { id } = useParams();
   const navigate = useNavigate();
