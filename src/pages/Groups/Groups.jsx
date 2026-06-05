@@ -501,7 +501,6 @@ export default function Groups({ activeBranch }) {
           ))}
         </div>
       )}
-
       {renderModals()}
     </div>
   );

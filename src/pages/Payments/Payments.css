@@ -1,16 +1,8 @@
-/* =========================================================
-   PAYMENTS • ULTRA PROFESSIONAL UI
-   MODERN • PREMIUM • DARK/LIGHT ACCENTS
-========================================================= */
-
 .payments-container {
   padding: 5px;
   animation: fadeIn 0.7s ease;
 }
 
-/* =========================================================
-   HEADER SECTION
-========================================================= */
 .payments-header {
   display: flex;
   justify-content: space-between;
@@ -57,12 +49,11 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-/* =========================================================
-   STATS GRID
-========================================================= */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -97,9 +88,18 @@
   font-size: 24px;
 }
 
-.icon-box.income { background: var(--primary-light); color: var(--primary); }
-.icon-box.paid { background: var(--success-bg); color: var(--success); }
-.icon-box.unpaid { background: var(--danger-bg); color: var(--danger); }
+.icon-box.income {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+.icon-box.paid {
+  background: var(--success-bg);
+  color: var(--success);
+}
+.icon-box.unpaid {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
 
 .stat-val h3 {
   font-size: 20px;
@@ -113,9 +113,6 @@
   color: var(--text-soft);
 }
 
-/* =========================================================
-   TOOLBAR (SEARCH & FILTER)
-========================================================= */
 .table-toolbar {
   display: flex;
   gap: 15px;
@@ -172,9 +169,6 @@
   appearance: none;
 }
 
-/* =========================================================
-   MODERN TABLE
-========================================================= */
 .table-container {
   background: white;
   border-radius: 24px;
@@ -201,7 +195,7 @@
 }
 
 .modern-table td {
-    text-align: left;
+  text-align: left;
   padding: 16px 20px;
   font-size: 14px;
   font-weight: 600;
@@ -209,7 +203,6 @@
   border-bottom: 1px solid #f1f5f9;
 }
 
-/* Row specifically for unpaid students */
 .row-unpaid {
   background: #fffcfc;
 }
@@ -233,8 +226,14 @@
   font-weight: 800;
 }
 
-.full-name { font-weight: 700; color: var(--text); }
-.sub-text { font-size: 12px; color: var(--text-soft); }
+.full-name {
+  font-weight: 700;
+  color: var(--text);
+}
+.sub-text {
+  font-size: 12px;
+  color: var(--text-soft);
+}
 
 .course-tag {
   background: var(--primary-light);
@@ -245,7 +244,6 @@
   font-weight: 700;
 }
 
-/* Status Badges */
 .badge {
   padding: 6px 12px;
   border-radius: 8px;
@@ -253,8 +251,14 @@
   font-weight: 800;
 }
 
-.bg-success { background: var(--success-bg); color: var(--success); }
-.bg-danger { background: var(--danger-bg); color: var(--danger); }
+.bg-success {
+  background: var(--success-bg);
+  color: var(--success);
+}
+.bg-danger {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
 
 .due-date {
   display: flex;
@@ -264,11 +268,11 @@
   color: var(--text-soft);
 }
 
-.text-danger { color: var(--danger); font-weight: 700; }
+.text-danger {
+  color: var(--danger);
+  font-weight: 700;
+}
 
-/* =========================================================
-   ACTION BUTTONS
-========================================================= */
 .action-btns {
   display: flex;
   justify-content: flex-end;
@@ -321,9 +325,6 @@
   filter: brightness(1.1);
 }
 
-/* =========================================================
-   MODAL STYLING
-========================================================= */
 .professional-modal-overlay {
   position: fixed;
   inset: 0;
@@ -424,12 +425,17 @@
   box-shadow: 0 10px 20px rgba(55, 111, 255, 0.2);
 }
 
-/* =========================================================
-   RESPONSIVE
-========================================================= */
 @media (max-width: 850px) {
-  .stats-grid { grid-template-columns: 1fr; }
-  .table-toolbar { flex-direction: column; }
-  .modern-table { min-width: 800px; }
-  .table-container { overflow-x: auto; }
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  .table-toolbar {
+    flex-direction: column;
+  }
+  .modern-table {
+    min-width: 800px;
+  }
+  .table-container {
+    overflow-x: auto;
+  }
 }
