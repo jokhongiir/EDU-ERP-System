@@ -17,7 +17,6 @@ import {
 import "./Courses.css";
 
 export default function Courses({ activeBranch }) {
-  // State Management
   const [courses, setCourses] = useState([]);
   const [groups, setGroups] = useState([]);
   const [teachers, setTeachers] = useState([]);
@@ -26,16 +25,12 @@ export default function Courses({ activeBranch }) {
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Modal & Selection States
-  const [modalMode, setModalMode] = useState(null); // 'create' | 'edit' | 'details' | null
+  const [modalMode, setModalMode] = useState(null);
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [courseName, setCourseName] = useState("");
 
   const branchId = activeBranch?.id;
 
-  // =========================================================
-  // DATA FETCHING (OPTIMIZED FOR ACTIVE BRANCH)
-  // =========================================================
   const fetchData = useCallback(async () => {
     if (!branchId) return;
 
@@ -43,14 +38,12 @@ export default function Courses({ activeBranch }) {
     setError(null);
 
     try {
-      // Parallel requests via Promise.all for high performance
       const [coursesRes, groupsRes, teachersRes] = await Promise.all([
         supabase.from("courses").select("*").eq("branch_id", branchId),
         supabase.from("groups").select("*").eq("branch_id", branchId),
         supabase.from("teachers").select("*").eq("branch_id", branchId),
       ]);
 
-      // Check for errors in responses
       if (coursesRes.error) throw coursesRes.error;
       if (groupsRes.error) throw groupsRes.error;
       if (teachersRes.error) throw teachersRes.error;
@@ -70,26 +63,18 @@ export default function Courses({ activeBranch }) {
     fetchData();
   }, [fetchData]);
 
-  // =========================================================
-  // PERFORMANCE OPTIMIZATION: HASH MAPPING (O(1) Lookup)
-  // =========================================================
-  // Maps all statistics in one pass instead of filtering inside the render loop
   const courseStatsMap = useMemo(() => {
     const stats = {};
-
-    // Initialize course map entries
     courses.forEach((c) => {
       stats[c.id] = { groupsCount: 0, teachersCount: 0, teacherList: [] };
     });
 
-    // Populate active group counts
     groups.forEach((g) => {
       if (stats[g.course_id]) {
         stats[g.course_id].groupsCount += 1;
       }
     });
 
-    // Bind teachers to corresponding courses
     teachers.forEach((t) => {
       if (stats[t.course_id]) {
         stats[t.course_id].teachersCount += 1;
@@ -100,14 +85,10 @@ export default function Courses({ activeBranch }) {
     return stats;
   }, [courses, groups, teachers]);
 
-  // Alphabetical sorting (Memoized)
   const sortedCourses = useMemo(() => {
     return [...courses].sort((a, b) => a.name.localeCompare(b.name));
   }, [courses]);
 
-  // =========================================================
-  // SCROLL LOCK FOR MODAL
-  // =========================================================
   useEffect(() => {
     document.body.style.overflow = modalMode ? "hidden" : "unset";
     return () => {
@@ -115,9 +96,6 @@ export default function Courses({ activeBranch }) {
     };
   }, [modalMode]);
 
-  // =========================================================
-  // MUTATIONS: CREATE / UPDATE
-  // =========================================================
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!courseName.trim() || !branchId) return;
@@ -143,7 +121,7 @@ export default function Courses({ activeBranch }) {
 
       setCourseName("");
       setModalMode(null);
-      fetchData(); // Refresh datasets
+      fetchData();
     } catch (err) {
       alert(err.message || "An error occurred while processing your request.");
     } finally {
@@ -151,9 +129,6 @@ export default function Courses({ activeBranch }) {
     }
   };
 
-  // =========================================================
-  // MUTATIONS: DELETE
-  // =========================================================
   const handleDelete = async (id) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this course?");
     if (!confirmDelete) return;
@@ -162,16 +137,12 @@ export default function Courses({ activeBranch }) {
       const { error: delErr } = await supabase.from("courses").delete().eq("id", id);
       if (delErr) throw delErr;
 
-      // Optimistic UI update (Remove immediately from state for perceived speed)
       setCourses((prev) => prev.filter((item) => item.id !== id));
     } catch (err) {
       alert(err.message || "Failed to delete the course.");
     }
   };
 
-  // =========================================================
-  // MODAL RENDERER (PORTAL)
-  // =========================================================
   const renderModal = () => {
     if (!modalMode) return null;
 
@@ -243,12 +214,8 @@ export default function Courses({ activeBranch }) {
     );
   };
 
-  // =========================================================
-  // COMPONENT UI
-  // =========================================================
   return (
     <div className="cr-module-root">
-      {/* HEADER SECTION */}
       <div className="cr-header-section">
         <div className="title-area">
           <h1 className="page-main-title">
@@ -269,7 +236,6 @@ export default function Courses({ activeBranch }) {
         </button>
       </div>
 
-      {/* ERROR STATE */}
       {error && (
         <div className="cr-error-state">
           <FiAlertCircle />
@@ -278,7 +244,6 @@ export default function Courses({ activeBranch }) {
         </div>
       )}
 
-      {/* LOADING SKELETONS */}
       {loading && !error ? (
         <div className="cr-grid-layout">
           {[...Array(6)].map((_, index) => (
@@ -293,7 +258,6 @@ export default function Courses({ activeBranch }) {
           ))}
         </div>
       ) : !error && sortedCourses.length === 0 ? (
-        /* EMPTY STATE */
         <div className="cr-empty-state">
           <div className="cr-empty-icon-wrapper">
             <FiBookOpen />
@@ -302,7 +266,6 @@ export default function Courses({ activeBranch }) {
           <p>No courses have been created for this branch yet.</p>
         </div>
       ) : (
-        /* DATA GRID */
         !error && (
           <div className="cr-grid-layout">
             {sortedCourses.map((course) => {
@@ -339,8 +302,6 @@ export default function Courses({ activeBranch }) {
                       </span>
                     </div>
                   </div>
-
-                  {/* ACTION BUTTONS */}
                   <div className="cr-card-actions">
                     <button
                       className="cr-action-btn"
