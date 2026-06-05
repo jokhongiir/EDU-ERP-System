@@ -1,15 +1,9 @@
-/* =========================
-   BASE LAYOUT
-========================= */
 .erp-layout {
   display: flex;
   height: 100vh;
   background: #f8fafc;
 }
 
-/* =========================
-   MAIN AREA
-========================= */
 .erp-layout__main {
   flex: 1;
   display: flex;
@@ -22,9 +16,6 @@
   margin-left: 80px;
 }
 
-/* =========================
-   CONTENT AREA
-========================= */
 .erp-layout__content {
   flex: 1;
   padding: 20px;
@@ -32,9 +23,6 @@
   background: #f8fafc;
 }
 
-/* =========================
-   MOBILE OVERLAY
-========================= */
 .erp-layout__overlay {
   position: fixed;
   inset: 0;
@@ -42,9 +30,6 @@
   z-index: 50;
 }
 
-/* =========================
-   RESPONSIVE
-========================= */
 @media (max-width: 1024px) {
   .erp-layout__main {
     margin-left: 0;

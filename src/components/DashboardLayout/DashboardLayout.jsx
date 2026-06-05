@@ -35,8 +35,6 @@ export default function DashboardLayout({
 
   return (
     <div className="erp-layout">
-
-      {/* SIDEBAR */}
       <Sidebar
         collapsed={sidebarCollapsed}
         mobileOpen={mobileSidebarOpen}
@@ -44,23 +42,15 @@ export default function DashboardLayout({
         setMobileOpen={setMobileSidebarOpen}
         logout={logout}
       />
-
-      {/* OVERLAY (mobile) */}
       {mobileSidebarOpen && (
         <div
           className="erp-layout__overlay"
           onClick={() => setMobileSidebarOpen(false)}
         />
       )}
-
-      {/* MAIN AREA */}
       <div
-        className={`erp-layout__main ${
-          sidebarCollapsed ? "is-collapsed" : ""
-        }`}
+        className={`erp-layout__main ${sidebarCollapsed ? "is-collapsed" : ""}`}
       >
-
-        {/* NAVBAR */}
         <Navbar
           activeBranch={activeBranch}
           branches={branches}
@@ -68,12 +58,7 @@ export default function DashboardLayout({
           centerName={centerName}
           toggleSidebar={handleToggleSidebar}
         />
-
-        {/* CONTENT */}
-        <main className="erp-layout__content">
-          {children}
-        </main>
-
+        <main className="erp-layout__content">{children}</main>
       </div>
     </div>
   );
