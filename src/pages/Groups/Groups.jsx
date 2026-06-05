@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { createPortal } from "react-dom"; // importing Portal
+import { createPortal } from "react-dom";
 import { supabase } from "../../services/supabaseClient";
 import "./Groups.css";
 
@@ -19,7 +19,6 @@ import {
 export default function Groups({ activeBranch }) {
   const branchId = activeBranch?.id;
 
-  // ================= STATE =================
   const [groups, setGroups] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [courses, setCourses] = useState([]);
@@ -36,7 +35,6 @@ export default function Groups({ activeBranch }) {
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [editId, setEditId] = useState(null);
 
-  // ================= FORM STATE =================
   const [form, setForm] = useState({
     name: "",
     teacher_id: "",
@@ -47,7 +45,6 @@ export default function Groups({ activeBranch }) {
     schedule_type: "all",
   });
 
-  // ================= FETCH DATA =================
   const fetchData = useCallback(async () => {
     if (!branchId) return;
     setLoading(true);
@@ -78,7 +75,6 @@ export default function Groups({ activeBranch }) {
     fetchData();
   }, [fetchData]);
 
-  // ================= MODAL SCROLL LOCK =================
   useEffect(() => {
     if (modalOpen || selectedGroup) {
       document.body.style.overflow = "hidden";
@@ -90,7 +86,6 @@ export default function Groups({ activeBranch }) {
     };
   }, [modalOpen, selectedGroup]);
 
-  // ================= HELPERS =================
   const getTeacher = (id) =>
     teachers.find((t) => t.id === id)?.name || "Unassigned";
   const getCourse = (id) =>
@@ -103,7 +98,6 @@ export default function Groups({ activeBranch }) {
     return labels[type] || "Every day";
   };
 
-  // ================= EVENT HANDLERS =================
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((p) => ({ ...p, [name]: value }));
@@ -117,7 +111,7 @@ export default function Groups({ activeBranch }) {
       start_date: "",
       start_time: "",
       end_time: "",
-      schedule_type: "all", //  Boshlang'ich qiymat 'all' etib belgilandi
+      schedule_type: "all",
     });
     setEditId(null);
     setModalOpen(false);
@@ -125,7 +119,6 @@ export default function Groups({ activeBranch }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // If the name is empty, just stop the execution
     if (!form.name.trim()) return;
 
     setSaving(true);
@@ -163,7 +156,6 @@ export default function Groups({ activeBranch }) {
   };
 
   const handleDelete = async (id) => {
-    // Directly deleting without browser's native confirm popup
     const { error } = await supabase.from("groups").delete().eq("id", id);
 
     if (error) {
@@ -187,7 +179,6 @@ export default function Groups({ activeBranch }) {
     setModalOpen(true);
   };
 
-  // ================= FILTER LOGIC =================
   const filteredGroups = useMemo(() => {
     return groups.filter((g) => {
       const matchSearch = g.name.toLowerCase().includes(search.toLowerCase());
@@ -199,11 +190,9 @@ export default function Groups({ activeBranch }) {
     });
   }, [groups, search, filterCourse, filterTeacher]);
 
-  // ================= MODALS =================
   const renderModals = () => {
     return createPortal(
       <>
-        {/* CREATE / EDIT MODAL */}
         {modalOpen && (
           <div className="app-modal-overlay" onClick={resetForm}>
             <div className="app-modal-box" onClick={(e) => e.stopPropagation()}>
@@ -328,8 +317,6 @@ export default function Groups({ activeBranch }) {
             </div>
           </div>
         )}
-
-        {/* DETAIL MODAL */}
         {selectedGroup && (
           <div
             className="app-modal-overlay"
@@ -391,7 +378,6 @@ export default function Groups({ activeBranch }) {
 
   return (
     <div className="groups-container">
-      {/* HEADER */}
       <div className="groups-top-bar">
         <div className="title-area">
           <h1 className="page-main-title">
@@ -408,7 +394,6 @@ export default function Groups({ activeBranch }) {
         </button>
       </div>
 
-      {/* FILTERS */}
       <div className="groups-filter-wrapper">
         <div className="search-input-box">
           <FiSearch className="search-icon" />
@@ -447,8 +432,6 @@ export default function Groups({ activeBranch }) {
         </select>
       </div>
 
-      {/* LIST */}
-      {/* LIST */}
       {loading ? (
         <div className="groups-main-grid">
           {[...Array(6)].map((_, index) => (
@@ -519,7 +502,6 @@ export default function Groups({ activeBranch }) {
         </div>
       )}
 
-      {/* MODALS */}
       {renderModals()}
     </div>
   );
