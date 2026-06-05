@@ -50,7 +50,7 @@ export default function UpdatePassword() {
       if (error) throw error;
 
       setSuccess(
-        "Your password has been updated successfully. Redirecting to login..."
+        "Your password has been updated successfully. Redirecting to login...",
       );
 
       setTimeout(async () => {
@@ -132,11 +132,7 @@ export default function UpdatePassword() {
             </div>
           )}
 
-          <button
-            type="submit"
-            className="updateButton"
-            disabled={loading}
-          >
+          <button type="submit" className="updateButton" disabled={loading}>
             {loading ? "Updating..." : "Update Password"}
           </button>
         </form>
