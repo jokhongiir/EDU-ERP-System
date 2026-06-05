@@ -16,8 +16,6 @@ import {
 export default function Students({ activeBranch }) {
   const navigate = useNavigate();
   const branchId = activeBranch?.id;
-
-  // ================= STATE =================
   const [students, setStudents] = useState([]);
   const [courses, setCourses] = useState([]);
   const [teachers, setTeachers] = useState([]);
@@ -38,7 +36,6 @@ export default function Students({ activeBranch }) {
   const [filterTeacher, setFilterTeacher] = useState("");
   const [filterGroup, setFilterGroup] = useState("");
 
-  // ================= FETCH =================
   const fetchData = async () => {
     if (!branchId) return;
 
@@ -67,19 +64,17 @@ export default function Students({ activeBranch }) {
     fetchData();
   }, [branchId]);
 
-  // ================= YANGI QO'SHILGAN QISM: MODAL SCROLL CONTROL =================
   useEffect(() => {
     if (viewOpen || editOpen) {
-      document.body.style.overflow = "hidden"; // Modal ochiqligida orqa fon skroll bo'lmaydi
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = "unset"; // Modal yopilganda skroll tiklanadi
+      document.body.style.overflow = "unset";
     }
     return () => {
       document.body.style.overflow = "unset";
     };
   }, [viewOpen, editOpen]);
 
-  // ================= DELETE =================
   const handleDelete = async (id) => {
     if (!confirm("Delete student?")) return;
 
@@ -87,13 +82,11 @@ export default function Students({ activeBranch }) {
     setStudents((prev) => prev.filter((s) => s.id !== id));
   };
 
-  // ================= OPEN VIEW =================
   const openView = (student) => {
     setViewData(student);
     setViewOpen(true);
   };
 
-  // ================= OPEN EDIT =================
   const openEdit = (student) => {
     if (!student) return;
 
@@ -117,7 +110,6 @@ export default function Students({ activeBranch }) {
     setEditOpen(true);
   };
 
-  // ================= CHANGE INPUT =================
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
@@ -132,7 +124,6 @@ export default function Students({ activeBranch }) {
     }));
   };
 
-  // ================= SAVE EDIT =================
   const handleSave = async () => {
     if (!editData?.id) return;
 
@@ -170,7 +161,6 @@ export default function Students({ activeBranch }) {
     setEditOpen(false);
   };
 
-  // ================= SEARCH =================
   const filteredStudents = useMemo(() => {
     return students.filter((s) => {
       const fullName = `${s.first_name} ${s.last_name}`
@@ -189,10 +179,8 @@ export default function Students({ activeBranch }) {
     });
   }, [students, search, filterCourse, filterTeacher, filterGroup]);
 
-  // ========================= UI =========================
   return (
     <div className="students">
-      {/* ================= HEADER ================= */}
       <div className="students__header">
         <div className="title-area">
           <h1 className="page-main-title">
@@ -209,10 +197,7 @@ export default function Students({ activeBranch }) {
           + Add Student
         </button>
       </div>
-
-      {/* ================= SEARCH ================= */}
       <div className="students__search-wrapper">
-        {/* SEARCH */}
         <div className="students__search">
           <FiSearch />
           <input
@@ -221,8 +206,6 @@ export default function Students({ activeBranch }) {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-
-        {/* COURSE FILTER */}
         <select
           className="students__filter"
           value={filterCourse}
@@ -235,8 +218,6 @@ export default function Students({ activeBranch }) {
             </option>
           ))}
         </select>
-
-        {/* TEACHER FILTER */}
         <select
           className="students__filter"
           value={filterTeacher}
@@ -249,8 +230,6 @@ export default function Students({ activeBranch }) {
             </option>
           ))}
         </select>
-
-        {/* GROUP FILTER */}
         <select
           className="students__filter"
           value={filterGroup}
@@ -264,8 +243,6 @@ export default function Students({ activeBranch }) {
           ))}
         </select>
       </div>
-
-      {/* ================= TABLE CONTENT ================= */}
       <div className="students__table-wrapper">
         <table className="students__table">
           <thead>
@@ -380,17 +357,14 @@ export default function Students({ activeBranch }) {
         </table>
       </div>
 
-      {/* ================= VIEW MODAL ================= */}
       {viewOpen && viewData && (
         <div className="modal" onClick={() => setViewOpen(false)}>
           {" "}
-          {/* Tashqarini bosganda yopiladi */}
           <div
             className="modal__box view__box"
             onClick={(e) => e.stopPropagation()}
           >
             {" "}
-            {/* Ichkarini bosganda yopilmaydi */}
             <div className="modal__header">
               <h3>Student Details</h3>
               <button onClick={() => setViewOpen(false)}>
@@ -488,14 +462,12 @@ export default function Students({ activeBranch }) {
         </div>
       )}
 
-      {/* ================= EDIT MODAL ================= */}
       {editOpen && editData && (
         <div className="modal" onClick={() => setEditOpen(false)}>
           {" "}
           {/* Tashqarini bosganda yopiladi */}
           <div className="modal__box" onClick={(e) => e.stopPropagation()}>
             {" "}
-            {/* Ichkarini bosganda yopilmaydi */}
             <div className="modal__header">
               <h3>Edit Student</h3>
               <button onClick={() => setEditOpen(false)}>

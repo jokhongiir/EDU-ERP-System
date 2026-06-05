@@ -1,8 +1,3 @@
-/* =========================================================
-   STUDENTS • ULTRA PROFESSIONAL UI
-   MODERN • COMPACT • PREMIUM
-========================================================= */
-
 :root {
   --primary: #376fff;
   --primary-dark: #1a56db;
@@ -31,10 +26,6 @@
   --radius: 20px;
 }
 
-/* =========================================================
-   GLOBAL
-========================================================= */
-
 * {
   margin: 0;
   padding: 0;
@@ -47,10 +38,6 @@ body {
   color: var(--text);
 }
 
-/* =========================================================
-   PAGE
-========================================================= */
-
 .students {
     padding: 5px;
     animation: fadeIn 0.7s ease;
@@ -58,10 +45,6 @@ body {
 
 
 }
-
-/* =========================================================
-   HEADER
-========================================================= */
 
 .students__header {
   display: flex;
@@ -79,17 +62,11 @@ body {
 }
 
 .students__sub {
-  /* margin-top: 5px; */
-
   color: var(--text-soft);
 
   font-size: 13px;
   font-weight: 500;
 }
-
-/* =========================================================
-   BUTTON
-========================================================= */
 
 .primary-btn {
   height: 46px;
@@ -126,14 +103,6 @@ body {
   transform: translateY(-2px);
 }
 
-/* =========================================================
-   SEARCH
-========================================================= */
-
-/* =========================================================
-   SEARCH & FILTER • PREMIUM UI SECTION
-========================================================= */
-
 .students__search-wrapper {
   display: flex;
   align-items: center;
@@ -142,8 +111,6 @@ body {
 
   margin-bottom: 18px;
 }
-
-/* ================= SEARCH BOX ================= */
 
 .students__search {
   flex: 1;
@@ -161,7 +128,6 @@ body {
   font-size: 16px;
 }
 
-/* INPUT */
 .students__search input {
   width: 100%;
   height: 48px;
@@ -182,18 +148,15 @@ body {
   transition: all 0.25s ease;
 }
 
-/* placeholder */
 .students__search input::placeholder {
   color: var(--muted);
   font-weight: 500;
 }
 
-/* hover */
 .students__search input:hover {
   border-color: #c7d2fe;
 }
 
-/* focus */
 .students__search input:focus {
   outline: none;
 
@@ -201,8 +164,6 @@ body {
 
   box-shadow: 0 0 0 4px rgba(55, 111, 255, 0.12);
 }
-
-/* ================= FILTER SELECT ================= */
 
 .students__filter {
   min-width: 180px;
@@ -230,12 +191,10 @@ body {
   -moz-appearance: none;
 }
 
-/* hover */
 .students__filter:hover {
   border-color: #c7d2fe;
 }
 
-/* focus */
 .students__filter:focus {
   outline: none;
 
@@ -243,8 +202,6 @@ body {
 
   box-shadow: 0 0 0 4px rgba(55, 111, 255, 0.12);
 }
-
-/* ================= RESPONSIVE ================= */
 
 @media (max-width: 768px) {
   .students__search-wrapper {
@@ -256,10 +213,6 @@ body {
     width: 100%;
   }
 }
-
-/* =========================================================
-   TABLE
-========================================================= */
 
 .students__table-wrapper {
   background: #fff;
@@ -313,10 +266,6 @@ body {
   font-weight: 700;
 }
 
-/* =========================================================
-   TABLE WRAPPER
-========================================================= */
-
 .students__table-wrapper {
   overflow-x: auto;
 
@@ -328,10 +277,6 @@ body {
 
   box-shadow: var(--shadow-md);
 }
-
-/* =========================================================
-   TABLE
-========================================================= */
 
 .students__table {
   width: 100%;
@@ -390,10 +335,6 @@ body {
   font-weight: 700;
 }
 
-/* =========================================================
-   STATUS
-========================================================= */
-
 .status {
   display: inline-flex;
   align-items: center;
@@ -416,10 +357,6 @@ body {
   background: var(--danger-bg);
   color: #991b1b;
 }
-
-/* =========================================================
-   ACTION BUTTONS
-========================================================= */
 
 .students__table td button {
   width: 34px;
@@ -461,10 +398,6 @@ body {
   transform: translateY(-2px);
 }
 
-/* =========================================================
-   EMPTY
-========================================================= */
-
 .students__empty {
   display: flex;
   flex-direction: column;
@@ -476,10 +409,6 @@ body {
   font-size: 14px;
   font-weight: 600;
 }
-
-/* =========================================================
-   MODAL
-========================================================= */
 
 .modal {
   position: fixed;
@@ -500,10 +429,6 @@ body {
   animation: fadeIn 0.25s ease;
 }
 
-/* =========================================================
-   MODAL BOX
-========================================================= */
-
 .modal__box {
   width: 100%;
   max-width: 620px;
@@ -523,10 +448,6 @@ body {
 .view__box {
   max-width: 760px;
 }
-
-/* =========================================================
-   MODAL HEADER
-========================================================= */
 
 .modal__header {
   padding: 18px 22px;
@@ -567,10 +488,6 @@ body {
   background: #fee2e2;
   color: var(--danger);
 }
-
-/* =========================================================
-   VIEW MODAL
-========================================================= */
 
 .view__grid {
   display: grid;
@@ -641,10 +558,6 @@ body {
   color: #991b1b;
 }
 
-/* =========================================================
-   FORM
-========================================================= */
-
 .modal__form {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -700,10 +613,6 @@ body {
     0 0 0 4px rgba(55, 111, 255, 0.10);
 }
 
-/* =========================================================
-   CHECKBOX
-========================================================= */
-
 .checkbox {
   display: flex;
   align-items: center;
@@ -726,10 +635,6 @@ body {
 
   accent-color: var(--primary);
 }
-
-/* =========================================================
-   ACTIONS
-========================================================= */
 
 .modal__actions {
   padding: 0 22px 22px;
@@ -775,10 +680,6 @@ body {
   cursor: not-allowed;
 }
 
-/* =========================================
-   PREMIUM TABLE SKELETON LOADING
-========================================= */
-
 .skeleton {
   position: relative;
   overflow: hidden;
@@ -805,8 +706,6 @@ body {
     transform: translateX(100%);
   }
 }
-
-/* TABLE */
 
 .skeleton-id {
   width: 30px;
@@ -854,8 +753,6 @@ body {
   border-radius: 12px;
 }
 
-/* USER */
-
 .student-user {
   display: flex;
   align-items: center;
@@ -867,15 +764,11 @@ body {
   flex-direction: column;
 }
 
-/* ACTIONS */
-
 .student-actions-loading {
   display: flex;
   align-items: center;
   gap: 10px;
 }
-
-/* ROW */
 
 .students__table tbody tr {
   animation: fadeSkeleton .4s ease;
@@ -891,9 +784,6 @@ body {
     transform: translateY(0);
   }
 }
-/* =========================================================
-   RESPONSIVE
-========================================================= */
 
 @media (max-width: 992px) {
   .view__grid,
