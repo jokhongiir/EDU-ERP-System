@@ -41,9 +41,6 @@ export default function DashboardHome({ activeBranch }) {
     latestCourses: [],
   });
 
-  // =========================================================
-  // FETCH DASHBOARD DATA (OPTIMIZED)
-  // =========================================================
   const fetchDashboardData = useCallback(async () => {
     if (!branchId) return;
 
@@ -52,17 +49,30 @@ export default function DashboardHome({ activeBranch }) {
 
       const [studentsRes, teachersRes, coursesRes, groupsRes] =
         await Promise.all([
-          supabase.from("students").select("*", { count: "exact" }).eq("branch_id", branchId),
-          supabase.from("teachers").select("*", { count: "exact" }).eq("branch_id", branchId).order("created_at", { ascending: false }),
-          supabase.from("courses").select("*", { count: "exact" }).eq("branch_id", branchId).order("created_at", { ascending: false }),
-          supabase.from("groups").select("*", { count: "exact" }).eq("branch_id", branchId),
+          supabase
+            .from("students")
+            .select("*", { count: "exact" })
+            .eq("branch_id", branchId),
+          supabase
+            .from("teachers")
+            .select("*", { count: "exact" })
+            .eq("branch_id", branchId)
+            .order("created_at", { ascending: false }),
+          supabase
+            .from("courses")
+            .select("*", { count: "exact" })
+            .eq("branch_id", branchId)
+            .order("created_at", { ascending: false }),
+          supabase
+            .from("groups")
+            .select("*", { count: "exact" })
+            .eq("branch_id", branchId),
         ]);
 
       const students = studentsRes.data || [];
       const teachers = teachersRes.data || [];
       const courses = coursesRes.data || [];
 
-      // Recharts uchun ma'lumotlarni shakllantirish
       const chartData = courses.map((course) => ({
         name: course.name,
         students: students.filter((s) => s.course_id === course.id).length,
@@ -88,19 +98,11 @@ export default function DashboardHome({ activeBranch }) {
   useEffect(() => {
     fetchDashboardData();
   }, [fetchDashboardData]);
-
-  // =========================================================
-  // REFRESH HANDLER
-  // =========================================================
   const handleRefresh = async () => {
     if (refreshing || loading) return;
     setRefreshing(true);
     await fetchDashboardData();
   };
-
-  // =========================================================
-  // CARDS CONFIGURATION (USEMEMO)
-  // =========================================================
   const cards = useMemo(
     () => [
       {
@@ -128,12 +130,9 @@ export default function DashboardHome({ activeBranch }) {
         color: "#ef4444",
       },
     ],
-    [dashboardData]
+    [dashboardData],
   );
 
-  // =========================================================
-  // EMPTY STATE (NO BRANCH SELECTED)
-  // =========================================================
   if (!branchId) {
     return (
       <div className="dashboard-empty-wrapper">
@@ -142,7 +141,10 @@ export default function DashboardHome({ activeBranch }) {
             <FiBarChart2 className="empty-icon" />
           </div>
           <h2>No Branch Selected</h2>
-          <p>Please choose a specific branch from the system to load real-time analytics data.</p>
+          <p>
+            Please choose a specific branch from the system to load real-time
+            analytics data.
+          </p>
         </div>
       </div>
     );
@@ -150,8 +152,6 @@ export default function DashboardHome({ activeBranch }) {
 
   return (
     <div className="dashboard-home">
-      
-      {/* ================= HEADER SECTION ================= */}
       <div className="dashboard-header">
         <div className="header-title-box">
           <h1>{activeBranch?.name} • Dashboard</h1>
@@ -168,7 +168,6 @@ export default function DashboardHome({ activeBranch }) {
         </button>
       </div>
 
-      {/* ================= STATISTICS CARDS ================= */}
       <div className="dashboard-stats-grid">
         {cards.map((card, i) => (
           <div
@@ -204,7 +203,6 @@ export default function DashboardHome({ activeBranch }) {
         ))}
       </div>
 
-      {/* ================= ANALYTICS CHART ================= */}
       <div className="dashboard-chart-card">
         <div className="dashboard-chart-header">
           <div>
@@ -220,39 +218,64 @@ export default function DashboardHome({ activeBranch }) {
               <div className="shimmer sk-chart-bar"></div>
             </div>
           ) : dashboardData.chartData.length === 0 ? (
-            <div className="dashboard-empty-text-mid">No statistics available for this branch's courses.</div>
+            <div className="dashboard-empty-text-mid">
+              No statistics available for this branch's courses.
+            </div>
           ) : (
             <ResponsiveContainer width="100%" height={350}>
-              <AreaChart data={dashboardData.chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <AreaChart
+                data={dashboardData.chartData}
+                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+              >
                 <defs>
-                  <linearGradient id="studentGradient" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient
+                    id="studentGradient"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
                     <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.25} />
                     <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.01} />
                   </linearGradient>
                 </defs>
 
-                <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f1f5f9" />
-                <XAxis 
-                  dataKey="name" 
-                  tickLine={false} 
-                  axisLine={false} 
-                  tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }}
+                <CartesianGrid
+                  strokeDasharray="4 4"
+                  vertical={false}
+                  stroke="#f1f5f9"
                 />
-                <YAxis 
-                  tickLine={false} 
-                  axisLine={false} 
-                  tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }}
+                <XAxis
+                  dataKey="name"
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fill: "#64748b", fontSize: 12, fontWeight: 600 }}
+                />
+                <YAxis
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fill: "#64748b", fontSize: 12, fontWeight: 600 }}
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#0f172a',
-                    borderRadius: '12px',
-                    border: 'none',
-                    boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)',
-                    padding: '10px 14px'
+                    backgroundColor: "#0f172a",
+                    borderRadius: "12px",
+                    border: "none",
+                    boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)",
+                    padding: "10px 14px",
                   }}
-                  itemStyle={{ color: '#fff', fontSize: '13px', fontWeight: '600' }}
-                  labelStyle={{ color: '#94a3b8', fontSize: '11px', fontWeight: '700', marginBottom: '4px', textTransform: 'uppercase' }}
+                  itemStyle={{
+                    color: "#fff",
+                    fontSize: "13px",
+                    fontWeight: "600",
+                  }}
+                  labelStyle={{
+                    color: "#94a3b8",
+                    fontSize: "11px",
+                    fontWeight: "700",
+                    marginBottom: "4px",
+                    textTransform: "uppercase",
+                  }}
                 />
                 <Area
                   type="monotone"
@@ -267,10 +290,7 @@ export default function DashboardHome({ activeBranch }) {
         </div>
       </div>
 
-      {/* ================= LATEST RECORDS GRID ================= */}
       <div className="dashboard-bottom-grid">
-
-        {/* LATEST TEACHERS SECTION */}
         <div className="dashboard-list-card">
           <div className="dashboard-list-header">
             <div className="list-header-icon teachers-sec">
@@ -295,7 +315,9 @@ export default function DashboardHome({ activeBranch }) {
               ))
             ) : dashboardData.latestTeachers.length === 0 ? (
               <div className="dashboard-list-empty-box">
-                <p className="dashboard-empty-text">No teachers registered yet</p>
+                <p className="dashboard-empty-text">
+                  No teachers registered yet
+                </p>
               </div>
             ) : (
               dashboardData.latestTeachers.map((teacher) => (
@@ -313,7 +335,6 @@ export default function DashboardHome({ activeBranch }) {
           </div>
         </div>
 
-        {/* LATEST COURSES SECTION */}
         <div className="dashboard-list-card">
           <div className="dashboard-list-header">
             <div className="list-header-icon courses-sec">
@@ -349,7 +370,8 @@ export default function DashboardHome({ activeBranch }) {
                   <div className="list-item-meta">
                     <h4>{course.name}</h4>
                     <p>
-                      <FiHome className="meta-icon" /> {activeBranch?.name} Branch
+                      <FiHome className="meta-icon" /> {activeBranch?.name}{" "}
+                      Branch
                     </p>
                   </div>
                 </div>
@@ -357,7 +379,6 @@ export default function DashboardHome({ activeBranch }) {
             )}
           </div>
         </div>
-
       </div>
     </div>
   );

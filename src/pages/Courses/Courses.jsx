@@ -130,11 +130,16 @@ export default function Courses({ activeBranch }) {
   };
 
   const handleDelete = async (id) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this course?");
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this course?",
+    );
     if (!confirmDelete) return;
 
     try {
-      const { error: delErr } = await supabase.from("courses").delete().eq("id", id);
+      const { error: delErr } = await supabase
+        .from("courses")
+        .delete()
+        .eq("id", id);
       if (delErr) throw delErr;
 
       setCourses((prev) => prev.filter((item) => item.id !== id));
@@ -146,7 +151,9 @@ export default function Courses({ activeBranch }) {
   const renderModal = () => {
     if (!modalMode) return null;
 
-    const currentStats = selectedCourse ? courseStatsMap[selectedCourse.id] : null;
+    const currentStats = selectedCourse
+      ? courseStatsMap[selectedCourse.id]
+      : null;
 
     return createPortal(
       <div className="cr-modal-overlay" onClick={() => setModalMode(null)}>
@@ -157,7 +164,10 @@ export default function Courses({ activeBranch }) {
               {modalMode === "edit" && "Edit Course"}
               {modalMode === "details" && "Course Details"}
             </h3>
-            <button className="cr-close-modal" onClick={() => setModalMode(null)}>
+            <button
+              className="cr-close-modal"
+              onClick={() => setModalMode(null)}
+            >
               <FiX />
             </button>
           </div>
@@ -166,7 +176,11 @@ export default function Courses({ activeBranch }) {
             <div className="cr-details-view">
               <div className="cr-detail-card">
                 <span>Branch</span>
-                <strong>{selectedCourse.branch_name || activeBranch?.name || "Unknown"}</strong>
+                <strong>
+                  {selectedCourse.branch_name ||
+                    activeBranch?.name ||
+                    "Unknown"}
+                </strong>
               </div>
 
               <div className="cr-detail-card">
@@ -177,7 +191,8 @@ export default function Courses({ activeBranch }) {
               <div className="cr-detail-card">
                 <span>Assigned Teachers</span>
                 <div className="cr-tags-wrapper">
-                  {currentStats?.teacherList && currentStats.teacherList.length > 0 ? (
+                  {currentStats?.teacherList &&
+                  currentStats.teacherList.length > 0 ? (
                     currentStats.teacherList.map((teacher) => (
                       <div key={teacher.id} className="cr-tag">
                         {teacher.name}
@@ -203,14 +218,22 @@ export default function Courses({ activeBranch }) {
                 />
               </div>
 
-              <button type="submit" disabled={actionLoading} className="cr-submit-btn">
-                {actionLoading ? "Saving..." : modalMode === "create" ? "Create Course" : "Save Changes"}
+              <button
+                type="submit"
+                disabled={actionLoading}
+                className="cr-submit-btn"
+              >
+                {actionLoading
+                  ? "Saving..."
+                  : modalMode === "create"
+                    ? "Create Course"
+                    : "Save Changes"}
               </button>
             </form>
           )}
         </div>
       </div>,
-      document.body
+      document.body,
     );
   };
 
@@ -219,9 +242,13 @@ export default function Courses({ activeBranch }) {
       <div className="cr-header-section">
         <div className="title-area">
           <h1 className="page-main-title">
-            {activeBranch ? `${activeBranch.name} • Courses` : "Course Management"}
+            {activeBranch
+              ? `${activeBranch.name} • Courses`
+              : "Course Management"}
           </h1>
-          <p className="page-description">Manage and analyze academic courses across this branch</p>
+          <p className="page-description">
+            Manage and analyze academic courses across this branch
+          </p>
         </div>
 
         <button
@@ -269,7 +296,10 @@ export default function Courses({ activeBranch }) {
         !error && (
           <div className="cr-grid-layout">
             {sortedCourses.map((course) => {
-              const stats = courseStatsMap[course.id] || { groupsCount: 0, teachersCount: 0 };
+              const stats = courseStatsMap[course.id] || {
+                groupsCount: 0,
+                teachersCount: 0,
+              };
 
               return (
                 <div key={course.id} className="cr-course-card">
@@ -290,15 +320,19 @@ export default function Courses({ activeBranch }) {
 
                     <div className="cr-branch-pill">
                       <FiHome />
-                      <span>{course.branch_name || activeBranch?.name || "Branch"}</span>
+                      <span>
+                        {course.branch_name || activeBranch?.name || "Branch"}
+                      </span>
                     </div>
 
                     <div className="cr-card-stats">
                       <span>
-                        <FiLayers /> {stats.groupsCount} {stats.groupsCount === 1 ? "Group" : "Groups"}
+                        <FiLayers /> {stats.groupsCount}{" "}
+                        {stats.groupsCount === 1 ? "Group" : "Groups"}
                       </span>
                       <span>
-                        <FiUsers /> {stats.teachersCount} {stats.teachersCount === 1 ? "Teacher" : "Teachers"}
+                        <FiUsers /> {stats.teachersCount}{" "}
+                        {stats.teachersCount === 1 ? "Teacher" : "Teachers"}
                       </span>
                     </div>
                   </div>

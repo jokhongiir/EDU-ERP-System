@@ -27,8 +27,6 @@ export default function Dashboard({ centerName, setCenterName }) {
 
   const [branches, setBranches] = useState([]);
   const [activeBranch, setActiveBranch] = useState(null);
-
-  // ================= INIT =================
   useEffect(() => {
     const init = async () => {
       const { data, error } = await supabase.auth.getUser();

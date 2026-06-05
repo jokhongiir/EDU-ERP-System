@@ -1,50 +1,33 @@
-/* =========================================================
-   DASHBOARD HOME • ULTRA PROFESSIONAL SYSTEM (V2 ENHANCED)
-   DESIGN SYSTEM: MODERN SAAS • GLASSMORPHISM SUTBLE • PREMIUM
-========================================================= */
-
 :root {
-  /* Color Palette */
   --primary: #376fff;
   --primary-dark: #1a56db;
   --primary-light: #eef4ff;
-  
   --bg: #f8fafc;
   --card: #ffffff;
   --soft: #f8fbff;
   --soft-gray: #f1f5f9;
-
-  /* Typography Colors */
   --text: #0f172a;
   --text-soft: #475569;
   --muted: #94a3b8;
-
-  /* Borders & Dividers */
   --border: #e2e8f0;
   --border-light: #f1f5f9;
-
-  /* Semantic Colors */
   --success: #10b981;
   --success-bg: #dcfce7;
   --danger: #ef4444;
   --danger-bg: #fee2e2;
   --warning: #f59e0b;
   --warning-bg: #fef3c7;
-
-  /* Shadows & Elevation */
-  --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.03), 0 1px 2px -1px rgba(15, 23, 42, 0.03);
-  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
-  --shadow-lg: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.08);
-
-  /* Border Radius */
+  --shadow-sm:
+    0 1px 3px 0 rgba(15, 23, 42, 0.03), 0 1px 2px -1px rgba(15, 23, 42, 0.03);
+  --shadow-md:
+    0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+  --shadow-lg:
+    0 20px 25px -5px rgba(15, 23, 42, 0.08),
+    0 8px 10px -6px rgba(15, 23, 42, 0.08);
   --radius-lg: 20px;
   --radius-md: 14px;
   --radius-sm: 10px;
 }
-
-/* =========================================================
-   KEYFRAMES & CORE ANIMATIONS
-========================================================= */
 @keyframes dashboardReveal {
   from {
     opacity: 0;
@@ -57,24 +40,37 @@
 }
 
 @keyframes rotateLoader {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes pulseShimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 @keyframes badgePulse {
-  0% { transform: scale(0.95); opacity: 0.5; }
-  50% { transform: scale(1.05); opacity: 1; }
-  100% { transform: scale(0.95); opacity: 0.5; }
+  0% {
+    transform: scale(0.95);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0.5;
+  }
 }
-
-/* =========================================================
-   MAIN CONTAINER LAYOUT
-========================================================= */
 .dashboard-home {
   width: 100%;
   max-width: 1400px;
@@ -88,10 +84,6 @@
   box-sizing: border-box;
   animation: dashboardReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
-
-/* =========================================================
-   HEADER BOX SECTION
-========================================================= */
 .dashboard-header {
   display: flex;
   align-items: center;
@@ -114,8 +106,6 @@
   font-weight: 500;
   color: var(--text-soft);
 }
-
-/* PREMIUM ROUND REFRESH ICON BUTTON */
 .refresh-icon-btn {
   width: 46px;
   height: 46px;
@@ -149,10 +139,6 @@
   animation: rotateLoader 1s infinite linear;
   color: var(--primary);
 }
-
-/* =========================================================
-   STATISTICS GRID & CARDS
-========================================================= */
 .dashboard-stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -160,10 +146,15 @@
 }
 
 @media (max-width: 1200px) {
-  .dashboard-stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .dashboard-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 @media (max-width: 640px) {
-  .dashboard-stats-grid { grid-template-columns: 1fr; gap: 16px; }
+  .dashboard-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
 }
 
 .dashboard-stat-card {
@@ -201,8 +192,6 @@
   justify-content: center;
   font-size: 22px;
 }
-
-/* LIVE STATUS BADGE */
 .dashboard-trend-badge {
   display: flex;
   align-items: center;
@@ -221,7 +210,7 @@
 }
 
 .dashboard-trend-badge span::before {
-  content: '';
+  content: "";
   display: inline-block;
   width: 6px;
   height: 6px;
@@ -248,9 +237,6 @@
   line-height: 1;
 }
 
-/* =========================================================
-   ANALYTICS CHART CARD
-========================================================= */
 .dashboard-chart-card {
   background: var(--card);
   border-radius: var(--radius-lg);
@@ -290,9 +276,6 @@
   font-weight: 600;
 }
 
-/* =========================================================
-   DYNAMIC LIST GRAPHICS & BOTTOM GRID
-========================================================= */
 .dashboard-bottom-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -300,7 +283,10 @@
 }
 
 @media (max-width: 968px) {
-  .dashboard-bottom-grid { grid-template-columns: 1fr; gap: 20px; }
+  .dashboard-bottom-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
 }
 
 .dashboard-list-card {
@@ -330,8 +316,14 @@
   font-size: 18px;
 }
 
-.list-header-icon.teachers-sec { background: var(--success-bg); color: var(--success); }
-.list-header-icon.courses-sec { background: var(--warning-bg); color: var(--warning); }
+.list-header-icon.teachers-sec {
+  background: var(--success-bg);
+  color: var(--success);
+}
+.list-header-icon.courses-sec {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
 
 .dashboard-list-header h3 {
   font-size: 16px;
@@ -377,8 +369,14 @@
   font-size: 18px;
 }
 
-.dashboard-list-avatar.teacher-av { background: #f0fdf4; color: var(--success); }
-.dashboard-list-avatar.course-av { background: #fffbeb; color: var(--warning); }
+.dashboard-list-avatar.teacher-av {
+  background: #f0fdf4;
+  color: var(--success);
+}
+.dashboard-list-avatar.course-av {
+  background: #fffbeb;
+  color: var(--warning);
+}
 
 .list-item-meta h4 {
   font-size: 14px;
@@ -412,9 +410,6 @@
   font-weight: 600;
 }
 
-/* =========================================================
-   EMPTY STATE (NO BRANCH ROUTE)
-========================================================= */
 .dashboard-empty-wrapper {
   min-height: 85vh;
   display: flex;
@@ -459,17 +454,11 @@
   color: var(--text-soft);
   line-height: 1.6;
 }
-
-/* =========================================================
-   SHIMMER SKELETON EFFECT LOADING BLOCKS
-========================================================= */
 .shimmer {
   background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
   background-size: 200% 100%;
   animation: pulseShimmer 1.6s infinite linear;
 }
-
-/* Value Skeletons */
 .sk-stat-value {
   width: 80px;
   height: 32px;
@@ -477,7 +466,6 @@
   margin-top: 4px;
 }
 
-/* Chart Loading Skeletons */
 .chart-skeleton-container {
   height: 350px;
   display: flex;
@@ -500,7 +488,6 @@
   opacity: 0.15;
 }
 
-/* List Item Loading Skeletons */
 .dashboard-list-item-skeleton {
   display: flex;
   align-items: center;
