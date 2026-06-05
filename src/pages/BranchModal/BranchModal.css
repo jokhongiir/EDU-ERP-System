@@ -1,7 +1,5 @@
-/* ================= FONT ================= */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* ================= OVERLAY ================= */
 .bmOverlay {
   position: fixed;
   inset: 0;
@@ -14,7 +12,6 @@
   animation: fadeIn 0.2s ease;
 }
 
-/* fade animation */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -24,7 +21,6 @@
   }
 }
 
-/* ================= CARD ================= */
 .bmCard {
   width: 430px;
   background: #ffffff;
@@ -36,7 +32,6 @@
   border: 1px solid #eef2f7;
 }
 
-/* pop animation */
 @keyframes popIn {
   from {
     transform: scale(0.92);
@@ -48,7 +43,6 @@
   }
 }
 
-/* ================= HEADER ================= */
 .bmHeader h2 {
   font-size: 20px;
   font-weight: 700;
@@ -64,7 +58,6 @@
   margin-bottom: 18px;
 }
 
-/* ================= INPUT ================= */
 .bmInput {
   width: 100%;
   padding: 12px 14px;
@@ -86,7 +79,6 @@
   box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
 }
 
-/* ================= ERROR ================= */
 .bmError {
   margin-top: 10px;
   font-size: 13px;
@@ -94,7 +86,6 @@
   font-weight: 500;
 }
 
-/* ================= BUTTON ================= */
 .bmButton {
   width: 100%;
   margin-top: 16px;
@@ -125,7 +116,6 @@
   transform: none;
 }
 
-/* ================= FOOTER TEXT ================= */
 .bmFooterText {
   margin-top: 14px;
   font-size: 12px;
@@ -134,7 +124,6 @@
   line-height: 1.4;
 }
 
-/* ================= RESPONSIVE ================= */
 @media (max-width: 500px) {
   .bmCard {
     width: 92%;

@@ -7,7 +7,6 @@ export default function BranchModal({ open, onDone }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // ================= CREATE BRANCH =================
   const createBranch = async () => {
     if (!name.trim()) {
       setError("Branch name is required");
@@ -18,13 +17,10 @@ export default function BranchModal({ open, onDone }) {
     setError("");
 
     try {
-      // get current user
       const { data: userData } = await supabase.auth.getUser();
       const user = userData?.user;
 
       if (!user) throw new Error("User not found");
-
-      // insert branch
       const { data, error } = await supabase
         .from("branches")
         .insert([
@@ -38,7 +34,6 @@ export default function BranchModal({ open, onDone }) {
 
       if (error) throw error;
 
-      // success callback
       onDone(data);
     } catch (err) {
       setError(err.message || "Something went wrong");
@@ -46,15 +41,12 @@ export default function BranchModal({ open, onDone }) {
       setLoading(false);
     }
   };
-
-  // ================= ESCAPE =================
   if (!open) return null;
 
   return (
     <div className="bmOverlay">
       <div className="bmCard">
 
-        {/* HEADER */}
         <div className="bmHeader">
           <h2>Create your first branch</h2>
           <p>
@@ -62,7 +54,6 @@ export default function BranchModal({ open, onDone }) {
           </p>
         </div>
 
-        {/* INPUT */}
         <input
           type="text"
           placeholder="e.g. Chilonzor Branch"
@@ -71,10 +62,8 @@ export default function BranchModal({ open, onDone }) {
           className="bmInput"
         />
 
-        {/* ERROR */}
         {error && <div className="bmError">{error}</div>}
 
-        {/* BUTTON */}
         <button
           className="bmButton"
           onClick={createBranch}
@@ -82,8 +71,6 @@ export default function BranchModal({ open, onDone }) {
         >
           {loading ? "Creating..." : "Create Branch"}
         </button>
-
-        {/* FOOTER INFO */}
         <div className="bmFooterText">
           This will be your main organization workspace
         </div>
