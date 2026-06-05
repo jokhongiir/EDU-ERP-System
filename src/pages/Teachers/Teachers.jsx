@@ -22,9 +22,6 @@ import {
 } from "react-icons/fi";
 
 export default function Teachers({ activeBranch }) {
-  // ==========================================================================
-  // STATES
-  // ==========================================================================
   const [teachers, setTeachers] = useState([]);
   const [courses, setCourses] = useState([]);
   const [students, setStudents] = useState([]);
@@ -35,7 +32,6 @@ export default function Teachers({ activeBranch }) {
   const [search, setSearch] = useState("");
   const [filterCourse, setFilterCourse] = useState("all");
 
-  // Modal States
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
 
@@ -44,7 +40,6 @@ export default function Teachers({ activeBranch }) {
 
   const [editId, setEditId] = useState(null);
 
-  // Form State
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -56,16 +51,11 @@ export default function Teachers({ activeBranch }) {
   });
 
   const branchId = activeBranch?.id;
-
-  // ==========================================================================
-  // FETCH DATA FOR ACTIVE BRANCH ONLY
-  // ==========================================================================
   const fetchData = useCallback(async () => {
     if (!branchId) return;
 
     setLoading(true);
     try {
-      // Fetch only data bound to the specific active branch id
       const [tRes, cRes, sRes] = await Promise.all([
         supabase
           .from("teachers")
@@ -96,25 +86,17 @@ export default function Teachers({ activeBranch }) {
     fetchData();
   }, [fetchData]);
 
-  // ==========================================================================
-  // PERFORMANCE OPTIMIZATION: LOOKUP DICTIONARIES & HASH MAPS
-  // ==========================================================================
-  
-  // O(1) Quick Lookup Maps for Reference Data
   const courseMap = useMemo(() => {
     return new Map(courses.map((c) => [c.id, c.name]));
   }, [courses]);
 
-  // O(1) Compiled Statistics Map for Teachers
   const teacherStatsMap = useMemo(() => {
     const stats = {};
 
-    // Initialize map profiles
     teachers.forEach((t) => {
       stats[t.id] = { count: 0, active: 0, income: 0 };
     });
 
-    // Compute metrics cleanly in a single iteration pass
     students.forEach((s) => {
       const tId = s.teacher_id;
       if (!tId || !stats[tId]) return;
@@ -136,10 +118,6 @@ export default function Teachers({ activeBranch }) {
   }, [teachers, students]);
 
   const getCourseName = (id) => courseMap.get(id) || "Course not assigned";
-
-  // ==========================================================================
-  // FILTERING LOGIC
-  // ==========================================================================
   const filteredTeachers = useMemo(() => {
     const searchLower = search.toLowerCase().trim();
     return teachers.filter((t) => {
@@ -155,9 +133,6 @@ export default function Teachers({ activeBranch }) {
     });
   }, [teachers, search, filterCourse]);
 
-  // ==========================================================================
-  // FORM HANDLERS
-  // ==========================================================================
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm((prev) => ({
@@ -240,7 +215,6 @@ export default function Teachers({ activeBranch }) {
         .eq("id", deleteId);
       if (error) throw error;
 
-      // Optimistic state updates
       setTeachers((prev) => prev.filter((t) => t.id !== deleteId));
       setDeleteId(null);
     } catch (err) {
@@ -248,13 +222,9 @@ export default function Teachers({ activeBranch }) {
     }
   };
 
-  // ==========================================================================
-  // PORTAL DESIGNED MODALS
-  // ==========================================================================
   const renderAllModals = () => {
     return createPortal(
       <>
-        {/* VIEW DETAILS MODAL */}
         {viewOpen && viewData && (
           <div className="portal-overlay" onClick={() => setViewOpen(false)}>
             <div
@@ -262,7 +232,10 @@ export default function Teachers({ activeBranch }) {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="modal-top-accent"></div>
-              <button className="close-x-btn" onClick={() => setViewOpen(false)}>
+              <button
+                className="close-x-btn"
+                onClick={() => setViewOpen(false)}
+              >
                 <FiX />
               </button>
 
@@ -273,42 +246,61 @@ export default function Teachers({ activeBranch }) {
                   </div>
                   <h2 className="profile-name">{viewData.name}</h2>
                   <p className="profile-role">Professional Teacher</p>
-                  <div className={`status-label ${viewData.salary_paid ? "paid" : "pending"}`}>
+                  <div
+                    className={`status-label ${viewData.salary_paid ? "paid" : "pending"}`}
+                  >
                     {viewData.salary_paid ? "Salary Paid" : "Payment Pending"}
                   </div>
                 </div>
 
                 <div className="info-grid-details">
                   <div className="info-item">
-                    <label><FiPhone /> Phone</label>
+                    <label>
+                      <FiPhone /> Phone
+                    </label>
                     <span>{viewData.phone || "Not provided"}</span>
                   </div>
 
                   <div className="info-item">
-                    <label><FiBookOpen /> Course</label>
+                    <label>
+                      <FiBookOpen /> Course
+                    </label>
                     <span>{getCourseName(viewData.course_id)}</span>
                   </div>
 
                   <div className="info-item">
-                    <label><FiMapPin /> Branch</label>
+                    <label>
+                      <FiMapPin /> Branch
+                    </label>
                     <span>{activeBranch?.name || "This Branch"}</span>
                   </div>
 
                   <div className="info-item">
-                    <label><FiUsers /> Students</label>
-                    <span>{(teacherStatsMap[viewData.id]?.count || 0)} students</span>
+                    <label>
+                      <FiUsers /> Students
+                    </label>
+                    <span>
+                      {teacherStatsMap[viewData.id]?.count || 0} students
+                    </span>
                   </div>
 
                   <div className="info-item">
-                    <label><FiDollarSign /> Income</label>
+                    <label>
+                      <FiDollarSign /> Income
+                    </label>
                     <span className="income-highlight">
-                      {(teacherStatsMap[viewData.id]?.income || 0).toLocaleString()} UZS
+                      {(
+                        teacherStatsMap[viewData.id]?.income || 0
+                      ).toLocaleString()}{" "}
+                      UZS
                     </span>
                   </div>
                 </div>
 
                 <div className="payment-timeline">
-                  <h4><FiCalendar /> Payment Timeline</h4>
+                  <h4>
+                    <FiCalendar /> Payment Timeline
+                  </h4>
                   <div className="timeline-row">
                     <div className="t-point">
                       <small>Last Payment</small>
@@ -326,7 +318,6 @@ export default function Teachers({ activeBranch }) {
           </div>
         )}
 
-        {/* ADD / EDIT FORM MODAL */}
         {modalOpen && (
           <div className="portal-overlay" onClick={resetForm}>
             <div
@@ -335,7 +326,15 @@ export default function Teachers({ activeBranch }) {
             >
               <div className="modal-header-standard">
                 <h3>
-                  {editId ? <><FiEdit /> Edit Teacher</> : <><FiUserPlus /> Add New Teacher</>}
+                  {editId ? (
+                    <>
+                      <FiEdit /> Edit Teacher
+                    </>
+                  ) : (
+                    <>
+                      <FiUserPlus /> Add New Teacher
+                    </>
+                  )}
                 </h3>
                 <button className="close-icon-btn" onClick={resetForm}>
                   <FiX />
@@ -420,11 +419,25 @@ export default function Teachers({ activeBranch }) {
                 </div>
 
                 <div className="form-actions-footer">
-                  <button type="button" className="btn-cancel-form" onClick={resetForm}>
+                  <button
+                    type="button"
+                    className="btn-cancel-form"
+                    onClick={resetForm}
+                  >
                     Cancel
                   </button>
-                  <button type="submit" className="btn-submit-form" disabled={saving}>
-                    {saving ? "Saving..." : <><FiSave /> Save</>}
+                  <button
+                    type="submit"
+                    className="btn-submit-form"
+                    disabled={saving}
+                  >
+                    {saving ? (
+                      "Saving..."
+                    ) : (
+                      <>
+                        <FiSave /> Save
+                      </>
+                    )}
                   </button>
                 </div>
               </form>
@@ -432,7 +445,6 @@ export default function Teachers({ activeBranch }) {
           </div>
         )}
 
-        {/* RE-ASSURED CONFIRM DELETE MODAL */}
         {deleteId && (
           <div className="portal-overlay" onClick={() => setDeleteId(null)}>
             <div
@@ -445,8 +457,12 @@ export default function Teachers({ activeBranch }) {
               <h3>Delete Teacher</h3>
               <p>Are you sure you want to delete this teacher?</p>
               <div className="confirm-footer-btns">
-                <button className="btn-no" onClick={() => setDeleteId(null)}>Cancel</button>
-                <button className="btn-yes" onClick={confirmDelete}>Delete</button>
+                <button className="btn-no" onClick={() => setDeleteId(null)}>
+                  Cancel
+                </button>
+                <button className="btn-yes" onClick={confirmDelete}>
+                  Delete
+                </button>
               </div>
             </div>
           </div>
@@ -456,12 +472,8 @@ export default function Teachers({ activeBranch }) {
     );
   };
 
-  // ==========================================================================
-  // RENDER INTERFACE
-  // ==========================================================================
   return (
     <div className="teachers-page-container">
-      {/* HEADER BAR */}
       <header className="teachers-header-box">
         <div className="title-area">
           <h1 className="page-main-title">
@@ -472,12 +484,15 @@ export default function Teachers({ activeBranch }) {
           </p>
         </div>
 
-        <button className="btn-prime-add" disabled={!branchId} onClick={() => setModalOpen(true)}>
+        <button
+          className="btn-prime-add"
+          disabled={!branchId}
+          onClick={() => setModalOpen(true)}
+        >
           <FiPlus /> Add Teacher
         </button>
       </header>
 
-      {/* FILTER SEARCH PANEL */}
       <div className="teachers-controls-bar">
         <div className="search-input-field">
           <FiSearch className="search-icon-fixed" />
@@ -503,7 +518,6 @@ export default function Teachers({ activeBranch }) {
         </select>
       </div>
 
-      {/* COMPACT SYSTEM TABLE */}
       <div className="teachers-table-overflow">
         <table className="modern-data-table">
           <thead>
@@ -523,7 +537,9 @@ export default function Teachers({ activeBranch }) {
             {loading ? (
               Array.from({ length: 5 }).map((_, idx) => (
                 <tr key={idx}>
-                  <td><div className="teacher-skeleton sk-id"></div></td>
+                  <td>
+                    <div className="teacher-skeleton sk-id"></div>
+                  </td>
                   <td>
                     <div className="teacher-user-cell">
                       <div className="teacher-skeleton sk-avatar"></div>
@@ -532,12 +548,24 @@ export default function Teachers({ activeBranch }) {
                       </div>
                     </div>
                   </td>
-                  <td><div className="teacher-skeleton sk-badge"></div></td>
-                  <td><div className="teacher-skeleton sk-phone"></div></td>
-                  <td><div className="teacher-skeleton sk-badge"></div></td>
-                  <td><div className="teacher-skeleton sk-students"></div></td>
-                  <td><div className="teacher-skeleton sk-income"></div></td>
-                  <td><div className="teacher-skeleton sk-status"></div></td>
+                  <td>
+                    <div className="teacher-skeleton sk-badge"></div>
+                  </td>
+                  <td>
+                    <div className="teacher-skeleton sk-phone"></div>
+                  </td>
+                  <td>
+                    <div className="teacher-skeleton sk-badge"></div>
+                  </td>
+                  <td>
+                    <div className="teacher-skeleton sk-students"></div>
+                  </td>
+                  <td>
+                    <div className="teacher-skeleton sk-income"></div>
+                  </td>
+                  <td>
+                    <div className="teacher-skeleton sk-status"></div>
+                  </td>
                   <td>
                     <div className="teacher-actions-loading">
                       <div className="teacher-skeleton sk-btn"></div>
@@ -547,7 +575,9 @@ export default function Teachers({ activeBranch }) {
               ))
             ) : filteredTeachers.length === 0 ? (
               <tr>
-                <td colSpan="9" className="td-empty">No teachers found for this branch</td>
+                <td colSpan="9" className="td-empty">
+                  No teachers found for this branch
+                </td>
               </tr>
             ) : (
               filteredTeachers.map((t, idx) => {
@@ -582,15 +612,26 @@ export default function Teachers({ activeBranch }) {
                       {stats.income.toLocaleString()} UZS
                     </td>
                     <td>
-                      <span className={`status-pill-small ${t.salary_paid ? "paid" : "unpaid"}`}>
+                      <span
+                        className={`status-pill-small ${t.salary_paid ? "paid" : "unpaid"}`}
+                      >
                         {t.salary_paid ? "Paid" : "Unpaid"}
                       </span>
                     </td>
-                    <td className="actions-cell-row" onClick={(e) => e.stopPropagation()}>
-                      <button className="row-btn edit" onClick={() => openEditModal(t)}>
+                    <td
+                      className="actions-cell-row"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        className="row-btn edit"
+                        onClick={() => openEditModal(t)}
+                      >
                         <FiEdit />
                       </button>
-                      <button className="row-btn delete" onClick={() => setDeleteId(t.id)}>
+                      <button
+                        className="row-btn delete"
+                        onClick={() => setDeleteId(t.id)}
+                      >
                         <FiTrash2 />
                       </button>
                     </td>
