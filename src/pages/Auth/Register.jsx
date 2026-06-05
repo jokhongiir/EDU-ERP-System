@@ -87,7 +87,6 @@ export default function Register() {
       />
 
       <div className="authCard">
-        {/* LEFT */}
         <div className="authLeft">
           <div className="authLeftContent">
             <img src={logo2} className="authImage" alt="logo" />
@@ -101,7 +100,6 @@ export default function Register() {
           </div>
         </div>
 
-        {/* RIGHT */}
         <div className="authRight">
           <div className="authHeader">
             <h2 className="authTitle">Create Account 🚀</h2>
@@ -109,7 +107,6 @@ export default function Register() {
           </div>
 
           <form className="authForm" onSubmit={handleRegister}>
-            {/* CENTER NAME */}
             <div className="inputGroup">
               <FiHome className="inputIcon" />
               <input
@@ -121,7 +118,6 @@ export default function Register() {
               />
             </div>
 
-            {/* EMAIL */}
             <div className="inputGroup">
               <FiMail className="inputIcon" />
               <input
@@ -134,7 +130,6 @@ export default function Register() {
               />
             </div>
 
-            {/* PASSWORD */}
             <div className="inputGroup">
               <FiLock className="inputIcon" />
               <input
@@ -155,10 +150,8 @@ export default function Register() {
               </button>
             </div>
 
-            {/* ERROR */}
             {error && <div className="authError">{error}</div>}
 
-            {/* BUTTON */}
             <button type="submit" className="authButton" disabled={loading}>
               {loading ? (
                 <span>Creating account...</span>
