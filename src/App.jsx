@@ -4,11 +4,7 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-
 import { useState } from "react";
-
-// import Landing from "./components/Landing/Landing";
-
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
@@ -23,7 +19,6 @@ export default function App() {
   return (
     <Router>
       <Routes>
-        {/* ================= LANDING PAGE ================= */}
         <Route path="/" element={<Login />} />
         <Route path="/update-password" element={<UpdatePassword />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -35,8 +30,6 @@ export default function App() {
             <Dashboard centerName={centerName} setCenterName={setCenterName} />
           }
         />
-
-        {/* ================= FALLBACK ================= */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
 

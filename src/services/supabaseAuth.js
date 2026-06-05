@@ -12,7 +12,6 @@ export const registerUser = async (centerName, email, password) => {
     const user = data.user;
     if (!user) return { error: 'User yaratilmadi' };
 
-    // Users table insert
     const { error: insertError } = await supabase.from('users').upsert([
       {
         full_name: centerName,
@@ -24,7 +23,6 @@ export const registerUser = async (centerName, email, password) => {
 
     if (insertError) return { error: insertError.message };
 
-    // Instant login
     const { error: loginError } = await supabase.auth.signInWithPassword({
       email,
       password,
