@@ -10,7 +10,6 @@ import {
 
 import "./AddStudents.css";
 
-// ================= HELPERS =================
 const onlyDigits = (v = "") => v?.toString().replace(/\D/g, "") || "";
 
 const formatPhone = (value) => {
@@ -39,13 +38,10 @@ const formatPercent = (value) => {
   return num + "%";
 };
 
-// ================= MAIN COMPONENT =================
 export default function AddStudents({ activeBranch, editStudent = null, onFinish }) {
   const navigate = useNavigate();
   const branchId = activeBranch?.id;
   const isEdit = !!editStudent;
-
-  // --- Data States ---
   const [dbData, setDbData] = useState({
     courses: [],
     teachers: [],
@@ -55,8 +51,6 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
 
-
-  // --- Form State ---
   const [form, setForm] = useState({
     first_name: "",
     last_name: "",
@@ -73,7 +67,6 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
     paid: false,
   });
 
-  // --- Initial Load (Edit Mode) ---
   useEffect(() => {
     if (editStudent) {
       setForm({
@@ -89,7 +82,6 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
     }
   }, [editStudent]);
 
-  // --- Fetch Global Data ---
   useEffect(() => {
     if (!branchId) return;
 
@@ -117,7 +109,6 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
     loadData();
   }, [branchId]);
 
-  // --- Filtered Lists ---
   const filteredTeachers = useMemo(() => {
     if (!form.course_id) return dbData.teachers;
     return dbData.teachers.filter((t) => t.course_id == form.course_id);
@@ -131,7 +122,6 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
     });
   }, [dbData.groups, form.course_id, form.teacher_id]);
 
-  // --- Handlers ---
   const handleChange = useCallback((e) => {
     const { name, value, type, checked } = e.target;
     let val = type === "checkbox" ? checked : value;
@@ -143,12 +133,10 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
     setForm((prev) => {
       const next = { ...prev, [name]: val };
       
-      // Clear dependencies if course changes
       if (name === "course_id") {
         next.teacher_id = "";
         next.group_id = "";
       }
-      // Clear group if teacher changes
       if (name === "teacher_id") {
         next.group_id = "";
       }
@@ -200,7 +188,6 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
 
   return (
     <div className="add-page">
-      {/* HEADER */}
       <div className="header">
         <FiHome />
         <div>
@@ -208,7 +195,6 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
           <h3>{activeBranch?.name}</h3>
         </div>
       </div>
-
       <h2>
         <FiUserCheck />
         {isEdit ? " Edit Student" : " Add New Student"}
@@ -217,7 +203,6 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
       {fetching && <div className="loading-bar">Loading...</div>}
 
       <form onSubmit={handleSubmit} className="form">
-        {/* PERSONAL INFORMATION */}
         <div className="section">
           <h4><FiUser /> Personal Information</h4>
           <div className="grid">
@@ -236,7 +221,6 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
           </div>
         </div>
 
-        {/* EDUCATION */}
         <div className="section">
           <h4><FiBookOpen /> Education Details</h4>
           <div className="grid">
@@ -283,7 +267,6 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
           </div>
         </div>
 
-        {/* PAYMENT */}
         <div className="section">
           <h4><FiCreditCard /> Payment Details</h4>
           <div className="grid">
@@ -306,7 +289,6 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
           </label>
         </div>
 
-        {/* BUTTONS */}
         <div className="actions">
           <button type="submit" className="submit-btn" disabled={loading}>
             <FiSave />
@@ -321,7 +303,6 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
   );
 }
 
-// ================= UI COMPONENTS =================
 const Field = ({ label, children }) => (
   <div className="field">
     <label>{label}</label>
