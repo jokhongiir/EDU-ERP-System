@@ -59,9 +59,7 @@ export default function Login() {
       const user = data?.user;
       if (!user) throw new Error("Login failed");
 
-      // ❗ REMEMBER ME HERE (REAL WAY)
       if (!rememberMe) {
-        // session-only (tab yopilsa logout bo‘lishiga yaqin)
         await supabase.auth.setSession({
           access_token: data.session.access_token,
           refresh_token: data.session.refresh_token,
@@ -107,7 +105,6 @@ export default function Login() {
       />
 
       <div className="authCard">
-        {/* LEFT PANEL */}
 
         <div className="authLeft">
           <div className="authLeftContent">
@@ -144,8 +141,6 @@ export default function Login() {
           </div>
         </div>
 
-        {/* RIGHT PANEL */}
-
         <div className="authRight">
           <div className="authHeader">
             <h2 className="authTitle">Welcome Back</h2>
@@ -154,7 +149,6 @@ export default function Login() {
           </div>
 
           <form className="authForm" onSubmit={handleLogin}>
-            {/* EMAIL */}
 
             <div className="inputGroup">
               <FiMail className="inputIcon" />
@@ -169,8 +163,6 @@ export default function Login() {
                 autoComplete="email"
               />
             </div>
-
-            {/* PASSWORD */}
 
             <div className="inputGroup">
               <FiLock className="inputIcon" />
@@ -195,8 +187,6 @@ export default function Login() {
               </button>
             </div>
 
-            {/* OPTIONS */}
-
             <div className="authOptions">
               <label className="rememberMe">
                 <input
@@ -213,11 +203,7 @@ export default function Login() {
               </Link>
             </div>
 
-            {/* ERROR */}
-
             {error && <div className="authError">{error}</div>}
-
-            {/* BUTTON */}
 
             <button type="submit" className="authButton" disabled={loading}>
               {loading ? (
