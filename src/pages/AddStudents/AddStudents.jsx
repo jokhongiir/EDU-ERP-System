@@ -3,14 +3,42 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../../services/supabaseClient";
 
 import {
-  FiUser, FiPhone, FiBookOpen, FiUsers, FiCalendar,
-  FiDollarSign, FiCheckCircle, FiSave, FiX, FiHome,
-  FiClipboard, FiUserCheck, FiTrendingUp, FiCreditCard,
+  FiUser,
+  FiPhone,
+  FiBookOpen,
+  FiUsers,
+  FiCalendar,
+  FiDollarSign,
+  FiCheckCircle,
+  FiSave,
+  FiX,
+  FiHome,
+  FiClipboard,
+  FiUserCheck,
+  FiTrendingUp,
+  FiCreditCard,
 } from "react-icons/fi";
 
 import "./AddStudents.css";
 
 const onlyDigits = (v = "") => v?.toString().replace(/\D/g, "") || "";
+
+const normalizePhone = (value) => {
+  const digits = onlyDigits(value);
+
+  if (!digits) return null;
+
+  // agar user 9 digit yozsa ham +998 bilan to'ldiramiz
+  let d = digits;
+
+  if (d.length === 9) {
+    d = "998" + d;
+  }
+
+  if (d.length !== 12) return null;
+
+  return d;
+};
 
 const formatPhone = (value) => {
   let d = onlyDigits(value);
@@ -38,7 +66,11 @@ const formatPercent = (value) => {
   return num + "%";
 };
 
-export default function AddStudents({ activeBranch, editStudent = null, onFinish }) {
+export default function AddStudents({
+  activeBranch,
+  editStudent = null,
+  onFinish,
+}) {
   const navigate = useNavigate();
   const branchId = activeBranch?.id;
   const isEdit = !!editStudent;
@@ -72,7 +104,9 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
       setForm({
         ...editStudent,
         phone: editStudent.phone ? formatPhone(editStudent.phone) : "+998 ",
-        parent_phone: editStudent.parent_phone ? formatPhone(editStudent.parent_phone) : "+998 ",
+        parent_phone: editStudent.parent_phone
+          ? formatPhone(editStudent.parent_phone)
+          : "+998 ",
         monthly_fee: formatMoney(editStudent.monthly_fee),
         teacher_percent: formatPercent(editStudent.teacher_percent),
         course_id: editStudent.course_id || "",
@@ -132,7 +166,7 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
 
     setForm((prev) => {
       const next = { ...prev, [name]: val };
-      
+
       if (name === "course_id") {
         next.teacher_id = "";
         next.group_id = "";
@@ -140,7 +174,7 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
       if (name === "teacher_id") {
         next.group_id = "";
       }
-      
+
       return next;
     });
   }, []);
@@ -149,38 +183,73 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
     e.preventDefault();
 
     if (!form.first_name.trim() || !form.last_name.trim()) {
-      return alert("First name and Last name are required!");
+      return alert("First name and last name are required!");
     }
 
     setLoading(true);
 
-    const payload = {
-      branch_id: branchId,
-      first_name: form.first_name.trim(),
-      last_name: form.last_name.trim(),
-      phone: onlyDigits(form.phone),
-      parent_phone: onlyDigits(form.parent_phone),
-      course_id: form.course_id || null,
-      teacher_id: form.teacher_id || null,
-      group_id: form.group_id || null,
-      start_date: form.start_date || null,
-      payment_date: form.payment_date || null,
-      next_payment_date: form.next_payment_date || null,
-      monthly_fee: Number(onlyDigits(form.monthly_fee)) || 0,
-      teacher_percent: Number(onlyDigits(form.teacher_percent)) || 0,
-      paid: form.paid,
-    };
+    try {
+      const cleanStudentPhone = normalizePhone(form.phone);
+      const cleanParentPhone = normalizePhone(form.parent_phone);
 
-    const { error } = isEdit
-      ? await supabase.from("students").update(payload).eq("id", editStudent.id)
-      : await supabase.from("students").insert(payload);
+      // 👉 NO ERROR VALIDATION AT ALL FOR PHONE
+      // faqat duplicate check qoladi
 
-    setLoading(false);
+      if (cleanStudentPhone) {
+        const { data: existingStudent } = await supabase
+          .from("students")
+          .select("id")
+          .eq("phone", cleanStudentPhone)
+          .maybeSingle();
 
-    if (error) {
-      alert(error.message);
-    } else {
+        if (
+          existingStudent &&
+          (!isEdit || existingStudent.id !== editStudent?.id)
+        ) {
+          setLoading(false);
+          return alert("This phone number already exists!");
+        }
+      }
+
+      const payload = {
+        branch_id: branchId,
+        first_name: form.first_name.trim(),
+        last_name: form.last_name.trim(),
+
+        phone: cleanStudentPhone,
+        parent_phone: cleanParentPhone,
+
+        course_id: form.course_id || null,
+        teacher_id: form.teacher_id || null,
+        group_id: form.group_id || null,
+
+        start_date: form.start_date || null,
+        payment_date: form.payment_date || null,
+        next_payment_date: form.next_payment_date || null,
+
+        monthly_fee: Number(onlyDigits(form.monthly_fee)) || 0,
+        teacher_percent: Number(onlyDigits(form.teacher_percent)) || 0,
+
+        paid: form.paid,
+      };
+
+      const { error } = isEdit
+        ? await supabase
+            .from("students")
+            .update(payload)
+            .eq("id", editStudent.id)
+        : await supabase.from("students").insert([payload]);
+
+      if (error) throw error;
+
+      alert(isEdit ? "Updated!" : "Student added!");
+
       onFinish ? onFinish() : navigate(`/dashboard/${branchId}/students`);
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Something went wrong!");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -204,87 +273,145 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
 
       <form onSubmit={handleSubmit} className="form">
         <div className="section">
-          <h4><FiUser /> Personal Information</h4>
+          <h4>
+            <FiUser /> Personal Information
+          </h4>
           <div className="grid">
             <Field label="First Name">
-              <Input icon={<FiUserCheck />} name="first_name" value={form.first_name} onChange={handleChange} required />
+              <Input
+                icon={<FiUserCheck />}
+                name="first_name"
+                value={form.first_name}
+                onChange={handleChange}
+                required
+              />
             </Field>
             <Field label="Last Name">
-              <Input icon={<FiUser />} name="last_name" value={form.last_name} onChange={handleChange} required />
+              <Input
+                icon={<FiUser />}
+                name="last_name"
+                value={form.last_name}
+                onChange={handleChange}
+                required
+              />
             </Field>
             <Field label="Student Phone">
-              <Input icon={<FiPhone />} name="phone" value={form.phone} onChange={handleChange} />
+              <Input
+                icon={<FiPhone />}
+                name="phone"
+                value={form.phone}
+                onChange={handleChange}
+                maxLength={17}
+              />
             </Field>
+
             <Field label="Parent Phone">
-              <Input icon={<FiPhone />} name="parent_phone" value={form.parent_phone} onChange={handleChange} />
+              <Input
+                icon={<FiPhone />}
+                name="parent_phone"
+                value={form.parent_phone}
+                onChange={handleChange}
+                maxLength={17}
+              />
             </Field>
           </div>
         </div>
 
         <div className="section">
-          <h4><FiBookOpen /> Education Details</h4>
+          <h4>
+            <FiBookOpen /> Education Details
+          </h4>
           <div className="grid">
             <Field label="Course">
-              <Select 
-                icon={<FiBookOpen />} 
-                name="course_id" 
-                value={form.course_id} 
-                onChange={handleChange} 
-                options={dbData.courses} 
+              <Select
+                icon={<FiBookOpen />}
+                name="course_id"
+                value={form.course_id}
+                onChange={handleChange}
+                options={dbData.courses}
               />
             </Field>
             <Field label="Teacher">
-              <Select 
-                icon={<FiUsers />} 
-                name="teacher_id" 
-                value={form.teacher_id} 
-                onChange={handleChange} 
+              <Select
+                icon={<FiUsers />}
+                name="teacher_id"
+                value={form.teacher_id}
+                onChange={handleChange}
                 options={filteredTeachers}
                 disabled={!form.course_id}
                 placeholder={form.course_id ? "Select" : "Select course first"}
               />
             </Field>
             <Field label="Group">
-              <Select 
-                icon={<FiClipboard />} 
-                name="group_id" 
-                value={form.group_id} 
-                onChange={handleChange} 
+              <Select
+                icon={<FiClipboard />}
+                name="group_id"
+                value={form.group_id}
+                onChange={handleChange}
                 options={filteredGroups}
                 disabled={!form.course_id || filteredGroups.length === 0}
                 placeholder={
-                  !form.course_id 
-                  ? "Select course" 
-                  : filteredGroups.length === 0 
-                  ? "No groups available" 
-                  : "Select group"
+                  !form.course_id
+                    ? "Select course"
+                    : filteredGroups.length === 0
+                      ? "No groups available"
+                      : "Select group"
                 }
               />
             </Field>
             <Field label="Start Date">
-              <DateInput name="start_date" value={form.start_date} onChange={handleChange} />
+              <DateInput
+                name="start_date"
+                value={form.start_date}
+                onChange={handleChange}
+              />
             </Field>
           </div>
         </div>
 
         <div className="section">
-          <h4><FiCreditCard /> Payment Details</h4>
+          <h4>
+            <FiCreditCard /> Payment Details
+          </h4>
           <div className="grid">
             <Field label="Payment Date">
-              <DateInput name="payment_date" value={form.payment_date} onChange={handleChange} />
+              <DateInput
+                name="payment_date"
+                value={form.payment_date}
+                onChange={handleChange}
+              />
             </Field>
             <Field label="Next Payment Date">
-              <DateInput name="next_payment_date" value={form.next_payment_date} onChange={handleChange} />
+              <DateInput
+                name="next_payment_date"
+                value={form.next_payment_date}
+                onChange={handleChange}
+              />
             </Field>
             <Field label="Monthly Fee">
-              <Input icon={<FiTrendingUp />} name="monthly_fee" value={form.monthly_fee} onChange={handleChange} />
+              <Input
+                icon={<FiTrendingUp />}
+                name="monthly_fee"
+                value={form.monthly_fee}
+                onChange={handleChange}
+              />
             </Field>
             <Field label="Teacher's Share (%)">
-              <Input icon={<FiDollarSign />} name="teacher_percent" value={form.teacher_percent} onChange={handleChange} />
+              <Input
+                icon={<FiDollarSign />}
+                name="teacher_percent"
+                value={form.teacher_percent}
+                onChange={handleChange}
+              />
             </Field>
           </div>
           <label className="checkbox">
-            <input type="checkbox" name="paid" checked={form.paid} onChange={handleChange} />
+            <input
+              type="checkbox"
+              name="paid"
+              checked={form.paid}
+              onChange={handleChange}
+            />
             <FiCheckCircle color={form.paid ? "#22c55e" : "#ccc"} /> Paid
           </label>
         </div>
@@ -292,9 +419,13 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
         <div className="actions">
           <button type="submit" className="submit-btn" disabled={loading}>
             <FiSave />
-            {loading ? "Saving..." : (isEdit ? "Update" : "Save")}
+            {loading ? "Saving..." : isEdit ? "Update" : "Save"}
           </button>
-          <button type="button" className="cancel-btn" onClick={() => navigate(-1)}>
+          <button
+            type="button"
+            className="cancel-btn"
+            onClick={() => navigate(-1)}
+          >
             <FiX /> Cancel
           </button>
         </div>
