@@ -28,7 +28,6 @@ const normalizePhone = (value) => {
 
   if (!digits) return null;
 
-  // agar user 9 digit yozsa ham +998 bilan to'ldiramiz
   let d = digits;
 
   if (d.length === 9) {
@@ -192,8 +191,6 @@ export default function AddStudents({
       const cleanStudentPhone = normalizePhone(form.phone);
       const cleanParentPhone = normalizePhone(form.parent_phone);
 
-      // 👉 NO ERROR VALIDATION AT ALL FOR PHONE
-      // faqat duplicate check qoladi
 
       if (cleanStudentPhone) {
         const { data: existingStudent } = await supabase
