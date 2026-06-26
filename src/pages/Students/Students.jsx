@@ -130,18 +130,24 @@ export default function Students({ activeBranch }) {
     setSaving(true);
 
     const payload = {
-      first_name: editData.first_name || "",
-      last_name: editData.last_name || "",
-      phone: editData.phone || "",
-      parent_phone: editData.parent_phone || "",
+      first_name: editData.first_name?.trim() || "",
+      last_name: editData.last_name?.trim() || "",
+
+      // Telefon majburiy emas
+      phone: editData.phone?.trim() || null,
+      parent_phone: editData.parent_phone?.trim() || null,
+
       course_id: editData.course_id || null,
       teacher_id: editData.teacher_id || null,
       group_id: editData.group_id || null,
+
       start_date: editData.start_date || null,
       payment_date: editData.payment_date || null,
       next_payment_date: editData.next_payment_date || null,
+
       monthly_fee: Number(editData.monthly_fee) || 0,
       teacher_percent: Number(editData.teacher_percent) || 0,
+
       paid: Boolean(editData.paid),
     };
 
