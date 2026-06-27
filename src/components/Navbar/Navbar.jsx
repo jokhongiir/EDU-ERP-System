@@ -1,12 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import {
-  Search,
-  ChevronDown,
-  Menu,
-  Plus,
-  Edit,
-  Trash2,
-} from "lucide-react";
+import { Search, ChevronDown, Menu, Plus, Edit, Trash2 } from "lucide-react";
 import { supabase } from "../../services/supabaseClient";
 import "./Navbar.css";
 
@@ -75,7 +68,6 @@ export default function Navbar({
       await refreshBranches?.();
 
       window.location.reload();
-
     } catch (err) {
       console.error("Save error:", err);
     }
@@ -98,10 +90,7 @@ export default function Navbar({
     if (!selectedBranch) return;
 
     try {
-      await supabase
-        .from("branches")
-        .delete()
-        .eq("id", selectedBranch.id);
+      await supabase.from("branches").delete().eq("id", selectedBranch.id);
 
       setDeleteModalOpen(false);
       setSelectedBranch(null);
@@ -109,7 +98,6 @@ export default function Navbar({
       await refreshBranches?.();
 
       window.location.reload();
-
     } catch (err) {
       console.error("Delete error:", err);
     }
@@ -122,9 +110,7 @@ export default function Navbar({
           <Menu size={22} />
         </button>
 
-        <h1 className="erp-navbar__title">
-          {centerName || "EDU ERP"}
-        </h1>
+        <h1 className="erp-navbar__title">{centerName || "EDU ERP"}</h1>
 
         {/* <div className="erp-navbar__search">
           <Search size={18} />
@@ -134,7 +120,6 @@ export default function Navbar({
 
       <div className="erp-navbar__right">
         <div className="erp-navbar__dropdown" ref={dropdownRef}>
-
           <button
             className="erp-navbar__dropdown-btn"
             onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -145,7 +130,6 @@ export default function Navbar({
 
           {dropdownOpen && (
             <div className="erp-navbar__dropdown-menu">
-
               <div
                 className="erp-navbar__dropdown-add"
                 onClick={() => {
@@ -163,7 +147,6 @@ export default function Navbar({
 
               {branches.map((b) => (
                 <div key={b.id} className="erp-navbar__branch-item">
-
                   <span
                     onClick={() => {
                       setActiveBranch(b);
@@ -176,12 +159,8 @@ export default function Navbar({
                   <div className="erp-navbar__actions">
                     <Edit size={14} onClick={() => handleEdit(b)} />
 
-                    <Trash2
-                      size={14}
-                      onClick={() => handleDeleteClick(b)}
-                    />
+                    <Trash2 size={14} onClick={() => handleDeleteClick(b)} />
                   </div>
-
                 </div>
               ))}
             </div>
@@ -199,10 +178,7 @@ export default function Navbar({
       {modalOpen && (
         <div className="erp-modal__overlay">
           <div className="erp-modal">
-
-            <h3>
-              {editingBranch ? "Edit Branch" : "Create Branch"}
-            </h3>
+            <h3>{editingBranch ? "Edit Branch" : "Create Branch"}</h3>
 
             <input
               value={form.name}
@@ -211,15 +187,12 @@ export default function Navbar({
             />
 
             <div className="erp-modal__actions">
-              <button onClick={() => setModalOpen(false)}>
-                Cancel
-              </button>
+              <button onClick={() => setModalOpen(false)}>Cancel</button>
 
               <button onClick={handleSave}>
                 {editingBranch ? "Update" : "Create"}
               </button>
             </div>
-
           </div>
         </div>
       )}
@@ -227,12 +200,11 @@ export default function Navbar({
       {deleteModalOpen && (
         <div className="erp-modal__overlay">
           <div className="erp-modal erp-modal--danger">
-
             <h3>Confirm Deletion</h3>
 
             <p>
-              Are you sure you want to delete{" "}
-              <b>{selectedBranch?.name}</b>? This action cannot be undone.
+              Are you sure you want to delete <b>{selectedBranch?.name}</b>?
+              This action cannot be undone.
             </p>
 
             <div className="erp-modal__actions">
@@ -245,18 +217,13 @@ export default function Navbar({
                 Cancel
               </button>
 
-              <button
-                className="danger"
-                onClick={handleDeleteConfirm}
-              >
+              <button className="danger" onClick={handleDeleteConfirm}>
                 Yes, Delete
               </button>
             </div>
-
           </div>
         </div>
       )}
-
     </header>
   );
 }
