@@ -126,10 +126,10 @@ export default function Navbar({
           {centerName || "EDU ERP"}
         </h1>
 
-        <div className="erp-navbar__search">
+        {/* <div className="erp-navbar__search">
           <Search size={18} />
           <input placeholder="Search..." />
-        </div>
+        </div> */}
       </div>
 
       <div className="erp-navbar__right">
