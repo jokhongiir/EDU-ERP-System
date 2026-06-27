@@ -89,29 +89,39 @@ export default function Teachers({ activeBranch }) {
   const courseMap = useMemo(() => {
     return new Map(courses.map((c) => [c.id, c.name]));
   }, [courses]);
-
   const teacherStatsMap = useMemo(() => {
     const stats = {};
 
-    teachers.forEach((t) => {
-      stats[t.id] = { count: 0, active: 0, income: 0 };
+    // Har bir teacher uchun boshlang'ich statistika
+    teachers.forEach((teacher) => {
+      stats[String(teacher.id)] = {
+        count: 0,
+        active: 0,
+        income: 0,
+      };
     });
 
-    students.forEach((s) => {
-      const tId = s.teacher_id;
-      if (!tId || !stats[tId]) return;
+    // Studentlar bo'yicha hisoblash
+    students.forEach((student) => {
+      const teacherId = String(student.teacher_id || "");
 
-      stats[tId].count += 1;
+      if (!teacherId || !stats[teacherId]) return;
 
-      if (s.status === "active" || s.paid) {
-        stats[tId].active += 1;
+      // Student soni
+      stats[teacherId].count += 1;
+
+      // Aktiv student
+      if (student.paid) {
+        stats[teacherId].active += 1;
       }
 
-      if (s.paid) {
-        const fee = s.monthly_fee || 0;
-        const percent = s.teacher_percent || 0;
-        stats[tId].income += (fee * percent) / 100;
-      }
+      // O'qituvchi daromadi
+      const monthlyFee = Number(student.monthly_fee) || 0;
+      const teacherPercent = Number(student.teacher_percent) || 0;
+
+      stats[teacherId].income += student.paid
+        ? (monthlyFee * teacherPercent) / 100
+        : 0;
     });
 
     return stats;
@@ -280,7 +290,8 @@ export default function Teachers({ activeBranch }) {
                       <FiUsers /> Students
                     </label>
                     <span>
-                      {teacherStatsMap[viewData.id]?.count || 0} students
+                      {teacherStatsMap[String(viewData.id)]?.count || 0}{" "}
+                      students
                     </span>
                   </div>
 
@@ -290,7 +301,7 @@ export default function Teachers({ activeBranch }) {
                     </label>
                     <span className="income-highlight">
                       {(
-                        teacherStatsMap[viewData.id]?.income || 0
+                        teacherStatsMap[String(viewData.id)]?.income || 0
                       ).toLocaleString()}{" "}
                       UZS
                     </span>
@@ -606,10 +617,13 @@ export default function Teachers({ activeBranch }) {
                     </td>
                     <td>
                       <FiUsers style={{ marginRight: "5px" }} />
-                      {stats.count} students
+                      {teacherStatsMap[String(t.id)]?.count || 0} students
                     </td>
                     <td className="price-col">
-                      {stats.income.toLocaleString()} UZS
+                      {(
+                        teacherStatsMap[String(t.id)]?.income || 0
+                      ).toLocaleString()}{" "}
+                      UZS
                     </td>
                     <td>
                       <span

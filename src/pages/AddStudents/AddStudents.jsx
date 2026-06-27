@@ -191,7 +191,6 @@ export default function AddStudents({
       const cleanStudentPhone = normalizePhone(form.phone);
       const cleanParentPhone = normalizePhone(form.parent_phone);
 
-
       if (cleanStudentPhone) {
         const { data: existingStudent } = await supabase
           .from("students")
