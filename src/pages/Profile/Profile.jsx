@@ -53,10 +53,6 @@ export default function Profile() {
     recentPayments: [],
   });
 
-  // ============================================================
-  // HELPERS
-  // ============================================================
-
   const formatMoney = (num = 0) => {
     return new Intl.NumberFormat("en-US").format(num);
   };
@@ -70,10 +66,6 @@ export default function Profile() {
     };
   };
 
-  // ============================================================
-  // FETCH DATA
-  // ============================================================
-
   const fetchProfileData = useCallback(async () => {
     try {
       setLoading(true);
@@ -84,9 +76,6 @@ export default function Profile() {
 
       if (!user) return;
 
-      // ========================================================
-      // GET BRANCHES
-      // ========================================================
 
       const { data: branches } = await supabase
         .from("branches")
@@ -94,10 +83,6 @@ export default function Profile() {
         .eq("owner_uid", user.id);
 
       const branchIds = branches?.map((b) => b.id) || [];
-
-      // ========================================================
-      // FETCH ALL TABLES
-      // ========================================================
 
       const [studentsRes, teachersRes, coursesRes, groupsRes] =
         await Promise.all([
@@ -114,24 +99,12 @@ export default function Profile() {
 
       const teachers = teachersRes.data || [];
 
-      // ========================================================
-      // STUDENT PAYMENTS
-      // ========================================================
-
       const paidStudents = students.filter((s) => s.paid);
 
       const unpaidStudents = students.filter((s) => !s.paid);
 
-      // ========================================================
-      // TOTAL INCOME
-      // ========================================================
-
       const totalIncome =
         paidStudents.reduce((sum, s) => sum + (s.monthly_fee || 0), 0) || 0;
-
-      // ========================================================
-      // TEACHER EXPENSES
-      // ========================================================
 
       const totalExpense =
         students.reduce((sum, s) => {
@@ -142,15 +115,8 @@ export default function Profile() {
           return sum + (fee * percent) / 100;
         }, 0) || 0;
 
-      // ========================================================
-      // NET PROFIT
-      // ========================================================
-
       const totalProfit = totalIncome - totalExpense;
 
-      // ========================================================
-      // MONTHLY ANALYTICS
-      // ========================================================
 
       const { month, year } = getCurrentMonth();
 
@@ -177,10 +143,6 @@ export default function Profile() {
 
       const monthlyProfit = monthlyIncome - monthlyExpense;
 
-      // ========================================================
-      // BRANCH STATS
-      // ========================================================
-
       const branchStats =
         branches?.map((branch) => {
           const branchStudents = students.filter(
@@ -203,18 +165,10 @@ export default function Profile() {
           };
         }) || [];
 
-      // ========================================================
-      // RECENT PAYMENTS
-      // ========================================================
-
       const recentPayments = students
         .filter((s) => s.paid)
         .sort((a, b) => new Date(b.payment_date) - new Date(a.payment_date))
         .slice(0, 5);
-
-      // ========================================================
-      // SET STATE
-      // ========================================================
 
       setProfileData({
         centerName: user.user_metadata?.centerName || "Education ERP",
@@ -258,9 +212,6 @@ export default function Profile() {
     fetchProfileData();
   }, [fetchProfileData]);
 
-  // ============================================================
-  // PROFIT STATUS
-  // ============================================================
 
   const profitStatus = useMemo(() => {
     if (profileData.totalProfit > 0) return "profit";
@@ -268,15 +219,9 @@ export default function Profile() {
     return "loss";
   }, [profileData.totalProfit]);
 
-  // ============================================================
-  // UI
-  // ============================================================
 
   return (
     <div className="erp-profile-page">
-      {/* ======================================================
-          TOP HEADER
-      ====================================================== */}
 
       <div className="erp-profile-top">
         <div className="profile-main-left">
@@ -313,10 +258,6 @@ export default function Profile() {
           </div>
         </div>
       </div>
-
-      {/* ======================================================
-          GLOBAL STATS
-      ====================================================== */}
 
       <div className="erp-global-grid">
         <div className="erp-stat-box">
@@ -368,10 +309,6 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* ======================================================
-          MONTHLY ANALYTICS
-      ====================================================== */}
-
       <div className="analytics-grid">
         <div className="analytics-card">
           <div className="analytics-top">
@@ -401,10 +338,6 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* ======================================================
-          PAYMENT STATUS
-      ====================================================== */}
-
       <div className="payment-status-grid">
         <div className="payment-box paid">
           <FiCheckCircle />
@@ -427,9 +360,6 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* ======================================================
-          BRANCHES
-      ====================================================== */}
 
       <div className="erp-section-box">
         <div className="section-title">
@@ -466,9 +396,6 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* ======================================================
-          RECENT PAYMENTS
-      ====================================================== */}
 
       <div className="erp-section-box">
         <div className="section-title">
