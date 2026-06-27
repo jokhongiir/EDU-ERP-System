@@ -76,7 +76,6 @@ export default function Profile() {
 
       if (!user) return;
 
-
       const { data: branches } = await supabase
         .from("branches")
         .select("*")
@@ -116,7 +115,6 @@ export default function Profile() {
         }, 0) || 0;
 
       const totalProfit = totalIncome - totalExpense;
-
 
       const { month, year } = getCurrentMonth();
 
@@ -212,17 +210,14 @@ export default function Profile() {
     fetchProfileData();
   }, [fetchProfileData]);
 
-
   const profitStatus = useMemo(() => {
     if (profileData.totalProfit > 0) return "profit";
 
     return "loss";
   }, [profileData.totalProfit]);
 
-
   return (
     <div className="erp-profile-page">
-
       <div className="erp-profile-top">
         <div className="profile-main-left">
           <div className="erp-avatar">{profileData.centerName?.charAt(0)}</div>
@@ -360,7 +355,6 @@ export default function Profile() {
         </div>
       </div>
 
-
       <div className="erp-section-box">
         <div className="section-title">
           <h2>Branch Financial Overview</h2>
@@ -395,7 +389,6 @@ export default function Profile() {
           ))}
         </div>
       </div>
-
 
       <div className="erp-section-box">
         <div className="section-title">
