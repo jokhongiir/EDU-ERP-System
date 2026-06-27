@@ -91,8 +91,6 @@ export default function Teachers({ activeBranch }) {
   }, [courses]);
   const teacherStatsMap = useMemo(() => {
     const stats = {};
-
-    // Har bir teacher uchun boshlang'ich statistika
     teachers.forEach((teacher) => {
       stats[String(teacher.id)] = {
         count: 0,
@@ -101,21 +99,17 @@ export default function Teachers({ activeBranch }) {
       };
     });
 
-    // Studentlar bo'yicha hisoblash
     students.forEach((student) => {
       const teacherId = String(student.teacher_id || "");
 
       if (!teacherId || !stats[teacherId]) return;
 
-      // Student soni
       stats[teacherId].count += 1;
 
-      // Aktiv student
       if (student.paid) {
         stats[teacherId].active += 1;
       }
 
-      // O'qituvchi daromadi
       const monthlyFee = Number(student.monthly_fee) || 0;
       const teacherPercent = Number(student.teacher_percent) || 0;
 
