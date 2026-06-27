@@ -176,7 +176,7 @@ export default function Payments({ activeBranch }) {
       {/* HEADER SECTION */}
       <header className="payments-header">
         <div className="header-info">
-          <h1>{activeBranch?.name || "Management"} Payments</h1>
+          <h1>{activeBranch?.name || "Management"} • Payments</h1>
           <p>Automated billing system for {students.length} active students</p>
         </div>
         <button
