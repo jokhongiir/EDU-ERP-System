@@ -19,7 +19,6 @@ import "./Payments.css";
 export default function Payments({ activeBranch }) {
   const branchId = activeBranch?.id;
 
-  // ================= STATE =================
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");

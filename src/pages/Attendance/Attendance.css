@@ -1,6 +1,3 @@
-/* ==========================================================================
-   1. DIZAYN TIZIMI VA GLOBAL O'ZGARUVCHILAR
-   ========================================================================== */
 :root {
   --primary: #376fff;
   --primary-dark: #1a56db;
@@ -11,40 +8,36 @@
   --text-soft: #64748b;
   --muted: #94a3b8;
   --border: #e2e8f0;
-  
+
   --success: #10b981;
   --success-bg: #ecfdf5;
   --danger: #ef4444;
   --danger-bg: #fee2e2;
   --warning: #f59e0b;
   --warning-bg: #fffbeb;
-  
+
   --shadow-sm: 0 3px 10px rgba(15, 23, 42, 0.05);
   --shadow-md: 0 10px 28px rgba(15, 23, 42, 0.08);
 }
 
-/* Asosiy konteyner — Kenglik qat'iy cheklangan va swipe mutloq o'chirilgan */
 .attendance-pro-container {
   max-width: 1280px;
   margin: 0 auto;
   width: 100%;
   padding: 8px;
   box-sizing: border-box;
-  overflow: hidden; /* Sahifa o'ngga surilib ketishini butunlay to'sadi */
+  overflow: hidden;
   animation: fadeIn 0.6s ease-out;
   font-family: "Inter", sans-serif;
 }
 
-/* ==========================================================================
-   2. RESPONSIVE HEADER
-   ========================================================================== */
 .attendance-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 25px;
   gap: 20px;
-  flex-wrap: wrap; /* Kichik ekranlarda elementlar pastga tushadi */
+  flex-wrap: wrap;
 }
 
 .header-title h1 {
@@ -77,9 +70,16 @@
 }
 
 @media (max-width: 480px) {
-  .search-box { width: 100%; }
-  .header-actions { width: 100%; }
-  .save-btn { width: 100%; justify-content: center; }
+  .search-box {
+    width: 100%;
+  }
+  .header-actions {
+    width: 100%;
+  }
+  .save-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 .search-box svg {
@@ -133,9 +133,6 @@
   cursor: not-allowed;
 }
 
-/* ==========================================================================
-   3. STATISTIKA PANELl (MINI CARDS)
-   ========================================================================== */
 .stats-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -165,11 +162,21 @@
   flex-shrink: 0;
 }
 
-.icon.blue { background: #eff6ff; color: #3b82f6; }
-.icon.orange { background: #fff7ed; color: #f97316; }
+.icon.blue {
+  background: #eff6ff;
+  color: #3b82f6;
+}
+.icon.orange {
+  background: #fff7ed;
+  color: #f97316;
+}
 
-.stat-card-mini.schedule.odd { border-left: 4px solid #8b5cf6; }
-.stat-card-mini.schedule.even { border-left: 4px solid #ec4899; }
+.stat-card-mini.schedule.odd {
+  border-left: 4px solid #8b5cf6;
+}
+.stat-card-mini.schedule.even {
+  border-left: 4px solid #ec4899;
+}
 
 .stat-card-mini .data span {
   display: block;
@@ -183,12 +190,8 @@
   color: var(--text);
 }
 
-/* ==========================================================================
-   4. GURUHLAR NAVIGATSIYASI (SWIPE-SIZ PROFESSIONAL CARDS GRID)
-   ========================================================================== */
 .group-navigation {
   display: grid;
-  /* Ustunlar sig'ishiga qarab pastga chiroyli avtomat tushadi, o'ngga surilmaydi */
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 12px;
   padding: 5px 0 24px;
@@ -197,7 +200,7 @@
 
 .group-pill {
   display: flex;
-  flex-direction: column; /* Ikonka tepada, yozuv pastda chiroyli card */
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 10px;
@@ -241,9 +244,6 @@
   color: white;
 }
 
-/* ==========================================================================
-   5. DAVOMAT BOARDI VA JADVAL ARXITEKTURASI
-   ========================================================================== */
 .attendance-board {
   background: white;
   border-radius: 24px;
@@ -285,9 +285,8 @@
   text-transform: capitalize;
 }
 
-/* Jadval kanvasi va qat'iy o'lchamlar taqsimoti */
 .table-responsive {
-  overflow-x: auto; /* Ekran buzilmasligi uchun faqat jadval ichi skrol bo'ladi */
+  overflow-x: auto;
   border-radius: 12px;
   border: 1px solid var(--border);
 }
@@ -296,10 +295,9 @@
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  table-layout: fixed; /* Grid ustunlari kengligini qat'iy ushlab turadi */
+  table-layout: fixed;
 }
 
-/* Ustun o'lchamlari */
 .attendance-table th.sticky-col,
 .attendance-table td.sticky-col {
   width: 220px;
@@ -332,7 +330,6 @@
   box-sizing: border-box;
 }
 
-/* Qotib turuvchi F.I.O ustuni */
 .sticky-col {
   position: sticky;
   left: 0;
@@ -380,7 +377,7 @@ tr:hover .sticky-col {
   font-size: 14px;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis; /* Ism uzun bo'lsa, kesib uch nuqta qo'yadi */
+  text-overflow: ellipsis;
 }
 
 .avatar {
@@ -397,9 +394,6 @@ tr:hover .sticky-col {
   flex-shrink: 0;
 }
 
-/* ==========================================================================
-   6. CUSTOM CHECKBOX & FOIZ AYLANALARI
-   ========================================================================== */
 .custom-check {
   display: block;
   position: relative;
@@ -468,13 +462,19 @@ tr:hover .sticky-col {
   margin: 0 auto;
 }
 
-.percent-circle.good { background: var(--success-bg); color: var(--success); }
-.percent-circle.warning { background: var(--warning-bg); color: var(--warning); }
-.percent-circle.bad { background: var(--danger-bg); color: var(--danger); }
+.percent-circle.good {
+  background: var(--success-bg);
+  color: var(--success);
+}
+.percent-circle.warning {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+.percent-circle.bad {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
 
-/* ==========================================================================
-   7. TOAST, EMPTY & ANIMATIONS
-   ========================================================================== */
 .toast-message {
   position: fixed;
   bottom: 30px;
@@ -491,25 +491,49 @@ tr:hover .sticky-col {
   animation: slideInRight 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
-.toast-message.success { background: #10b981; }
-.toast-message.error { background: #ef4444; }
-.toast-message.info { background: #3b82f6; }
+.toast-message.success {
+  background: #10b981;
+}
+.toast-message.error {
+  background: #ef4444;
+}
+.toast-message.info {
+  background: #3b82f6;
+}
 
-.spin { animation: spin 1s linear infinite; }
+.spin {
+  animation: spin 1s linear infinite;
+}
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes slideInRight {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 .empty-state {
@@ -546,8 +570,13 @@ tr:hover .sticky-col {
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 .no-results {
