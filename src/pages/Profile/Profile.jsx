@@ -1,8 +1,3 @@
-// ============================================================
-// ULTRA PROFESSIONAL ERP PROFILE
-// FULL FINANCIAL ANALYTICS + MONTHLY REPORTS
-// ============================================================
-
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { supabase } from "../../services/supabaseClient";
 

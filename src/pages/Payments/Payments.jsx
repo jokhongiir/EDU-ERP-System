@@ -22,19 +22,17 @@ export default function Payments({ activeBranch }) {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all"); // all, paid, unpaid
+  const [filterStatus, setFilterStatus] = useState("all");
 
   const [editOpen, setEditOpen] = useState(false);
   const [editData, setEditData] = useState(null);
   const [saving, setSaving] = useState(false);
 
-  // ================= UTILS =================
   const formatCurrency = (value = 0) =>
     new Intl.NumberFormat("en-US").format(value) + " UZS";
 
   const getTodayStr = () => new Date().toISOString().slice(0, 10);
 
-  // ================= DATA FETCHING =================
   const fetchPayments = useCallback(
     async (showSilent = false) => {
       if (!branchId) return;
@@ -49,7 +47,6 @@ export default function Payments({ activeBranch }) {
 
         if (error) throw error;
 
-        // 1. Check for expired payments
         const today = getTodayStr();
         const expiredIds = data
           .filter(
@@ -58,14 +55,12 @@ export default function Payments({ activeBranch }) {
           )
           .map((s) => s.id);
 
-        // 2. Batch update expired in background if any found
         if (expiredIds.length > 0) {
           await supabase
             .from("students")
             .update({ paid: false })
             .in("id", expiredIds);
 
-          // Refresh local data after auto-update
           fetchPayments(true);
         } else {
           setStudents(data || []);
@@ -83,12 +78,10 @@ export default function Payments({ activeBranch }) {
     fetchPayments();
   }, [fetchPayments]);
 
-  // ================= CORE ACTIONS =================
   const togglePayment = async (student) => {
     const isNowPaid = !student.paid;
     const today = getTodayStr();
 
-    // Professional Logic: If paying, set next due to 30 days from today
     let nextDate = student.next_payment_date;
     if (isNowPaid) {
       const d = new Date();
@@ -96,7 +89,6 @@ export default function Payments({ activeBranch }) {
       nextDate = d.toISOString().slice(0, 10);
     }
 
-    // Optimistic Update
     const oldStudents = [...students];
     setStudents((prev) =>
       prev.map((s) =>
@@ -142,7 +134,6 @@ export default function Payments({ activeBranch }) {
     fetchPayments(true);
   };
 
-  // ================= FILTERING & SEARCH =================
   const processedStudents = useMemo(() => {
     return students.filter((s) => {
       const matchesSearch = `${s.first_name} ${s.last_name}`
@@ -160,7 +151,6 @@ export default function Payments({ activeBranch }) {
     });
   }, [students, search, filterStatus]);
 
-  // STATS
   const stats = useMemo(() => {
     const paid = students.filter((s) => s.paid);
     return {
@@ -172,7 +162,6 @@ export default function Payments({ activeBranch }) {
 
   return (
     <div className="payments-container">
-      {/* HEADER SECTION */}
       <header className="payments-header">
         <div className="header-info">
           <h1>{activeBranch?.name || "Management"} • Payments</h1>
@@ -187,7 +176,6 @@ export default function Payments({ activeBranch }) {
         </button>
       </header>
 
-      {/* STATS BAR */}
       <section className="stats-grid">
         <div className="stat-card">
           <div className="icon-box income">
@@ -218,7 +206,6 @@ export default function Payments({ activeBranch }) {
         </div>
       </section>
 
-      {/* TOOLBAR */}
       <div className="table-toolbar">
         <div className="search-wrapper">
           <FiSearch />
@@ -243,7 +230,6 @@ export default function Payments({ activeBranch }) {
         </div>
       </div>
 
-      {/* DATA TABLE */}
       <div className="table-container">
         {loading ? (
           <div className="professional-loader">
@@ -326,7 +312,6 @@ export default function Payments({ activeBranch }) {
         )}
       </div>
 
-      {/* EDIT MODAL */}
       {editOpen && editData && (
         <div className="professional-modal-overlay">
           <div className="modal-content">
