@@ -75,7 +75,7 @@
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 5px;
+  /* padding: 5px; */
   min-height: 100vh;
   display: flex;
   flex-direction: column;
