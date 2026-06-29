@@ -217,7 +217,7 @@ export default function Students({ activeBranch }) {
           value={filterCourse}
           onChange={(e) => setFilterCourse(e.target.value)}
         >
-          <option value="">All Courses</option>
+          <option hidden value="">All Courses</option>
           {courses.map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}
@@ -229,7 +229,7 @@ export default function Students({ activeBranch }) {
           value={filterTeacher}
           onChange={(e) => setFilterTeacher(e.target.value)}
         >
-          <option value="">All Teachers</option>
+          <option hidden value="">All Teachers</option>
           {teachers.map((t) => (
             <option key={t.id} value={t.id}>
               {t.name}
@@ -241,7 +241,7 @@ export default function Students({ activeBranch }) {
           value={filterGroup}
           onChange={(e) => setFilterGroup(e.target.value)}
         >
-          <option value="">All Groups</option>
+          <option hidden value="">All Groups</option>
           {groups.map((g) => (
             <option key={g.id} value={g.id}>
               {g.name}
@@ -504,7 +504,7 @@ export default function Students({ activeBranch }) {
                   value={editData.course_id || ""}
                   onChange={handleChange}
                 >
-                  <option value="">Select</option>
+                  <option hidden value="">Select</option>
                   {courses.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
@@ -520,7 +520,7 @@ export default function Students({ activeBranch }) {
                   value={editData.teacher_id || ""}
                   onChange={handleChange}
                 >
-                  <option value="">Select</option>
+                  <option hidden value="">Select</option>
                   {teachers.map((t) => (
                     <option key={t.id} value={t.id}>
                       {t.name}
@@ -536,7 +536,7 @@ export default function Students({ activeBranch }) {
                   value={editData.group_id || ""}
                   onChange={handleChange}
                 >
-                  <option value="">Select</option>
+                  <option hidden value="">Select</option>
                   {groups.map((g) => (
                     <option key={g.id} value={g.id}>
                       {g.name}
