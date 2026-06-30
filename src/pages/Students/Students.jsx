@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../services/supabaseClient";
 import "./Students.css";
@@ -11,11 +11,14 @@ import {
   FiCheckCircle,
   FiSave,
   FiUser,
+  FiCalendar,
+  FiFilter,
 } from "react-icons/fi";
 
 export default function Students({ activeBranch }) {
   const navigate = useNavigate();
   const branchId = activeBranch?.id;
+
   const [students, setStudents] = useState([]);
   const [courses, setCourses] = useState([]);
   const [teachers, setTeachers] = useState([]);
@@ -36,50 +39,62 @@ export default function Students({ activeBranch }) {
   const [filterTeacher, setFilterTeacher] = useState("");
   const [filterGroup, setFilterGroup] = useState("");
 
-  const fetchData = async () => {
+  const getTodayStr = () => new Date().toISOString().slice(0, 10);
+  
+  const formatCurrency = (value = 0) =>
+    new Intl.NumberFormat("en-US").format(value) + " UZS";
+
+  // 🔄 Ma'lumotlarni xavfsiz yuklash (useCallback bilan)
+  const fetchData = useCallback(async () => {
     if (!branchId) return;
 
     setLoading(true);
+    try {
+      const [s, c, t, g] = await Promise.all([
+        supabase
+          .from("students")
+          .select("*, courses(name), teachers(name), groups(name)")
+          .eq("branch_id", branchId)
+          .order("created_at", { ascending: false }),
 
-    const [s, c, t, g] = await Promise.all([
-      supabase
-        .from("students")
-        .select("*, courses(name), teachers(name), groups(name)")
-        .eq("branch_id", branchId),
+        supabase.from("courses").select("*").eq("branch_id", branchId),
+        supabase.from("teachers").select("*").eq("branch_id", branchId),
+        supabase.from("groups").select("*").eq("branch_id", branchId),
+      ]);
 
-      supabase.from("courses").select("*").eq("branch_id", branchId),
-      supabase.from("teachers").select("*").eq("branch_id", branchId),
-      supabase.from("groups").select("*").eq("branch_id", branchId),
-    ]);
-
-    setStudents(s.data || []);
-    setCourses(c.data || []);
-    setTeachers(t.data || []);
-    setGroups(g.data || []);
-
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchData();
+      setStudents(s.data || []);
+      setCourses(c.data || []);
+      setTeachers(t.data || []);
+      setGroups(g.data || []);
+    } catch (err) {
+      console.error("Error loading students data:", err.message);
+    } finally {
+      setLoading(false);
+    }
   }, [branchId]);
 
   useEffect(() => {
-    if (viewOpen || editOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
+    fetchData();
+  }, [fetchData]);
+
+  // 🚫 Modal ochilganda scrollni professional bloklash
+  useEffect(() => {
+    document.body.style.overflow = viewOpen || editOpen ? "hidden" : "unset";
     return () => {
       document.body.style.overflow = "unset";
     };
   }, [viewOpen, editOpen]);
 
   const handleDelete = async (id) => {
-    if (!confirm("Delete student?")) return;
+    if (!confirm("Are you sure you want to delete this student profile?")) return;
 
-    await supabase.from("students").delete().eq("id", id);
-    setStudents((prev) => prev.filter((s) => s.id !== id));
+    try {
+      const { error } = await supabase.from("students").delete().eq("id", id);
+      if (error) throw error;
+      setStudents((prev) => prev.filter((s) => s.id !== id));
+    } catch (err) {
+      alert("Delete failed: " + err.message);
+    }
   };
 
   const openView = (student) => {
@@ -110,75 +125,79 @@ export default function Students({ activeBranch }) {
     setEditOpen(true);
   };
 
+  // ⚡️ Avtomatlashtirish: Checkbox holatiga qarab sanalarni to'g'ri boshqarish
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
-    setEditData((prev) => ({
-      ...prev,
-      [name]:
-        type === "checkbox"
-          ? checked
-          : type === "number"
-            ? Number(value)
-            : value,
-    }));
+    setEditData((prev) => {
+      let updated = {
+        ...prev,
+        [name]: type === "checkbox" ? checked : type === "number" ? Number(value) : value,
+      };
+
+      if (name === "paid") {
+        if (checked) {
+          const today = getTodayStr();
+          const d = new Date();
+          d.setMonth(d.getMonth() + 1); // Aniq 1 kalendar oyi qo'shish
+
+          updated.payment_date = today;
+          updated.next_payment_date = d.toISOString().slice(0, 10);
+        } else {
+          updated.payment_date = "";
+          updated.next_payment_date = "";
+        }
+      }
+
+      return updated;
+    });
   };
 
   const handleSave = async () => {
     if (!editData?.id) return;
 
     setSaving(true);
-
     const payload = {
       first_name: editData.first_name?.trim() || "",
       last_name: editData.last_name?.trim() || "",
-
-      // Telefon majburiy emas
       phone: editData.phone?.trim() || null,
       parent_phone: editData.parent_phone?.trim() || null,
-
       course_id: editData.course_id || null,
       teacher_id: editData.teacher_id || null,
       group_id: editData.group_id || null,
-
       start_date: editData.start_date || null,
       payment_date: editData.payment_date || null,
       next_payment_date: editData.next_payment_date || null,
-
       monthly_fee: Number(editData.monthly_fee) || 0,
       teacher_percent: Number(editData.teacher_percent) || 0,
-
       paid: Boolean(editData.paid),
     };
 
-    const { error } = await supabase
-      .from("students")
-      .update(payload)
-      .eq("id", editData.id);
+    try {
+      const { error } = await supabase
+        .from("students")
+        .update(payload)
+        .eq("id", editData.id);
 
-    setSaving(false);
+      if (error) throw error;
 
-    if (error) {
-      alert(error.message);
-      return;
+      await fetchData();
+      setEditOpen(false);
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setSaving(false);
     }
-
-    await fetchData();
-    setEditOpen(false);
   };
 
   const filteredStudents = useMemo(() => {
     return students.filter((s) => {
-      const fullName = `${s.first_name} ${s.last_name}`
+      const fullName = `${s.first_name || ""} ${s.last_name || ""}`
         .toLowerCase()
         .includes(search.toLowerCase());
 
       const courseMatch = filterCourse ? s.course_id === filterCourse : true;
-
-      const teacherMatch = filterTeacher
-        ? s.teacher_id === filterTeacher
-        : true;
-
+      const teacherMatch = filterTeacher ? s.teacher_id === filterTeacher : true;
       const groupMatch = filterGroup ? s.group_id === filterGroup : true;
 
       return fullName && courseMatch && teacherMatch && groupMatch;
@@ -190,119 +209,89 @@ export default function Students({ activeBranch }) {
       <div className="students__header">
         <div className="title-area">
           <h1 className="page-main-title">
-            {activeBranch?.name || "Branch"} • Students
+            {activeBranch?.name || "Management"} • Students
           </h1>
-
-          <p className="page-description">Manage all students in your branch</p>
+          <p className="page-description">Manage and monitor student enrollments, details and invoices</p>
         </div>
 
         <button
           className="primary-btn"
           onClick={() => navigate(`/dashboard/${branchId}/addstudents`)}
+          disabled={!branchId}
         >
           + Add Student
         </button>
       </div>
+
       <div className="students__search-wrapper">
         <div className="students__search">
           <FiSearch />
           <input
-            placeholder="Search by name..."
+            placeholder="Search student profiles by name..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <select
-          className="students__filter"
-          value={filterCourse}
-          onChange={(e) => setFilterCourse(e.target.value)}
-        >
-          <option hidden value="">All Courses</option>
-          {courses.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-        <select
-          className="students__filter"
-          value={filterTeacher}
-          onChange={(e) => setFilterTeacher(e.target.value)}
-        >
-          <option hidden value="">All Teachers</option>
-          {teachers.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.name}
-            </option>
-          ))}
-        </select>
-        <select
-          className="students__filter"
-          value={filterGroup}
-          onChange={(e) => setFilterGroup(e.target.value)}
-        >
-          <option hidden value="">All Groups</option>
-          {groups.map((g) => (
-            <option key={g.id} value={g.id}>
-              {g.name}
-            </option>
-          ))}
-        </select>
+        <div className="filter-select-box">
+          <select value={filterCourse} onChange={(e) => setFilterCourse(e.target.value)}>
+            <option value="">All Courses</option>
+            {courses.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+        </div>
+        <div className="filter-select-box">
+          <select value={filterTeacher} onChange={(e) => setFilterTeacher(e.target.value)}>
+            <option value="">All Teachers</option>
+            {teachers.map((t) => (
+              <option key={t.id} value={t.id}>{t.name}</option>
+            ))}
+          </select>
+        </div>
+        <div className="filter-select-box">
+          <select value={filterGroup} onChange={(e) => setFilterGroup(e.target.value)}>
+            <option value="">All Groups</option>
+            {groups.map((g) => (
+              <option key={g.id} value={g.id}>{g.name}</option>
+            ))}
+          </select>
+        </div>
       </div>
+
       <div className="students__table-wrapper">
         <table className="students__table">
           <thead>
             <tr>
               <th>#</th>
               <th>Full Name</th>
-              <th>Phone</th>
-              <th>Course</th>
-              <th>Teacher</th>
-              <th>Group</th>
-              <th>Status</th>
-              <th>Actions</th>
+              <th>Contact Phone</th>
+              <th>Enrolled Course</th>
+              <th>Assigned Teacher</th>
+              <th>Group Class</th>
+              <th>Billing Status</th>
+              <th align="center">Actions</th>
             </tr>
           </thead>
 
           <tbody>
             {loading ? (
-              Array.from({ length: 8 }).map((_, i) => (
+              Array.from({ length: 6 }).map((_, i) => (
                 <tr key={i}>
-                  <td>
-                    <div className="skeleton skeleton-id"></div>
-                  </td>
-
+                  <td><div className="skeleton skeleton-id"></div></td>
                   <td>
                     <div className="student-user">
                       <div className="skeleton skeleton-avatar"></div>
-
                       <div className="student-user-info">
                         <div className="skeleton skeleton-name"></div>
                         <div className="skeleton skeleton-sub"></div>
                       </div>
                     </div>
                   </td>
-
-                  <td>
-                    <div className="skeleton skeleton-phone"></div>
-                  </td>
-
-                  <td>
-                    <div className="skeleton skeleton-badge"></div>
-                  </td>
-
-                  <td>
-                    <div className="skeleton skeleton-badge"></div>
-                  </td>
-
-                  <td>
-                    <div className="skeleton skeleton-badge"></div>
-                  </td>
-
-                  <td>
-                    <div className="skeleton skeleton-status"></div>
-                  </td>
-
+                  <td><div className="skeleton skeleton-phone"></div></td>
+                  <td><div className="skeleton skeleton-badge"></div></td>
+                  <td><div className="skeleton skeleton-badge"></div></td>
+                  <td><div className="skeleton skeleton-badge"></div></td>
+                  <td><div className="skeleton skeleton-status"></div></td>
                   <td>
                     <div className="student-actions-loading">
                       <div className="skeleton skeleton-btn"></div>
@@ -314,15 +303,9 @@ export default function Students({ activeBranch }) {
             ) : filteredStudents.length === 0 ? (
               <tr>
                 <td colSpan="8">
-                  <div
-                    className="students__empty"
-                    style={{ padding: "3rem 0" }}
-                  >
-                    <FiUser
-                      size={40}
-                      style={{ marginBottom: "10px", opacity: 0.5 }}
-                    />
-                    <p>No students found</p>
+                  <div className="students__empty">
+                    <FiUser size={40} style={{ marginBottom: "12px", opacity: 0.4 }} />
+                    <p>No active records matching the selected parameters</p>
                   </div>
                 </td>
               </tr>
@@ -330,31 +313,27 @@ export default function Students({ activeBranch }) {
               filteredStudents.map((s, i) => (
                 <tr key={s.id} onClick={() => openView(s)}>
                   <td>{i + 1}</td>
-                  <td>
+                  <td className="font-bold-name">
                     {s.first_name} {s.last_name}
                   </td>
-                  <td>{s.phone}</td>
-                  <td>{s.courses?.name || "-"}</td>
-                  <td>{s.teachers?.name || "-"}</td>
-                  <td>{s.groups?.name || "-"}</td>
-
+                  <td>{s.phone || "—"}</td>
+                  <td><span className="badge-course">{s.courses?.name || "N/A"}</span></td>
+                  <td>{s.teachers?.name || "—"}</td>
+                  <td>{s.groups?.name || "—"}</td>
                   <td>
-                    {s.paid ? (
-                      <span className="status paid">
-                        <FiCheckCircle /> Paid
-                      </span>
-                    ) : (
-                      <span className="status unpaid">Unpaid</span>
-                    )}
+                    <span className={`status-pill-small ${s.paid ? "paid" : "unpaid"}`}>
+                      {s.paid ? "COLLECTED" : "OVERDUE"}
+                    </span>
                   </td>
-
-                  <td onClick={(e) => e.stopPropagation()}>
-                    <button onClick={() => openEdit(s)} title="Edit">
-                      <FiEdit />
-                    </button>
-                    <button onClick={() => handleDelete(s.id)} title="Delete">
-                      <FiTrash2 />
-                    </button>
+                  <td onClick={(e) => e.stopPropagation()} align="center">
+                    <div className="actions-cell-row">
+                      <button className="row-btn edit" onClick={() => openEdit(s)} title="Edit Configuration">
+                        <FiEdit />
+                      </button>
+                      <button className="row-btn delete" onClick={() => handleDelete(s.id)} title="Delete Profile">
+                        <FiTrash2 />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -363,103 +342,67 @@ export default function Students({ activeBranch }) {
         </table>
       </div>
 
+      {/* 👁️ VIEW DETAILS MODAL */}
       {viewOpen && viewData && (
         <div className="modal" onClick={() => setViewOpen(false)}>
-          {" "}
-          <div
-            className="modal__box view__box"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {" "}
+          <div className="modal__box view__box" onClick={(e) => e.stopPropagation()}>
             <div className="modal__header">
-              <h3>Student Details</h3>
-              <button onClick={() => setViewOpen(false)}>
-                <FiX />
-              </button>
+              <h3>Student Master Record</h3>
+              <button onClick={() => setViewOpen(false)}><FiX /></button>
             </div>
             <div className="view__grid">
               <div className="view__column">
                 <div className="view__field">
                   <label>Full Name</label>
-                  <div className="view__value">
-                    {viewData.first_name} {viewData.last_name}
-                  </div>
+                  <div className="view__value">{viewData.first_name} {viewData.last_name}</div>
                 </div>
-
                 <div className="view__field">
-                  <label>Phone</label>
-                  <div className="view__value">{viewData.phone || "-"}</div>
+                  <label>Personal Mobile</label>
+                  <div className="view__value">{viewData.phone || "Not specified"}</div>
                 </div>
-
                 <div className="view__field">
-                  <label>Parent Phone</label>
-                  <div className="view__value">
-                    {viewData.parent_phone || "-"}
-                  </div>
+                  <label>Emergency Parent Contact</label>
+                  <div className="view__value">{viewData.parent_phone || "Not specified"}</div>
                 </div>
-
                 <div className="view__field">
-                  <label>Course</label>
-                  <div className="view__value">
-                    {viewData.courses?.name || "-"}
-                  </div>
+                  <label>Program / Course</label>
+                  <div className="view__value">{viewData.courses?.name || "Unassigned"}</div>
                 </div>
-
                 <div className="view__field">
-                  <label>Teacher</label>
-                  <div className="view__value">
-                    {viewData.teachers?.name || "-"}
-                  </div>
+                  <label>Primary Instructor</label>
+                  <div className="view__value">{viewData.teachers?.name || "Unassigned"}</div>
                 </div>
               </div>
 
               <div className="view__column">
                 <div className="view__field">
-                  <label>Group</label>
-                  <div className="view__value">
-                    {viewData.groups?.name || "-"}
-                  </div>
+                  <label>Allocated Group</label>
+                  <div className="view__value">{viewData.groups?.name || "Unassigned"}</div>
                 </div>
-
                 <div className="view__field">
-                  <label>Start Date</label>
-                  <div className="view__value">
-                    {viewData.start_date || "-"}
-                  </div>
+                  <label>Enrollment Commencement</label>
+                  <div className="view__value"><FiCalendar /> {viewData.start_date || "—"}</div>
                 </div>
-
                 <div className="view__field">
-                  <label>Payment Date</label>
-                  <div className="view__value">
-                    {viewData.payment_date || "-"}
-                  </div>
+                  <label>Latest Settlement Date</label>
+                  <div className="view__value">{viewData.payment_date || "—"}</div>
                 </div>
-
                 <div className="view__field">
-                  <label>Next Payment</label>
-                  <div className="view__value">
-                    {viewData.next_payment_date || "-"}
-                  </div>
+                  <label>Next Invoicing Cycle</label>
+                  <div className="view__value">{viewData.next_payment_date || "—"}</div>
                 </div>
-
                 <div className="view__field">
-                  <label>Monthly Fee</label>
-                  <div className="view__value">{viewData.monthly_fee || 0}</div>
+                  <label>Standard Monthly Fee</label>
+                  <div className="view__value income-highlight">{formatCurrency(viewData.monthly_fee)}</div>
                 </div>
-
                 <div className="view__field">
-                  <label>Teacher %</label>
-                  <div className="view__value">
-                    {viewData.teacher_percent || 0}%
-                  </div>
+                  <label>Teacher Share Yield</label>
+                  <div className="view__value">{viewData.teacher_percent || 0}%</div>
                 </div>
-
                 <div className="view__field">
-                  <label>Status</label>
-                  <div
-                    className={`view__badge ${viewData.paid ? "paid" : "unpaid"}`}
-                  >
-                    {viewData.paid ? "Paid" : "Unpaid"}
+                  <label>Current Status</label>
+                  <div className={`status-pill-small ${viewData.paid ? "paid" : "unpaid"}`} style={{ display: "inline-block" }}>
+                    {viewData.paid ? "PAID" : "UNPAID"}
                   </div>
                 </div>
               </div>
@@ -468,24 +411,20 @@ export default function Students({ activeBranch }) {
         </div>
       )}
 
+      {/* 📝 UPDATE PROFILE MODAL */}
       {editOpen && editData && (
         <div className="modal" onClick={() => setEditOpen(false)}>
-          {" "}
-          {/* Tashqarini bosganda yopiladi */}
           <div className="modal__box" onClick={(e) => e.stopPropagation()}>
-            {" "}
             <div className="modal__header">
-              <h3>Edit Student</h3>
-              <button onClick={() => setEditOpen(false)}>
-                <FiX />
-              </button>
+              <h3>Update Student Parameters</h3>
+              <button onClick={() => setEditOpen(false)}><FiX /></button>
             </div>
             <div className="modal__form">
               {[
-                { label: "First Name", name: "first_name" },
-                { label: "Last Name", name: "last_name" },
-                { label: "Phone", name: "phone" },
-                { label: "Parent Phone", name: "parent_phone" },
+                { label: "First Name *", name: "first_name" },
+                { label: "Last Name *", name: "last_name" },
+                { label: "Phone Connection", name: "phone" },
+                { label: "Parent Emergency Contact", name: "parent_phone" },
               ].map((f) => (
                 <div className="form__group" key={f.name}>
                   <label>{f.label}</label>
@@ -498,69 +437,53 @@ export default function Students({ activeBranch }) {
               ))}
 
               <div className="form__group">
-                <label>Course</label>
-                <select
-                  name="course_id"
-                  value={editData.course_id || ""}
-                  onChange={handleChange}
-                >
-                  <option hidden value="">Select</option>
+                <label>Program Specialization</label>
+                <select name="course_id" value={editData.course_id || ""} onChange={handleChange}>
+                  <option value="">Select program...</option>
                   {courses.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
+                    <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
                 </select>
               </div>
 
               <div className="form__group">
-                <label>Teacher</label>
-                <select
-                  name="teacher_id"
-                  value={editData.teacher_id || ""}
-                  onChange={handleChange}
-                >
-                  <option hidden value="">Select</option>
+                <label>Assigned Instructor</label>
+                <select name="teacher_id" value={editData.teacher_id || ""} onChange={handleChange}>
+                  <option value="">Select teacher...</option>
                   {teachers.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name}
-                    </option>
+                    <option key={t.id} value={t.id}>{t.name}</option>
                   ))}
                 </select>
               </div>
 
               <div className="form__group">
-                <label>Group</label>
-                <select
-                  name="group_id"
-                  value={editData.group_id || ""}
-                  onChange={handleChange}
-                >
-                  <option hidden value="">Select</option>
+                <label>Classroom Group</label>
+                <select name="group_id" value={editData.group_id || ""} onChange={handleChange}>
+                  <option value="">Select group...</option>
                   {groups.map((g) => (
-                    <option key={g.id} value={g.id}>
-                      {g.name}
-                    </option>
+                    <option key={g.id} value={g.id}>{g.name}</option>
                   ))}
                 </select>
               </div>
 
-              {["start_date", "payment_date", "next_payment_date"].map((d) => (
-                <div className="form__group" key={d}>
-                  <label style={{ textTransform: "capitalize" }}>
-                    {d.replaceAll("_", " ")}
-                  </label>
+              {[
+                { label: "Start Date", field: "start_date" },
+                { label: "Payment Date", field: "payment_date" },
+                { label: "Next Payment Date", field: "next_payment_date" }
+              ].map((d) => (
+                <div className="form__group" key={d.field}>
+                  <label>{d.label}</label>
                   <input
                     type="date"
-                    name={d}
-                    value={editData[d] || ""}
+                    name={d.field}
+                    value={editData[d.field] || ""}
                     onChange={handleChange}
                   />
                 </div>
               ))}
 
               <div className="form__group">
-                <label>Monthly Fee</label>
+                <label>Monthly Assessment Fee (UZS)</label>
                 <input
                   type="number"
                   name="monthly_fee"
@@ -570,7 +493,7 @@ export default function Students({ activeBranch }) {
               </div>
 
               <div className="form__group">
-                <label>Teacher %</label>
+                <label>Instructor Percent Share (%)</label>
                 <input
                   type="number"
                   name="teacher_percent"
@@ -587,7 +510,7 @@ export default function Students({ activeBranch }) {
                     checked={editData.paid || false}
                     onChange={handleChange}
                   />
-                  Paid Student
+                  Mark student active and paid for current tracking month
                 </label>
               </div>
             </div>
@@ -597,8 +520,7 @@ export default function Students({ activeBranch }) {
                 onClick={handleSave}
                 disabled={saving}
               >
-                <FiSave />
-                {saving ? "Saving..." : "Save"}
+                <FiSave /> {saving ? "Saving Changes..." : "Commit Changes"}
               </button>
             </div>
           </div>
