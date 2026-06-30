@@ -65,7 +65,7 @@ export default function Navbar({
   };
 
   const handleEdit = (e, branch) => {
-    e.stopPropagation(); // Qator bosilganda filial o'zgarib ketishini oldini oladi
+    e.stopPropagation();
     setEditingBranch(branch);
     setForm({ name: branch.name });
     setModalOpen(true);
@@ -73,10 +73,29 @@ export default function Navbar({
   };
 
   const handleDeleteClick = (e, branch) => {
-    e.stopPropagation(); // Qator bosilganda filial o'zgarib ketishini oldini oladi
+    e.stopPropagation();
     setSelectedBranch(branch);
     setDeleteModalOpen(true);
     setDropdownOpen(false);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!selectedBranch) return;
+    try {
+      const { error } = await supabase
+        .from("branches")
+        .delete()
+        .eq("id", selectedBranch.id);
+
+      if (error) throw error;
+
+      setDeleteModalOpen(false);
+      setSelectedBranch(null);
+      await refreshBranches?.();
+      window.location.reload();
+    } catch (err) {
+      console.error("Delete error:", err);
+    }
   };
 
   return (
@@ -108,12 +127,12 @@ export default function Navbar({
                 }}
               >
                 <Plus size={15} />
-                New Branch
+                Add New Branch
               </div>
               <div className="erp-navbar__divider" />
               {branches.map((b) => (
-                <div 
-                  key={b.id} 
+                <div
+                  key={b.id}
                   className={`erp-navbar__branch-item ${activeBranch?.id === b.id ? "is-active" : ""}`}
                   onClick={() => {
                     setActiveBranch(b);
@@ -122,14 +141,14 @@ export default function Navbar({
                 >
                   <span className="erp-navbar__branch-name">{b.name}</span>
                   <div className="erp-navbar__actions">
-                    <button 
-                      className="erp-navbar__action-btn edit" 
+                    <button
+                      className="erp-navbar__action-btn edit"
                       onClick={(e) => handleEdit(e, b)}
                     >
                       <Edit size={13} />
                     </button>
-                    <button 
-                      className="erp-navbar__action-btn delete" 
+                    <button
+                      className="erp-navbar__action-btn delete"
                       onClick={(e) => handleDeleteClick(e, b)}
                     >
                       <Trash2 size={13} />
@@ -151,7 +170,7 @@ export default function Navbar({
       {modalOpen && (
         <div className="erp-modal__overlay">
           <div className="erp-modal">
-            <h3>{editingBranch ? "Edit Branch" : "Create Branch"}</h3>
+            <h3>{editingBranch ? "Edit Branch" : "Create New Branch"}</h3>
             <input
               value={form.name}
               onChange={(e) => setForm({ name: e.target.value })}
@@ -161,7 +180,7 @@ export default function Navbar({
             <div className="erp-modal__actions">
               <button className="btn-cancel" onClick={() => setModalOpen(false)}>Cancel</button>
               <button className="btn-save" onClick={handleSave}>
-                {editingBranch ? "Update" : "Create"}
+                {editingBranch ? "Save Changes" : "Create Branch"}
               </button>
             </div>
           </div>
@@ -171,10 +190,10 @@ export default function Navbar({
       {deleteModalOpen && (
         <div className="erp-modal__overlay">
           <div className="erp-modal erp-modal--danger">
-            <h3>Confirm Deletion</h3>
+            <h3>Are you absolutely sure?</h3>
             <p>
-              Are you sure you want to delete <b>{selectedBranch?.name}</b>?
-              This action cannot be undone.
+              Are you sure you want to delete <b>{selectedBranch?.name}</b>? 
+              This action cannot be undone and all associated data will be removed.
             </p>
             <div className="erp-modal__actions">
               <button
@@ -184,10 +203,10 @@ export default function Navbar({
                   setSelectedBranch(null);
                 }}
               >
-                Cancel
+                Keep Branch
               </button>
               <button className="btn-danger" onClick={handleDeleteConfirm}>
-                Yes, Delete
+                Yes, Delete Permanently
               </button>
             </div>
           </div>
