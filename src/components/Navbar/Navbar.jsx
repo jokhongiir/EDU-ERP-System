@@ -178,7 +178,12 @@ export default function Navbar({
               autoFocus
             />
             <div className="erp-modal__actions">
-              <button className="btn-cancel" onClick={() => setModalOpen(false)}>Cancel</button>
+              <button
+                className="btn-cancel"
+                onClick={() => setModalOpen(false)}
+              >
+                Cancel
+              </button>
               <button className="btn-save" onClick={handleSave}>
                 {editingBranch ? "Save Changes" : "Create Branch"}
               </button>
@@ -192,8 +197,9 @@ export default function Navbar({
           <div className="erp-modal erp-modal--danger">
             <h3>Are you absolutely sure?</h3>
             <p>
-              Are you sure you want to delete <b>{selectedBranch?.name}</b>? 
-              This action cannot be undone and all associated data will be removed.
+              Are you sure you want to delete <b>{selectedBranch?.name}</b>?
+              This action cannot be undone and all associated data will be
+              removed.
             </p>
             <div className="erp-modal__actions">
               <button

@@ -62,7 +62,11 @@ const formatPercent = (value) => {
   return parsed + "%";
 };
 
-export default function AddStudents({ activeBranch, editStudent = null, onFinish }) {
+export default function AddStudents({
+  activeBranch,
+  editStudent = null,
+  onFinish,
+}) {
   const navigate = useNavigate();
   const branchId = activeBranch?.id;
   const isEdit = !!editStudent;
@@ -124,7 +128,9 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
       setForm({
         ...editStudent,
         phone: editStudent.phone ? formatPhone(editStudent.phone) : "+998 ",
-        parent_phone: editStudent.parent_phone ? formatPhone(editStudent.parent_phone) : "+998 ",
+        parent_phone: editStudent.parent_phone
+          ? formatPhone(editStudent.parent_phone)
+          : "+998 ",
         monthly_fee: formatMoney(editStudent.monthly_fee),
         teacher_percent: formatPercent(editStudent.teacher_percent),
         course_id: editStudent.course_id || "",
@@ -146,9 +152,21 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
       setFetching(true);
       try {
         const [c, t, g] = await Promise.all([
-          supabase.from("courses").select("*").eq("branch_id", branchId).order("name"),
-          supabase.from("teachers").select("*").eq("branch_id", branchId).order("name"),
-          supabase.from("groups").select("*").eq("branch_id", branchId).order("name"),
+          supabase
+            .from("courses")
+            .select("*")
+            .eq("branch_id", branchId)
+            .order("name"),
+          supabase
+            .from("teachers")
+            .select("*")
+            .eq("branch_id", branchId)
+            .order("name"),
+          supabase
+            .from("groups")
+            .select("*")
+            .eq("branch_id", branchId)
+            .order("name"),
         ]);
 
         setDbData({
@@ -177,65 +195,77 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
   // Cascading Logic: Instructors by Course
   const filteredTeachers = useMemo(() => {
     if (!form.course_id) return dbData.teachers;
-    return dbData.teachers.filter((t) => String(t.course_id) === String(form.course_id));
+    return dbData.teachers.filter(
+      (t) => String(t.course_id) === String(form.course_id),
+    );
   }, [dbData.teachers, form.course_id]);
 
   // Cascading Logic: Classrooms by Course and Instructor
   const filteredGroups = useMemo(() => {
     return dbData.groups.filter((g) => {
-      const matchCourse = !form.course_id || String(g.course_id) === String(form.course_id);
-      const matchTeacher = !form.teacher_id || String(g.teacher_id) === String(form.teacher_id);
+      const matchCourse =
+        !form.course_id || String(g.course_id) === String(form.course_id);
+      const matchTeacher =
+        !form.teacher_id || String(g.teacher_id) === String(form.teacher_id);
       return matchCourse && matchTeacher;
     });
   }, [dbData.groups, form.course_id, form.teacher_id]);
 
-  const handleChange = useCallback((e) => {
-    const { name, value, type, checked } = e.target;
-    let val = type === "checkbox" ? checked : value;
+  const handleChange = useCallback(
+    (e) => {
+      const { name, value, type, checked } = e.target;
+      let val = type === "checkbox" ? checked : value;
 
-    if (name === "phone" || name === "parent_phone") val = formatPhone(value);
-    if (name === "monthly_fee") val = formatMoney(value);
-    if (name === "teacher_percent") val = formatPercent(value);
+      if (name === "phone" || name === "parent_phone") val = formatPhone(value);
+      if (name === "monthly_fee") val = formatMoney(value);
+      if (name === "teacher_percent") val = formatPercent(value);
 
-    setForm((prev) => {
-      const next = { ...prev, [name]: val };
+      setForm((prev) => {
+        const next = { ...prev, [name]: val };
 
-      if (name === "course_id") {
-        next.teacher_id = "";
-        next.group_id = "";
-        const selectedCourse = dbData.courses.find(c => String(c.id) === String(value));
-        if (selectedCourse?.price) {
-          next.monthly_fee = formatMoney(selectedCourse.price);
+        if (name === "course_id") {
+          next.teacher_id = "";
+          next.group_id = "";
+          const selectedCourse = dbData.courses.find(
+            (c) => String(c.id) === String(value),
+          );
+          if (selectedCourse?.price) {
+            next.monthly_fee = formatMoney(selectedCourse.price);
+          }
         }
-      }
-      
-      if (name === "teacher_id") {
-        next.group_id = "";
-      }
 
-      if (name === "paid") {
-        if (checked) {
-          const today = getTodayStr();
-          const nextMonth = new Date();
-          nextMonth.setMonth(nextMonth.getMonth() + 1);
-
-          next.payment_date = today;
-          next.next_payment_date = nextMonth.toISOString().slice(0, 10);
-        } else {
-          next.payment_date = "";
-          next.next_payment_date = "";
+        if (name === "teacher_id") {
+          next.group_id = "";
         }
-      }
 
-      return next;
-    });
-  }, [dbData.courses]);
+        if (name === "paid") {
+          if (checked) {
+            const today = getTodayStr();
+            const nextMonth = new Date();
+            nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+            next.payment_date = today;
+            next.next_payment_date = nextMonth.toISOString().slice(0, 10);
+          } else {
+            next.payment_date = "";
+            next.next_payment_date = "";
+          }
+        }
+
+        return next;
+      });
+    },
+    [dbData.courses],
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!form.first_name.trim() || !form.last_name.trim()) {
-      return showAlert("error", "First name and last name are strictly required fields!");
+      return showAlert(
+        "error",
+        "First name and last name are strictly required fields!",
+      );
     }
 
     setLoading(true);
@@ -251,9 +281,15 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
           .eq("phone", cleanStudentPhone)
           .maybeSingle();
 
-        if (existingStudent && (!isEdit || existingStudent.id !== editStudent?.id)) {
+        if (
+          existingStudent &&
+          (!isEdit || existingStudent.id !== editStudent?.id)
+        ) {
           setLoading(false);
-          return showAlert("error", "A student record with this phone number already exists.");
+          return showAlert(
+            "error",
+            "A student record with this phone number already exists.",
+          );
         }
       }
 
@@ -275,23 +311,27 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
       };
 
       const { error } = isEdit
-        ? await supabase.from("students").update(payload).eq("id", editStudent.id)
+        ? await supabase
+            .from("students")
+            .update(payload)
+            .eq("id", editStudent.id)
         : await supabase.from("students").insert([payload]);
 
       if (error) throw error;
 
       showAlert(
-        "success", 
-        isEdit ? "Student profile updated successfully!" : "New student has been successfully enrolled!", 
+        "success",
+        isEdit
+          ? "Student profile updated successfully!"
+          : "New student has been successfully enrolled!",
         () => {
           if (onFinish) {
             onFinish();
           } else {
             navigate(`/dashboard/${branchId}/students`);
           }
-        }
+        },
       );
-
     } catch (err) {
       console.error("Mutation error:", err);
       showAlert("error", err.message || "An unexpected system error occurred.");
@@ -301,7 +341,11 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
   };
 
   if (!branchId) {
-    return <div className="p-6 text-center text-red-500 font-semibold">Active branch context not found...</div>;
+    return (
+      <div className="p-6 text-center text-red-500 font-semibold">
+        Active branch context not found...
+      </div>
+    );
   }
 
   return (
@@ -313,18 +357,22 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
           <h3>{activeBranch?.name}</h3>
         </div>
       </div>
-      
+
       <h2>
         <FiUserCheck />
         {isEdit ? " Edit Student Profile" : " Student Enrollment Form"}
       </h2>
 
-      {fetching && <div className="loading-bar">Synchronizing parameters...</div>}
+      {fetching && (
+        <div className="loading-bar">Synchronizing parameters...</div>
+      )}
 
       <form onSubmit={handleSubmit} className="form">
         {/* SECTION 1: PERSONAL */}
         <div className="section">
-          <h4><FiUser /> Personal Information</h4>
+          <h4>
+            <FiUser /> Personal Information
+          </h4>
           <div className="grid">
             <Field label="First Name *">
               <Input
@@ -369,7 +417,9 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
 
         {/* SECTION 2: ACADEMICS */}
         <div className="section">
-          <h4><FiBookOpen /> Academic Allocation</h4>
+          <h4>
+            <FiBookOpen /> Academic Allocation
+          </h4>
           <div className="grid">
             <Field label="Course / Program">
               <Select
@@ -389,7 +439,9 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
                 onChange={handleChange}
                 options={filteredTeachers}
                 disabled={!form.course_id}
-                placeholder={form.course_id ? "Select instructor" : "Choose a course first"}
+                placeholder={
+                  form.course_id ? "Select instructor" : "Choose a course first"
+                }
               />
             </Field>
             <Field label="Classroom Group">
@@ -421,7 +473,9 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
 
         {/* SECTION 3: BILLING */}
         <div className="section">
-          <h4><FiCreditCard /> Financial Ledger Configuration</h4>
+          <h4>
+            <FiCreditCard /> Financial Ledger Configuration
+          </h4>
           <div className="grid">
             <Field label="Payment Settlement Date">
               <DateInput
@@ -456,7 +510,7 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
               />
             </Field>
           </div>
-          
+
           <label className="checkbox-wrapper-label">
             <input
               type="checkbox"
@@ -469,7 +523,9 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
             <div className={`custom-checkbox-ui ${form.paid ? "checked" : ""}`}>
               <FiCheckCircle />
             </div>
-            <span>Approve immediate payment allocation for current tracking period</span>
+            <span>
+              Approve immediate payment allocation for current tracking period
+            </span>
           </label>
         </div>
 
@@ -477,7 +533,11 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
         <div className="actions">
           <button type="submit" className="submit-btn" disabled={loading}>
             <FiSave />
-            {loading ? "Processing..." : isEdit ? "Update Master Record" : "Finalize Enrollment"}
+            {loading
+              ? "Processing..."
+              : isEdit
+                ? "Update Master Record"
+                : "Finalize Enrollment"}
           </button>
           <button
             type="button"
@@ -493,15 +553,30 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
       {/* 🚨 PREMIUM ALERT MODAL SYSTEM */}
       {alertModal.isOpen && (
         <div className="alert-modal-overlay" onClick={closeAlert}>
-          <div className={`alert-modal-box ${alertModal.type}`} onClick={(e) => e.stopPropagation()}>
+          <div
+            className={`alert-modal-box ${alertModal.type}`}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="alert-modal-icon">
-              {alertModal.type === "success" ? <FiCheckCircle /> : <FiAlertCircle />}
+              {alertModal.type === "success" ? (
+                <FiCheckCircle />
+              ) : (
+                <FiAlertCircle />
+              )}
             </div>
             <div className="alert-modal-content">
-              <h3>{alertModal.type === "success" ? "Operation Successful" : "Validation Notice"}</h3>
+              <h3>
+                {alertModal.type === "success"
+                  ? "Operation Successful"
+                  : "Validation Notice"}
+              </h3>
               <p>{alertModal.message}</p>
             </div>
-            <button type="button" className="alert-modal-close-btn" onClick={closeAlert}>
+            <button
+              type="button"
+              className="alert-modal-close-btn"
+              onClick={closeAlert}
+            >
               Acknowledge
             </button>
           </div>
