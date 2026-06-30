@@ -14,6 +14,7 @@ import {
   FiEdit2,
   FiTrash2,
   FiSearch,
+  FiAlertTriangle,
 } from "react-icons/fi";
 
 export default function Groups({ activeBranch }) {
@@ -34,8 +35,19 @@ export default function Groups({ activeBranch }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [editId, setEditId] = useState(null);
+  const [deleteId, setDeleteId] = useState(null); // O'chirish uchun ID state
 
-  const [form, setForm] = useState({
+  const setForm = useState({
+    name: "",
+    teacher_id: "",
+    course_id: "",
+    start_date: "",
+    start_time: "",
+    end_time: "",
+    schedule_type: "all",
+  })[1];
+
+  const [formValues, setFormValues] = useState({
     name: "",
     teacher_id: "",
     course_id: "",
@@ -75,8 +87,9 @@ export default function Groups({ activeBranch }) {
     fetchData();
   }, [fetchData]);
 
+  // Modal ochilganda scrollni yopish (deleteId ham qo'shildi)
   useEffect(() => {
-    if (modalOpen || selectedGroup) {
+    if (modalOpen || selectedGroup || deleteId) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "unset";
@@ -84,7 +97,7 @@ export default function Groups({ activeBranch }) {
     return () => {
       document.body.style.overflow = "unset";
     };
-  }, [modalOpen, selectedGroup]);
+  }, [modalOpen, selectedGroup, deleteId]);
 
   const getTeacher = (id) =>
     teachers.find((t) => t.id === id)?.name || "Unassigned";
@@ -100,11 +113,11 @@ export default function Groups({ activeBranch }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((p) => ({ ...p, [name]: value }));
+    setFormValues((p) => ({ ...p, [name]: value }));
   };
 
   const resetForm = () => {
-    setForm({
+    setFormValues({
       name: "",
       teacher_id: "",
       course_id: "",
@@ -119,18 +132,18 @@ export default function Groups({ activeBranch }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.name.trim()) return;
+    if (!formValues.name.trim()) return;
 
     setSaving(true);
 
     const payload = {
-      name: form.name,
-      teacher_id: form.teacher_id || null,
-      course_id: form.course_id || null,
-      start_date: form.start_date || null,
-      start_time: form.start_time || null,
-      end_time: form.end_time || null,
-      schedule_type: form.schedule_type,
+      name: formValues.name,
+      teacher_id: formValues.teacher_id || null,
+      course_id: formValues.course_id || null,
+      start_date: formValues.start_date || null,
+      start_time: formValues.start_time || null,
+      end_time: formValues.end_time || null,
+      schedule_type: formValues.schedule_type,
       branch_id: branchId,
     };
 
@@ -155,18 +168,23 @@ export default function Groups({ activeBranch }) {
     }
   };
 
-  const handleDelete = async (id) => {
-    const { error } = await supabase.from("groups").delete().eq("id", id);
+  // Haqiqiy o'chirish funksiyasi
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+    try {
+      const { error } = await supabase.from("groups").delete().eq("id", deleteId);
 
-    if (error) {
-      console.error("Failed to delete group:", error.message);
-    } else {
-      setGroups((prev) => prev.filter((g) => g.id !== id));
+      if (error) throw error;
+
+      setGroups((prev) => prev.filter((g) => g.id !== deleteId));
+      setDeleteId(null);
+    } catch (err) {
+      console.error("Failed to delete group:", err.message);
     }
   };
 
   const handleEdit = (g) => {
-    setForm({
+    setFormValues({
       name: g.name || "",
       teacher_id: g.teacher_id || "",
       course_id: g.course_id || "",
@@ -193,6 +211,7 @@ export default function Groups({ activeBranch }) {
   const renderModals = () => {
     return createPortal(
       <>
+        {/* CREATE / EDIT MODAL */}
         {modalOpen && (
           <div className="app-modal-overlay" onClick={resetForm}>
             <div className="app-modal-box" onClick={(e) => e.stopPropagation()}>
@@ -213,7 +232,7 @@ export default function Groups({ activeBranch }) {
                     name="name"
                     autoFocus
                     placeholder="e.g. General English Morning"
-                    value={form.name}
+                    value={formValues.name}
                     onChange={handleChange}
                     required
                   />
@@ -226,7 +245,7 @@ export default function Groups({ activeBranch }) {
                       className="form-control-select"
                       name="course_id"
                       onChange={handleChange}
-                      value={form.course_id}
+                      value={formValues.course_id}
                     >
                       <option value="">Select course</option>
                       {courses.map((c) => (
@@ -243,7 +262,7 @@ export default function Groups({ activeBranch }) {
                       className="form-control-select"
                       name="teacher_id"
                       onChange={handleChange}
-                      value={form.teacher_id}
+                      value={formValues.teacher_id}
                     >
                       <option value="">Select teacher</option>
                       {teachers.map((t) => (
@@ -262,7 +281,7 @@ export default function Groups({ activeBranch }) {
                       className="form-control-input"
                       type="date"
                       name="start_date"
-                      value={form.start_date}
+                      value={formValues.start_date}
                       onChange={handleChange}
                     />
                   </div>
@@ -272,7 +291,7 @@ export default function Groups({ activeBranch }) {
                     <select
                       className="form-control-select"
                       name="schedule_type"
-                      value={form.schedule_type}
+                      value={formValues.schedule_type}
                       onChange={handleChange}
                     >
                       <option value="all">Every day</option>
@@ -289,7 +308,7 @@ export default function Groups({ activeBranch }) {
                       className="form-control-input"
                       type="time"
                       name="start_time"
-                      value={form.start_time}
+                      value={formValues.start_time}
                       onChange={handleChange}
                     />
                   </div>
@@ -300,7 +319,7 @@ export default function Groups({ activeBranch }) {
                       className="form-control-input"
                       type="time"
                       name="end_time"
-                      value={form.end_time}
+                      value={formValues.end_time}
                       onChange={handleChange}
                     />
                   </div>
@@ -317,6 +336,8 @@ export default function Groups({ activeBranch }) {
             </div>
           </div>
         )}
+
+        {/* DETAILS MODAL */}
         {selectedGroup && (
           <div
             className="app-modal-overlay"
@@ -367,6 +388,30 @@ export default function Groups({ activeBranch }) {
                     {getStudentsCount(selectedGroup.id)} active
                   </p>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ⚠️ CONFIRM DELETE MODAL */}
+        {deleteId && (
+          <div className="app-modal-overlay" onClick={() => setDeleteId(null)}>
+            <div
+              className="app-modal-box confirm-modal"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="confirm-icon-wrapper">
+                <FiAlertTriangle />
+              </div>
+              <h3>Delete Group</h3>
+              <p>Are you sure you want to delete this group? This action cannot be undone.</p>
+              <div className="confirm-footer-btns">
+                <button className="btn-no" onClick={() => setDeleteId(null)}>
+                  Cancel
+                </button>
+                <button className="btn-yes" onClick={confirmDelete}>
+                  Delete
+                </button>
               </div>
             </div>
           </div>
@@ -492,7 +537,7 @@ export default function Groups({ activeBranch }) {
 
                 <button
                   className="action-btn delete-action"
-                  onClick={() => handleDelete(g.id)}
+                  onClick={() => setDeleteId(g.id)} // To'g'ridan-to'g'ri o'chirmay, modalni ochadi
                 >
                   <FiTrash2 />
                 </button>
