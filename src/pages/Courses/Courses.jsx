@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../services/supabaseClient";
-
 import {
   FiPlus,
   FiBookOpen,
@@ -12,42 +11,35 @@ import {
   FiEdit3,
   FiHome,
   FiAlertCircle,
+  FiAlertTriangle,
 } from "react-icons/fi";
-
 import "./Courses.css";
 
 export default function Courses({ activeBranch }) {
   const [courses, setCourses] = useState([]);
   const [groups, setGroups] = useState([]);
   const [teachers, setTeachers] = useState([]);
-
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  const [modalMode, setModalMode] = useState(null);
+  const [modalMode, setModalMode] = useState(null); // 'create' | 'edit' | 'details' | 'delete_confirm'
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [courseName, setCourseName] = useState("");
-
   const branchId = activeBranch?.id;
 
   const fetchData = useCallback(async () => {
     if (!branchId) return;
-
     setLoading(true);
     setError(null);
-
     try {
       const [coursesRes, groupsRes, teachersRes] = await Promise.all([
         supabase.from("courses").select("*").eq("branch_id", branchId),
         supabase.from("groups").select("*").eq("branch_id", branchId),
         supabase.from("teachers").select("*").eq("branch_id", branchId),
       ]);
-
       if (coursesRes.error) throw coursesRes.error;
       if (groupsRes.error) throw groupsRes.error;
       if (teachersRes.error) throw teachersRes.error;
-
       setCourses(coursesRes.data || []);
       setGroups(groupsRes.data || []);
       setTeachers(teachersRes.data || []);
@@ -68,20 +60,17 @@ export default function Courses({ activeBranch }) {
     courses.forEach((c) => {
       stats[c.id] = { groupsCount: 0, teachersCount: 0, teacherList: [] };
     });
-
     groups.forEach((g) => {
       if (stats[g.course_id]) {
         stats[g.course_id].groupsCount += 1;
       }
     });
-
     teachers.forEach((t) => {
       if (stats[t.course_id]) {
         stats[t.course_id].teachersCount += 1;
         stats[t.course_id].teacherList.push(t);
       }
     });
-
     return stats;
   }, [courses, groups, teachers]);
 
@@ -99,7 +88,6 @@ export default function Courses({ activeBranch }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!courseName.trim() || !branchId) return;
-
     setActionLoading(true);
     try {
       if (modalMode === "create") {
@@ -110,7 +98,6 @@ export default function Courses({ activeBranch }) {
         });
         if (insertErr) throw insertErr;
       }
-
       if (modalMode === "edit") {
         const { error: updateErr } = await supabase
           .from("courses")
@@ -118,7 +105,6 @@ export default function Courses({ activeBranch }) {
           .eq("id", selectedCourse.id);
         if (updateErr) throw updateErr;
       }
-
       setCourseName("");
       setModalMode(null);
       fetchData();
@@ -129,109 +115,128 @@ export default function Courses({ activeBranch }) {
     }
   };
 
-  const handleDelete = async (id) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this course?",
-    );
-    if (!confirmDelete) return;
-
+  const confirmDelete = async () => {
+    if (!selectedCourse) return;
+    setActionLoading(true);
     try {
       const { error: delErr } = await supabase
         .from("courses")
         .delete()
-        .eq("id", id);
+        .eq("id", selectedCourse.id);
       if (delErr) throw delErr;
-
-      setCourses((prev) => prev.filter((item) => item.id !== id));
+      setCourses((prev) => prev.filter((item) => item.id !== selectedCourse.id));
+      setModalMode(null);
+      setSelectedCourse(null);
     } catch (err) {
       alert(err.message || "Failed to delete the course.");
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const renderModal = () => {
     if (!modalMode) return null;
-
     const currentStats = selectedCourse
       ? courseStatsMap[selectedCourse.id]
       : null;
 
     return createPortal(
       <div className="cr-modal-overlay" onClick={() => setModalMode(null)}>
-        <div className="cr-modal-content" onClick={(e) => e.stopPropagation()}>
-          <div className="cr-modal-header">
-            <h3>
-              {modalMode === "create" && "Create New Course"}
-              {modalMode === "edit" && "Edit Course"}
-              {modalMode === "details" && "Course Details"}
-            </h3>
-            <button
-              className="cr-close-modal"
-              onClick={() => setModalMode(null)}
-            >
-              <FiX />
-            </button>
+        {modalMode === "delete_confirm" ? (
+          /* ⚠️ CUSTOM TASDIQLASH MODALI */
+          <div className="cr-modal-content cr-confirm-box" onClick={(e) => e.stopPropagation()}>
+            <div className="cr-confirm-icon-wrapper">
+              <FiAlertTriangle />
+            </div>
+            <h3>Delete Course</h3>
+            <p>
+              Are you sure you want to delete <strong>{selectedCourse?.name}</strong>? 
+              This action cannot be undone.
+            </p>
+            <div className="cr-confirm-footer-btns">
+              <button className="cr-btn-no" onClick={() => setModalMode(null)}>
+                Cancel
+              </button>
+              <button className="cr-btn-yes" onClick={confirmDelete} disabled={actionLoading}>
+                {actionLoading ? "Deleting..." : "Delete"}
+              </button>
+            </div>
           </div>
+        ) : (
+          /* STANDARD MODAL (DETAILS / FORM) */
+          <div className="cr-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="cr-modal-header">
+              <h3>
+                {modalMode === "create" && "Create New Course"}
+                {modalMode === "edit" && "Edit Course"}
+                {modalMode === "details" && "Course Details"}
+              </h3>
+              <button
+                className="cr-close-modal"
+                onClick={() => setModalMode(null)}
+              >
+                <FiX />
+              </button>
+            </div>
 
-          {modalMode === "details" && selectedCourse ? (
-            <div className="cr-details-view">
-              <div className="cr-detail-card">
-                <span>Branch</span>
-                <strong>
-                  {selectedCourse.branch_name ||
-                    activeBranch?.name ||
-                    "Unknown"}
-                </strong>
-              </div>
-
-              <div className="cr-detail-card">
-                <span>Total Groups</span>
-                <strong>{currentStats?.groupsCount || 0} active groups</strong>
-              </div>
-
-              <div className="cr-detail-card">
-                <span>Assigned Teachers</span>
-                <div className="cr-tags-wrapper">
-                  {currentStats?.teacherList &&
-                  currentStats.teacherList.length > 0 ? (
-                    currentStats.teacherList.map((teacher) => (
-                      <div key={teacher.id} className="cr-tag">
-                        {teacher.name}
-                      </div>
-                    ))
-                  ) : (
-                    <p className="cr-no-data">No teachers assigned yet.</p>
-                  )}
+            {modalMode === "details" && selectedCourse ? (
+              <div className="cr-details-view">
+                <div className="cr-detail-card">
+                  <span>Branch</span>
+                  <strong>
+                    {selectedCourse.branch_name ||
+                      activeBranch?.name ||
+                      "Unknown"}
+                  </strong>
+                </div>
+                <div className="cr-detail-card">
+                  <span>Total Groups</span>
+                  <strong>{currentStats?.groupsCount || 0} active groups</strong>
+                </div>
+                <div className="cr-detail-card">
+                  <span>Assigned Teachers</span>
+                  <div className="cr-tags-wrapper">
+                    {currentStats?.teacherList &&
+                    currentStats.teacherList.length > 0 ? (
+                      currentStats.teacherList.map((teacher) => (
+                        <div key={teacher.id} className="cr-tag">
+                          {teacher.name}
+                        </div>
+                      ))
+                    ) : (
+                      <p className="cr-no-data">No teachers assigned yet.</p>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            <form className="cr-modal-form" onSubmit={handleSubmit}>
-              <div className="cr-input-group">
-                <label>Course Name</label>
-                <input
-                  type="text"
-                  autoFocus
-                  required
-                  placeholder="e.g. Frontend Development"
-                  value={courseName}
-                  onChange={(e) => setCourseName(e.target.value)}
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={actionLoading}
-                className="cr-submit-btn"
-              >
-                {actionLoading
-                  ? "Saving..."
-                  : modalMode === "create"
-                    ? "Create Course"
-                    : "Save Changes"}
-              </button>
-            </form>
-          )}
-        </div>
+            ) : (
+              <form className="cr-modal-form" onSubmit={handleSubmit}>
+                <div className="cr-input-group">
+                  <label>Course Name</label>
+                  <input
+                    type="text"
+                    autoFocus
+                    required
+                    placeholder="e.g. Frontend Development"
+                    value={courseName}
+                    onChange={(e) => setCourseName(e.target.value)}
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={actionLoading}
+                  className="cr-submit-btn"
+                >
+                  {actionLoading
+                    ? "Saving..."
+                    : modalMode === "create"
+                      ? "Create Course"
+                      : "Save Changes"}
+                </button>
+              </form>
+            )}
+          </div>
+        )}
       </div>,
       document.body,
     );
@@ -250,7 +255,6 @@ export default function Courses({ activeBranch }) {
             Manage and analyze academic courses across this branch
           </p>
         </div>
-
         <button
           className="cr-create-btn"
           disabled={!branchId}
@@ -262,7 +266,6 @@ export default function Courses({ activeBranch }) {
           <FiPlus /> New Course
         </button>
       </div>
-
       {error && (
         <div className="cr-error-state">
           <FiAlertCircle />
@@ -270,7 +273,6 @@ export default function Courses({ activeBranch }) {
           <button onClick={fetchData}>Retry</button>
         </div>
       )}
-
       {loading && !error ? (
         <div className="cr-grid-layout">
           {[...Array(6)].map((_, index) => (
@@ -300,11 +302,9 @@ export default function Courses({ activeBranch }) {
                 groupsCount: 0,
                 teachersCount: 0,
               };
-
               return (
                 <div key={course.id} className="cr-course-card">
                   <div className="cr-card-top-line"></div>
-
                   <div
                     className="cr-card-body"
                     onClick={() => {
@@ -315,16 +315,13 @@ export default function Courses({ activeBranch }) {
                     <div className="cr-card-icon">
                       <FiBookOpen />
                     </div>
-
                     <h3 className="cr-course-name">{course.name}</h3>
-
                     <div className="cr-branch-pill">
                       <FiHome />
                       <span>
                         {course.branch_name || activeBranch?.name || "Branch"}
                       </span>
                     </div>
-
                     <div className="cr-card-stats">
                       <span>
                         <FiLayers /> {stats.groupsCount}{" "}
@@ -348,12 +345,12 @@ export default function Courses({ activeBranch }) {
                     >
                       <FiEdit3 />
                     </button>
-
                     <button
                       className="cr-action-btn cr-del-btn"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDelete(course.id);
+                        setSelectedCourse(course);
+                        setModalMode("delete_confirm");
                       }}
                     >
                       <FiTrash2 />
@@ -365,7 +362,6 @@ export default function Courses({ activeBranch }) {
           </div>
         )
       )}
-
       {renderModal()}
     </div>
   );

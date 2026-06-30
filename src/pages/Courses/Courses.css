@@ -1,656 +1,550 @@
 :root {
-  --primary: #376fff;
-  --primary-dark: #1a5bff;
-
-  --bg: #f4f7ff;
-  --surface: rgba(255, 255, 255, 0.78);
-
-  --text: #0f172a;
-  --muted: #64748b;
-
-  --border: rgba(15, 23, 42, 0.08);
-
-  --success: #10b981;
-  --danger: #ef4444;
-
-  --radius-sm: 14px;
-  --radius-md: 22px;
-  --radius-lg: 30px;
-
-  --shadow-sm: 0 6px 18px rgba(15, 23, 42, 0.06);
-  --shadow-md: 0 18px 40px rgba(15, 23, 42, 0.1);
-  --shadow-lg: 0 35px 80px rgba(15, 23, 42, 0.18);
-
-  --transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  --cr-primary: #376fff;
+  --cr-primary-dark: #1a56db;
+  --cr-primary-light: #f0f5ff;
+  --cr-bg: #fafbfe;
+  --cr-card: #ffffff;
+  --cr-soft: #f8fafc;
+  --cr-text: #0f172a;
+  --cr-text-soft: #64748b;
+  --cr-muted: #94a3b8;
+  --cr-border: #e2e8f0;
+  --cr-danger: #ef4444;
+  --cr-danger-light: #fef2f2;
+  
+  --cr-shadow-sm: 0 4px 6px -1px rgba(15, 23, 42, 0.03), 0 2px 4px -1px rgba(15, 23, 42, 0.02);
+  --cr-shadow-md: 0 12px 24px -4px rgba(15, 23, 42, 0.06), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+  --cr-shadow-lg: 0 24px 48px -12px rgba(15, 23, 42, 0.12);
+  --cr-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* 🏢 Modul Asosiy Konteyneri */
 .cr-module-root {
-  /* padding: 5px; */
-  animation: fadeIn 0.5s ease;
-  font-family: Inter, sans-serif;
+  max-width: 100%;
+  margin: 0 auto;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--cr-text);
+  animation: crReveal 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* 🧭 Yuqori qism (Header) */
 .cr-header-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
-  gap: 16px;
-}
-
-.title-area {
-  display: flex;
-  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 28px;
 }
 
 .page-main-title {
-  font-size: 30px;
+  font-size: 26px;
   font-weight: 800;
-  letter-spacing: -1px;
-  color: var(--text);
+  color: var(--cr-text);
+  letter-spacing: -0.02em;
+  margin: 0 0 6px 0;
 }
 
 .page-description {
-  margin-top: 6px;
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 14px;
+  color: var(--cr-text-soft);
+  margin: 0;
+  font-weight: 550;
 }
 
+/* ➕ Kurs yaratish tugmasi */
 .cr-create-btn {
-  height: 52px;
-  padding: 0 20px;
-
+  height: 46px;
   border: none;
-  border-radius: 18px;
-
-  display: flex;
-  align-items: center;
-  gap: 10px;
-
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-
+  border-radius: 12px;
+  padding: 0 20px;
+  background: var(--cr-primary);
   color: white;
   font-size: 14px;
   font-weight: 700;
-
   cursor: pointer;
-
-  box-shadow: 0 14px 30px rgba(55, 111, 255, 0.25);
-
-  transition: var(--transition);
+  box-shadow: 0 8px 18px rgba(55, 111, 255, 0.15);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: var(--cr-transition);
 }
 
-.cr-create-btn svg {
-  font-size: 18px;
+.cr-create-btn:hover:not(:disabled) {
+  background: var(--cr-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 22px rgba(55, 111, 255, 0.25);
 }
 
-.cr-create-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 24px 50px rgba(55, 111, 255, 0.35);
+.cr-create-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
+/* 🗂️ Kurslar Grid Tizimi */
 .cr-grid-layout {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 22px;
 }
 
+/* 🎴 Kurs Kartochkasi */
 .cr-course-card {
+  background: var(--cr-card);
+  border: 1px solid var(--cr-border);
+  border-radius: 20px;
   position: relative;
-
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(24px);
-
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: 28px;
-
   overflow: hidden;
-
-  box-shadow: var(--shadow-sm);
-
-  transition: var(--transition);
+  box-shadow: var(--cr-shadow-sm);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: var(--cr-transition);
 }
 
 .cr-course-card:hover {
-  transform: translateY(-8px);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+  border-color: rgba(55, 111, 255, 0.2);
+  box-shadow: var(--cr-shadow-md);
 }
 
 .cr-card-top-line {
-  width: 100%;
   height: 4px;
-
-  background: linear-gradient(90deg, var(--primary), #73a4ff);
+  width: 100%;
+  background: linear-gradient(90deg, var(--cr-primary), #6366f1);
 }
 
 .cr-card-body {
   padding: 24px;
   cursor: pointer;
+  flex-grow: 1;
 }
 
 .cr-card-icon {
-  width: 62px;
-  height: 62px;
-
-  border-radius: 22px;
-
+  width: 44px;
+  height: 44px;
+  background: var(--cr-primary-light);
+  color: var(--cr-primary);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-
-  background: linear-gradient(
-    135deg,
-    rgba(55, 111, 255, 0.12),
-    rgba(55, 111, 255, 0.2)
-  );
-
-  color: var(--primary);
-
-  margin-bottom: 20px;
-}
-
-.cr-card-icon svg {
-  font-size: 28px;
+  font-size: 20px;
+  margin-bottom: 16px;
 }
 
 .cr-course-name {
-  font-size: 20px;
-  font-weight: 800;
-  color: var(--text);
-
-  margin-bottom: 18px;
-
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--cr-text);
+  margin: 0 0 10px 0;
+  letter-spacing: -0.01em;
   line-height: 1.3;
 }
 
 .cr-branch-pill {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-
-  min-height: 38px;
-
-  padding: 0 14px;
-
-  border-radius: 999px;
-
-  background: rgba(55, 111, 255, 0.1);
-
-  color: var(--primary);
-
+  gap: 6px;
+  background: var(--cr-soft);
+  border: 1px solid var(--cr-border);
+  padding: 4px 10px;
+  border-radius: 20px;
   font-size: 12px;
-  font-weight: 700;
-
-  margin-bottom: 20px;
-}
-
-.cr-branch-pill svg {
-  font-size: 14px;
+  color: var(--cr-text-soft);
+  font-weight: 600;
+  margin-bottom: 18px;
 }
 
 .cr-card-stats {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  gap: 16px;
+  border-top: 1px dashed var(--cr-border);
+  padding-top: 14px;
 }
 
 .cr-card-stats span {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
-
+  gap: 6px;
   font-size: 13px;
-  font-weight: 600;
-
-  color: var(--muted);
+  color: var(--cr-text-soft);
+  font-weight: 550;
 }
 
 .cr-card-stats svg {
-  font-size: 16px;
-  color: var(--primary);
+  color: var(--cr-muted);
 }
 
+/* ⚙️ Kartochka Boshqaruv Tugmalari */
 .cr-card-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
-
-  padding: 16px 20px;
-
-  border-top: 1px solid rgba(15, 23, 42, 0.05);
-
-  background: rgba(255, 255, 255, 0.4);
+  gap: 8px;
+  padding: 12px 24px 20px 24px;
+  background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(248,250,252,0.5) 100%);
 }
 
 .cr-action-btn {
-  width: 44px;
-  height: 44px;
-
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
   border: none;
-  border-radius: 14px;
-
+  background: var(--cr-soft);
+  color: var(--cr-text-soft);
   display: flex;
   align-items: center;
   justify-content: center;
-
-  background: rgba(255, 255, 255, 0.8);
-
-  color: var(--muted);
-
+  font-size: 15px;
   cursor: pointer;
-
-  transition: var(--transition);
-}
-
-.cr-action-btn svg {
-  font-size: 18px;
+  transition: var(--cr-transition);
 }
 
 .cr-action-btn:hover {
-  transform: translateY(-2px);
+  background: var(--cr-primary-light);
+  color: var(--cr-primary);
 }
 
-.cr-action-btn:hover {
-  background: rgba(55, 111, 255, 0.1);
-  color: var(--primary);
+.cr-action-btn.cr-del-btn:hover {
+  background: var(--cr-danger-light);
+  color: var(--cr-danger);
 }
 
-.cr-del-btn:hover {
-  background: rgba(239, 68, 68, 0.1);
-  color: var(--danger);
-}
-
-.cr-empty-state {
-  width: 100%;
-
-  padding: 100px 20px;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-
-  text-align: center;
-}
-
-.cr-empty-icon-wrapper {
-  width: 90px;
-  height: 90px;
-
-  border-radius: 30px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  background: linear-gradient(
-    135deg,
-    rgba(55, 111, 255, 0.12),
-    rgba(55, 111, 255, 0.22)
-  );
-
-  color: var(--primary);
-
-  margin-bottom: 20px;
-}
-
-.cr-empty-icon-wrapper svg {
-  font-size: 42px;
-}
-
-.cr-empty-state h3 {
-  font-size: 22px;
-  font-weight: 800;
-  color: var(--text);
-
-  margin-bottom: 10px;
-}
-
-.cr-empty-state p {
-  font-size: 14px;
-  color: var(--muted);
-}
-
+/* 🌐 Portal Modallar Tizimi */
 .cr-modal-overlay {
   position: fixed;
   inset: 0;
-
-  background: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(14px);
-
+  background: rgba(15, 23, 42, 0.3);
+  backdrop-filter: blur(5px);
+  z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
-
-  z-index: 9999;
-
-  animation: fadeIn 0.2s ease;
+  padding: 20px;
+  animation: crFade 0.2s ease-out;
 }
 
 .cr-modal-content {
-  width: 480px;
-  max-width: 92%;
-
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(24px);
-
-  border-radius: 30px;
-
-  border: 1px solid rgba(255, 255, 255, 0.5);
-
-  overflow: hidden;
-
-  box-shadow: var(--shadow-lg);
-
-  animation: modalPop 0.2s ease;
-}
-
-@keyframes modalPop {
-  from {
-    transform: scale(0.96);
-    opacity: 0;
-  }
-
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
+  background: var(--cr-card);
+  border-radius: 20px;
+  border: 1px solid var(--cr-border);
+  box-shadow: var(--cr-shadow-lg);
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: crScale 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .cr-modal-header {
-  padding: 20px 24px;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
-
-  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--cr-border);
 }
 
 .cr-modal-header h3 {
-  font-size: 20px;
-  font-weight: 800;
-  color: var(--text);
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
 }
 
 .cr-close-modal {
-  width: 42px;
-  height: 42px;
-
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   border: none;
-  border-radius: 14px;
-
-  background: rgba(15, 23, 42, 0.04);
-
+  background: var(--cr-soft);
+  color: var(--cr-text-soft);
   display: flex;
   align-items: center;
   justify-content: center;
-
   cursor: pointer;
-
-  transition: var(--transition);
-}
-
-.cr-close-modal svg {
-  font-size: 18px;
+  transition: var(--cr-transition);
 }
 
 .cr-close-modal:hover {
-  background: rgba(239, 68, 68, 0.12);
-  color: var(--danger);
-
-  transform: rotate(90deg);
+  background: var(--cr-danger-light);
+  color: var(--cr-danger);
 }
 
+/* 📝 Forma Elementlari */
 .cr-modal-form {
   padding: 24px;
-
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 20px;
 }
 
 .cr-input-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .cr-input-group label {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cr-text-soft);
 }
 
 .cr-input-group input {
-  width: 100%;
-  height: 54px;
-
-  padding: 0 16px;
-
-  border-radius: 18px;
-
-  border: 1px solid rgba(15, 23, 42, 0.08);
-
-  background: rgba(255, 255, 255, 0.75);
-
-  outline: none;
-
+  height: 46px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid var(--cr-border);
   font-size: 14px;
-  color: var(--text);
-
-  transition: var(--transition);
+  font-weight: 550;
+  transition: var(--cr-transition);
 }
 
 .cr-input-group input:focus {
-  border-color: rgba(55, 111, 255, 0.45);
-
+  outline: none;
+  border-color: var(--cr-primary);
   box-shadow: 0 0 0 4px rgba(55, 111, 255, 0.1);
 }
 
 .cr-submit-btn {
-  height: 56px;
-
+  height: 46px;
   border: none;
-  border-radius: 18px;
-
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-
+  border-radius: 10px;
+  background: var(--cr-primary);
   color: white;
-
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
-
   cursor: pointer;
-
-  transition: var(--transition);
-
-  box-shadow: 0 14px 30px rgba(55, 111, 255, 0.22);
+  box-shadow: 0 4px 12px rgba(55, 111, 255, 0.15);
+  transition: var(--cr-transition);
 }
 
-.cr-submit-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 24px 50px rgba(55, 111, 255, 0.35);
+.cr-submit-btn:hover:not(:disabled) {
+  background: var(--cr-primary-dark);
 }
 
 .cr-submit-btn:disabled {
-  opacity: 0.7;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
+/* 👁️ Kurs Detallari (Details View) */
 .cr-details-view {
   padding: 24px;
-
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .cr-detail-card {
-  padding: 18px;
-
-  border-radius: 20px;
-
-  background: rgba(15, 23, 42, 0.03);
-
+  background: var(--cr-soft);
+  border: 1px solid var(--cr-border);
+  border-radius: 12px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 4px;
 }
 
 .cr-detail-card span {
   font-size: 12px;
-  font-weight: 700;
-  color: var(--muted);
-
+  font-weight: 600;
+  color: var(--cr-text-soft);
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.03em;
 }
 
 .cr-detail-card strong {
   font-size: 15px;
-  color: var(--text);
-
-  font-weight: 700;
+  color: var(--cr-text);
 }
 
 .cr-tags-wrapper {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 6px;
+  margin-top: 4px;
 }
 
 .cr-tag {
-  height: 36px;
-
-  padding: 0 14px;
-
-  border-radius: 999px;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  background: rgba(55, 111, 255, 0.12);
-
-  color: var(--primary);
-
-  font-size: 12px;
-  font-weight: 700;
+  background: #ffffff;
+  border: 1px solid var(--cr-border);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 550;
+  color: var(--cr-text);
 }
 
 .cr-no-data {
-  font-size: 13px;
-  color: var(--muted);
+  font-size: 13.5px;
+  color: var(--cr-muted);
+  margin: 0;
 }
 
+/* ⚠️ Kurs O'chirishni Tasdiqlash Modali (Confirm Box) */
+.cr-confirm-box {
+  max-width: 400px;
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.cr-confirm-icon-wrapper {
+  width: 56px;
+  height: 56px;
+  background: var(--cr-danger-light);
+  color: var(--cr-danger);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin: 0 auto 16px auto;
+}
+
+.cr-confirm-box h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+}
+
+.cr-confirm-box p {
+  font-size: 14px;
+  color: var(--cr-text-soft);
+  line-height: 1.5;
+  margin: 0 0 24px 0;
+}
+
+.cr-confirm-footer-btns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.cr-confirm-footer-btns button {
+  height: 44px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: var(--cr-transition);
+}
+
+.cr-btn-no {
+  background: var(--cr-soft);
+  color: var(--cr-text-soft);
+  border: 1px solid var(--cr-border);
+}
+
+.cr-btn-no:hover {
+  background: var(--cr-border);
+  color: var(--cr-text);
+}
+
+.cr-btn-yes {
+  background: var(--cr-danger);
+  color: white;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+}
+
+.cr-btn-yes:hover {
+  background: #dc2626;
+}
+
+/* 📭 Bo'sh, Xato va Yuklanish Holatlari */
+.cr-empty-state {
+  text-align: center;
+  padding: 60px 24px;
+  background: var(--cr-card);
+  border: 1px solid var(--cr-border);
+  border-radius: 20px;
+  box-shadow: var(--cr-shadow-sm);
+}
+
+.cr-empty-icon-wrapper {
+  font-size: 40px;
+  color: var(--cr-muted);
+  margin-bottom: 16px;
+}
+
+.cr-error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--cr-danger);
+  background: var(--cr-danger-light);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 20px;
+  padding: 24px;
+  text-align: center;
+}
+
+.cr-error-state button {
+  padding: 8px 16px;
+  background: #ffffff;
+  border: 1px solid var(--cr-danger);
+  color: var(--cr-danger);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: var(--cr-transition);
+}
+
+.cr-error-state button:hover {
+  background: var(--cr-danger);
+  color: white;
+}
+
+/* 💀 Skeleton Loader Animatsiyasi */
 .cr-skeleton-card {
   pointer-events: none;
 }
 
 .skeleton {
-  position: relative;
-  overflow: hidden;
-
-  background: linear-gradient(
-    90deg,
-    rgba(226, 232, 240, 0.9) 25%,
-    rgba(241, 245, 249, 1) 50%,
-    rgba(226, 232, 240, 0.9) 75%
-  );
-
-  background-size: 400% 100%;
-
-  animation: skeletonLoading 1.4s ease infinite;
-
-  border-radius: 14px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: crShimmer 1.5s infinite linear;
 }
 
-.shimmer::after {
-  content: "";
-  position: absolute;
-  inset: 0;
+.cr-skeleton-top-line { height: 4px; width: 100%; }
+.cr-skeleton-icon { width: 44px; height: 44px; border-radius: 12px; margin-bottom: 16px; }
+.cr-skeleton-title { width: 65%; height: 20px; border-radius: 4px; margin-bottom: 12px; }
+.cr-skeleton-text { width: 45%; height: 14px; border-radius: 4px; }
+
+@keyframes crShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
-.cr-skeleton-top-line {
-  width: 100%;
-  height: 4px;
+/* 🎥 Animatsiyalar */
+@keyframes crReveal {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.cr-skeleton-icon {
-  width: 62px;
-  height: 62px;
-
-  border-radius: 22px;
-
-  margin-bottom: 20px;
+@keyframes crFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-.cr-skeleton-title {
-  width: 70%;
-  height: 24px;
-
-  margin-bottom: 18px;
+@keyframes crScale {
+  from { opacity: 0; transform: scale(0.97) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-.cr-skeleton-text {
-  width: 100%;
-  height: 14px;
-
-  margin-bottom: 12px;
-}
-
-.cr-skeleton-text.short {
-  width: 60%;
-}
-
-@keyframes skeletonLoading {
-  0% {
-    background-position: 100% 50%;
-  }
-
-  100% {
-    background-position: 0 50%;
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@media (max-width: 768px) {
+/* 📱 Mobil Qurilmalar uchun Responsive Layout */
+@media (max-width: 600px) {
   .cr-header-section {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+    gap: 14px;
   }
-
   .cr-create-btn {
     width: 100%;
     justify-content: center;
   }
-
-  .cr-grid-layout {
+  .cr-confirm-footer-btns {
     grid-template-columns: 1fr;
-  }
-
-  .cr-course-card {
-    border-radius: 24px;
-  }
-
-  .page-main-title {
-    font-size: 24px;
-  }
-
-  .cr-modal-content {
-    border-radius: 24px;
   }
 }
