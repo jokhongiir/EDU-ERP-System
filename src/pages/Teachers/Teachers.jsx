@@ -51,10 +51,12 @@ export default function Teachers({ activeBranch }) {
   });
 
   const branchId = activeBranch?.id;
-  const fetchData = useCallback(async () => {
+  const getTodayStr = () => new Date().toISOString().slice(0, 10);
+
+  const fetchData = useCallback(async (showSilent = false) => {
     if (!branchId) return;
 
-    setLoading(true);
+    if (!showSilent) setLoading(true);
     try {
       const [tRes, cRes, sRes] = await Promise.all([
         supabase
@@ -72,7 +74,27 @@ export default function Teachers({ activeBranch }) {
       if (cRes.error) throw cRes.error;
       if (sRes.error) throw sRes.error;
 
-      setTeachers(tRes.data || []);
+      const today = getTodayStr();
+      const currentTeachers = tRes.data || [];
+
+      // ⚡️ 1. Avtomatlashtirish: Muddati o'tgan oylik statuslarini fonda yangilash
+      const expiredTeacherIds = currentTeachers
+        .filter(
+          (t) =>
+            t.salary_paid && t.next_payment && t.next_payment <= today
+        )
+        .map((t) => t.id);
+
+      if (expiredTeacherIds.length > 0) {
+        await supabase
+          .from("teachers")
+          .update({ salary_paid: false })
+          .in("id", expiredTeacherIds);
+
+        return fetchData(true); // Yangilangan ma'lumotlarni fonda qayta o'qish
+      }
+
+      setTeachers(currentTeachers);
       setCourses(cRes.data || []);
       setStudents(sRes.data || []);
     } catch (err) {
@@ -89,6 +111,7 @@ export default function Teachers({ activeBranch }) {
   const courseMap = useMemo(() => {
     return new Map(courses.map((c) => [c.id, c.name]));
   }, [courses]);
+
   const teacherStatsMap = useMemo(() => {
     const stats = {};
     teachers.forEach((teacher) => {
@@ -101,11 +124,9 @@ export default function Teachers({ activeBranch }) {
 
     students.forEach((student) => {
       const teacherId = String(student.teacher_id || "");
-
       if (!teacherId || !stats[teacherId]) return;
 
       stats[teacherId].count += 1;
-
       if (student.paid) {
         stats[teacherId].active += 1;
       }
@@ -122,6 +143,7 @@ export default function Teachers({ activeBranch }) {
   }, [teachers, students]);
 
   const getCourseName = (id) => courseMap.get(id) || "Course not assigned";
+
   const filteredTeachers = useMemo(() => {
     const searchLower = search.toLowerCase().trim();
     return teachers.filter((t) => {
@@ -137,12 +159,32 @@ export default function Teachers({ activeBranch }) {
     });
   }, [teachers, search, filterCourse]);
 
+  // ⚡️ 2. Avtomatlashtirish: Checkbox bosilganda sanalarni auto-hisoblash
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+
+    setForm((prev) => {
+      let updatedForm = {
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
+      };
+
+      if (name === "salary_paid") {
+        if (checked) {
+          const today = getTodayStr();
+          const d = new Date();
+          d.setMonth(d.getMonth() + 1); // 1 oy qo'shish
+
+          updatedForm.last_payment = today;
+          updatedForm.next_payment = d.toISOString().slice(0, 10);
+        } else {
+          updatedForm.last_payment = "";
+          updatedForm.next_payment = "";
+        }
+      }
+
+      return updatedForm;
+    });
   };
 
   const resetForm = () => {
@@ -203,7 +245,7 @@ export default function Teachers({ activeBranch }) {
       }
 
       resetForm();
-      fetchData();
+      fetchData(true);
     } catch (err) {
       alert("Error: " + err.message);
     } finally {
@@ -572,9 +614,7 @@ export default function Teachers({ activeBranch }) {
                     <div className="teacher-skeleton sk-status"></div>
                   </td>
                   <td>
-                    <div className="teacher-actions-loading">
-                      <div className="teacher-skeleton sk-btn"></div>
-                    </div>
+                    <div className="teacher-skeleton sk-btn"></div>
                   </td>
                 </tr>
               ))
@@ -586,8 +626,6 @@ export default function Teachers({ activeBranch }) {
               </tr>
             ) : (
               filteredTeachers.map((t, idx) => {
-                const stats = teacherStatsMap[t.id] || { count: 0, income: 0 };
-
                 return (
                   <tr
                     key={t.id}
