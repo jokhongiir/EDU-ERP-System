@@ -1,501 +1,408 @@
 :root {
   --primary: #376fff;
   --primary-dark: #1a56db;
-  --primary-light: #eef4ff;
-
-  --bg: #f4f7fb;
+  --primary-light: #f0f5ff;
+  --bg: #fafbfe;
   --card: #ffffff;
-  --soft: #f8fbff;
-
+  --soft: #f8fafc;
   --text: #0f172a;
   --text-soft: #64748b;
   --muted: #94a3b8;
-
   --border: #e2e8f0;
-
-  --success: #16a34a;
-  --success-bg: #dcfce7;
-
+  --border-hover: #cbd5e1;
+  --success: #10b981;
+  --success-light: #ecfdf5;
   --danger: #ef4444;
-  --danger-bg: #fee2e2;
-
-  --shadow-sm: 0 3px 10px rgba(15, 23, 42, 0.05);
-  --shadow-md: 0 10px 28px rgba(15, 23, 42, 0.08);
-  --shadow-lg: 0 18px 45px rgba(15, 23, 42, 0.15);
-
-  --radius: 20px;
+  --danger-light: #fef2f2;
+  --shadow-sm: 0 4px 6px -1px rgba(15, 23, 42, 0.03), 0 2px 4px -1px rgba(15, 23, 42, 0.02);
+  --shadow-md: 0 12px 24px -4px rgba(15, 23, 42, 0.06), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 24px 48px -12px rgba(15, 23, 42, 0.12);
+  --radius: 16px;
+  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  background: var(--bg);
-  font-family: "Inter", sans-serif;
-  color: var(--text);
-}
-
+/* 👥 Konteyner va Kirish animatsiyasi */
 .students {
-    /* padding: 5px; */
-    animation: fadeIn 0.7s ease;
-
-
-
+  max-width: 100%;
+  margin: 0 auto;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: var(--text);
+  animation: pageReveal 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* 🧭 Yuqori Sarlavha Qismi */
 .students__header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 18px;
-
-  margin-bottom: 20px;
+  gap: 20px;
+  margin-bottom: 28px;
 }
 
-.students__header h2 {
-  font-size: 28px;
+.page-main-title {
+  font-size: 26px;
   font-weight: 800;
-  letter-spacing: -0.03em;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  margin: 0 0 6px 0;
 }
 
-.students__sub {
+.page-description {
+  font-size: 14px;
   color: var(--text-soft);
-
-  font-size: 13px;
+  margin: 0;
   font-weight: 500;
 }
 
+/* ➕ Premium Button */
 .primary-btn {
-  height: 46px;
-
+  height: 48px;
   border: none;
-  border-radius: 14px;
-
-  padding: 0 20px;
-
-  display: flex;
+  border-radius: 12px;
+  padding: 0 24px;
+  background: var(--primary);
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(55, 111, 255, 0.2);
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-
-  background: linear-gradient(
-    135deg,
-    var(--primary),
-    var(--primary-dark)
-  );
-
-  color: white;
-
-  font-size: 13px;
-  font-weight: 700;
-
-  cursor: pointer;
-
-  transition: 0.25s ease;
-
-  box-shadow:
-    0 10px 24px rgba(55, 111, 255, 0.22);
+  transition: var(--transition);
 }
 
-.primary-btn:hover {
-  transform: translateY(-2px);
+.primary-btn:hover:not(:disabled) {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 22px rgba(55, 111, 255, 0.28);
 }
 
+.primary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* 🔍 Qidiruv va Filtrlar Satri */
 .students__search-wrapper {
   display: flex;
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
-
-  margin-bottom: 18px;
+  margin-bottom: 24px;
 }
 
 .students__search {
-  flex: 1;
+  flex: 2;
   position: relative;
-  min-width: 220px;
+  min-width: 260px;
 }
 
 .students__search svg {
   position: absolute;
-  left: 14px;
+  left: 16px;
   top: 50%;
   transform: translateY(-50%);
-
   color: var(--muted);
-  font-size: 16px;
+  font-size: 18px;
+  pointer-events: none;
+  transition: var(--transition);
 }
 
 .students__search input {
   width: 100%;
   height: 48px;
-
-  padding: 0 14px 0 42px;
-
-  border-radius: 16px;
+  padding: 0 16px 0 48px;
+  border-radius: 12px;
   border: 1px solid var(--border);
-
-  background: #fff;
-
-  font-size: 13px;
-  font-weight: 600;
+  background: var(--card);
+  font-size: 14px;
+  font-weight: 550;
   color: var(--text);
-
   box-shadow: var(--shadow-sm);
-
-  transition: all 0.25s ease;
+  transition: var(--transition);
 }
 
 .students__search input::placeholder {
   color: var(--muted);
-  font-weight: 500;
-}
-
-.students__search input:hover {
-  border-color: #c7d2fe;
+  font-weight: 400;
 }
 
 .students__search input:focus {
   outline: none;
-
   border-color: var(--primary);
-
   box-shadow: 0 0 0 4px rgba(55, 111, 255, 0.12);
 }
 
-.students__filter {
-  min-width: 180px;
+.students__search:focus-within svg {
+  color: var(--primary);
+}
+
+/* 🎛️ Filtr Select Box */
+.filter-select-box {
+  flex: 1;
+  min-width: 160px;
+}
+
+.filter-select-box select {
+  width: 100%;
   height: 48px;
-
-  padding: 0 14px;
-
-  border-radius: 16px;
+  padding: 0 16px;
+  border-radius: 12px;
   border: 1px solid var(--border);
-
-  background: #fff;
-
-  font-size: 13px;
+  background: var(--card);
+  font-size: 14px;
   font-weight: 600;
-  color: var(--text);
-
+  color: var(--text-soft);
   cursor: pointer;
-
   box-shadow: var(--shadow-sm);
-
-  transition: all 0.25s ease;
-
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
+  transition: var(--transition);
 }
 
-.students__filter:hover {
-  border-color: #c7d2fe;
-}
-
-.students__filter:focus {
+.filter-select-box select:focus {
   outline: none;
-
   border-color: var(--primary);
-
+  color: var(--text);
   box-shadow: 0 0 0 4px rgba(55, 111, 255, 0.12);
 }
 
-@media (max-width: 768px) {
-  .students__search-wrapper {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .students__filter {
-    width: 100%;
-  }
-}
-
+/* 📊 Jadval Konteyneri va Silliqlash */
 .students__table-wrapper {
-  background: #fff;
-  border-radius: var(--radius-lg);
-  overflow-x: auto;
-
-  box-shadow: var(--shadow-md);
+  background: var(--card);
+  border-radius: 16px;
+  overflow: hidden;
   border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  overflow-x: auto;
 }
 
 .students__table {
   width: 100%;
-  min-width: 1000px;
   border-collapse: collapse;
+  min-width: 1050px;
 }
 
 .students__table thead {
   background: #f8fafc;
-}
-
-.students__table th {
-  text-align: left;
-  padding: 14px;
-
-  font-size: 11px;
-  font-weight: 800;
-  color: var(--muted);
-  text-transform: uppercase;
-}
-
-.students__table td {
-  padding: 14px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--muted);
-
-  border-top: 1px solid #f1f5f9;
-}
-
-.students__table tbody tr {
-  transition: 0.2s ease;
-  cursor: pointer;
-}
-
-.students__table tbody tr:hover {
-  background: #f9fbff;
-}
-
-.students__table td:nth-child(2) {
-  color: var(--text);
-  font-weight: 700;
-}
-
-.students__table-wrapper {
-  overflow-x: auto;
-
-  border-radius: 24px;
-
-  background: white;
-
-  border: 1px solid var(--border);
-
-  box-shadow: var(--shadow-md);
-}
-
-.students__table {
-  width: 100%;
-  min-width: 1050px;
-
-  border-collapse: collapse;
-}
-
-.students__table thead {
-  background: #f8fbff;
-}
-
-.students__table th {
-  text-align: left;
-  padding: 16px 16px;
-
-  text-align: left;
-
-  color: var(--text-soft);
-
-  font-size: 11px;
-  font-weight: 800;
-
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-
   border-bottom: 1px solid var(--border);
 }
 
-.students__table td {
+.students__table th {
   text-align: left;
-
   padding: 16px;
-
+  font-size: 11px;
+  font-weight: 700;
   color: var(--text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
 
-  font-size: 13px;
-  font-weight: 600;
-
-  border-bottom: 1px solid #edf2f7;
-
-  transition: 0.2s ease;
+.students__table td {
+  padding: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-soft);
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .students__table tbody tr {
-  transition: 0.2s ease;
   cursor: pointer;
+  transition: var(--transition);
 }
 
 .students__table tbody tr:hover {
-  background: #f8fbff;
+  background: #f8fafc;
 }
 
-.students__table td:nth-child(2) {
-  color: var(--text);
-  font-weight: 700;
+/* Ma'lumotlarni alohida ajratish */
+.font-bold-name {
+  color: var(--text) !important;
+  font-weight: 600 !important;
 }
 
-.status {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-
-  padding: 7px 12px;
-
-  border-radius: 999px;
-
-  font-size: 11px;
-  font-weight: 800;
-}
-
-.status.paid {
-  background: var(--success-bg);
-  color: #166534;
-}
-
-.status.unpaid {
-  background: var(--danger-bg);
-  color: #991b1b;
-}
-
-.students__table td button {
-  width: 34px;
-  height: 34px;
-
-  border: none;
-  border-radius: 11px;
-
-  margin-right: 6px;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  font-size: 14px;
-
-  cursor: pointer;
-
-  transition: 0.22s ease;
-}
-
-.students__table td button:first-child {
-  background: #edf4ff;
-  color: var(--primary);
-}
-
-.students__table td button:first-child:hover {
-  background: #dbeafe;
-  transform: translateY(-2px);
-}
-
-.students__table td button:last-child {
-  background: #fef2f2;
-  color: var(--danger);
-}
-
-.students__table td button:last-child:hover {
-  background: #fee2e2;
-  transform: translateY(-2px);
-}
-
-.students__empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-
-  color: var(--text-soft);
-
-  font-size: 14px;
+.badge-course {
+  display: inline-block;
+  padding: 6px 12px;
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  border-radius: 8px;
+  font-size: 13px;
   font-weight: 600;
 }
 
-.modal {
-  position: fixed;
-  inset: 0;
+/* 🟢 / 🔴 Status Pills */
+.status-pill-small {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
 
-  background: rgba(15, 23, 42, 0.55);
+.status-pill-small.paid {
+  background: var(--success-light);
+  color: var(--success);
+}
 
-  backdrop-filter: blur(8px);
+.status-pill-small.unpaid {
+  background: var(--danger-light);
+  color: var(--danger);
+}
 
-  z-index: 9999;
-
+/* ⚙️ Jadvaldagi Amallar (Buttons) */
+.actions-cell-row {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
+}
 
-  padding: 18px;
+.row-btn {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  cursor: pointer;
+  transition: var(--transition);
+}
 
-  animation: fadeIn 0.25s ease;
+.row-btn.edit {
+  background: #f1f5f9;
+  color: var(--text-soft);
+}
+
+.row-btn.edit:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.row-btn.delete {
+  background: #f1f5f9;
+  color: var(--text-soft);
+}
+
+.row-btn.delete:hover {
+  background: var(--danger-light);
+  color: var(--danger);
+}
+
+/* 📭 Bo'sh holat stili */
+.students__empty {
+  padding: 48px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.students__empty p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* 💀 Premium Shimmer Skeleton Animation */
+.skeleton {
+  background: #f1f5f9;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: shimmerMove 1.5s infinite linear;
+  border-radius: 6px;
+}
+
+@keyframes shimmerMove {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-id { width: 20px; height: 16px; }
+.skeleton-avatar { width: 32px; height: 32px; border-radius: 50%; }
+.skeleton-name { width: 120px; height: 16px; margin-bottom: 4px; }
+.skeleton-sub { width: 80px; height: 12px; }
+.skeleton-phone { width: 100px; height: 16px; }
+.skeleton-badge { width: 90px; height: 26px; border-radius: 8px; }
+.skeleton-status { width: 70px; height: 22px; border-radius: 6px; }
+.skeleton-btn { width: 32px; height: 32px; border-radius: 8px; }
+
+.student-user { display: flex; align-items: center; gap: 12px; }
+.student-user-info { display: flex; flex-direction: column; }
+.student-actions-loading { display: flex; gap: 8px; justify-content: center; }
+
+/* 🔳 Modallar Oynasi */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.3);
+  backdrop-filter: blur(6px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: overlayFade 0.2s ease-out;
 }
 
 .modal__box {
+  background: var(--card);
+  max-width: 640px;
   width: 100%;
-  max-width: 620px;
-  max-height: 88vh;
-
+  max-height: 90vh;
   overflow-y: auto;
-
-  background: white;
-
-  border-radius: 24px;
-
+  border-radius: 20px;
   box-shadow: var(--shadow-lg);
-
-  animation: modalUp 0.25s ease;
+  border: 1px solid var(--border);
+  animation: modalScaleUp 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .view__box {
-  max-width: 760px;
+  max-width: 780px;
 }
 
 .modal__header {
-  padding: 18px 22px;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
-
+  padding: 20px 24px;
   border-bottom: 1px solid var(--border);
 }
 
 .modal__header h3 {
-  font-size: 19px;
-  font-weight: 800;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
 }
 
 .modal__header button {
-  width: 36px;
-  height: 36px;
-
+  width: 32px;
+  height: 32px;
   border: none;
   border-radius: 50%;
-
   background: #f1f5f9;
-
   color: var(--text-soft);
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   cursor: pointer;
-
-  transition: 0.22s ease;
+  transition: var(--transition);
 }
 
 .modal__header button:hover {
-  background: #fee2e2;
+  background: var(--danger-light);
   color: var(--danger);
 }
 
+/* 👁️ View Grid & Fields */
 .view__grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-
   gap: 16px;
-
-  padding: 22px;
+  padding: 24px;
 }
 
 .view__column {
@@ -506,71 +413,47 @@ body {
 
 .view__field {
   background: var(--soft);
-
-  border: 1px solid #edf2f7;
-
-  border-radius: 16px;
-
-  padding: 15px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
 }
 
 .view__field label {
   display: block;
-
-  margin-bottom: 8px;
-
-  color: var(--text-soft);
-
   font-size: 11px;
   font-weight: 700;
-
+  color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  margin-bottom: 6px;
 }
 
 .view__value {
-  color: var(--text);
-
   font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.income-highlight {
+  color: var(--primary-dark);
   font-weight: 700;
 }
 
-.view__badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  padding: 8px 14px;
-
-  border-radius: 999px;
-
-  font-size: 11px;
-  font-weight: 800;
-}
-
-.view__badge.paid {
-  background: var(--success-bg);
-  color: #166534;
-}
-
-.view__badge.unpaid {
-  background: var(--danger-bg);
-  color: #991b1b;
-}
-
+/* 📝 Edit Form Grid */
 .modal__form {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-
-  gap: 16px;
-
-  padding: 22px;
+  gap: 18px;
+  padding: 24px;
 }
 
 .form__group {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 6px;
 }
 
 .form__group.full {
@@ -578,277 +461,139 @@ body {
 }
 
 .form__group label {
+  font-size: 13px;
+  font-weight: 600;
   color: var(--text-soft);
-
-  font-size: 12px;
-  font-weight: 700;
 }
 
 .form__group input,
 .form__group select {
   height: 46px;
-
-  border-radius: 14px;
-  border: 1px solid var(--border);
-
-  background: white;
-
   padding: 0 14px;
-
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #fdfefe;
+  font-size: 14px;
+  font-weight: 550;
   color: var(--text);
-
-  font-size: 13px;
-  font-weight: 600;
-
-  transition: 0.25s ease;
+  transition: var(--transition);
 }
 
 .form__group input:focus,
 .form__group select:focus {
   outline: none;
-
   border-color: var(--primary);
-
-  box-shadow:
-    0 0 0 4px rgba(55, 111, 255, 0.10);
+  background: var(--card);
+  box-shadow: 0 0 0 4px rgba(55, 111, 255, 0.1);
 }
 
+/* 🗹 Custom Checkbox Wrapper */
 .checkbox {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
-
+  gap: 12px;
   background: var(--soft);
-
   border: 1px solid var(--border);
-
-  border-radius: 14px;
-
   padding: 14px;
-
+  border-radius: 10px;
   cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-soft);
+  user-select: none;
+  transition: var(--transition);
+}
+
+.checkbox:hover {
+  background: var(--primary-light);
+  border-color: rgba(55, 111, 255, 0.25);
+  color: var(--primary-dark);
 }
 
 .checkbox input {
-  width: 17px;
-  height: 17px;
-
+  width: 18px;
+  height: 18px;
   accent-color: var(--primary);
+  cursor: pointer;
 }
 
+/* 💾 Modal Save Action */
 .modal__actions {
-  padding: 0 22px 22px;
-
+  padding: 0 24px 24px;
   display: flex;
   justify-content: flex-end;
 }
 
 .save-btn {
-  height: 46px;
-
+  height: 48px;
   border: none;
-  border-radius: 14px;
-
-  padding: 0 20px;
-
+  border-radius: 12px;
+  padding: 0 24px;
+  background: var(--primary);
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
   display: flex;
   align-items: center;
   gap: 8px;
-
-  background: linear-gradient(
-    135deg,
-    var(--primary),
-    var(--primary-dark)
-  );
-
-  color: white;
-
-  font-size: 13px;
-  font-weight: 700;
-
   cursor: pointer;
-
-  transition: 0.25s ease;
+  box-shadow: 0 6px 16px rgba(55, 111, 255, 0.15);
+  transition: var(--transition);
 }
 
-.save-btn:hover {
-  transform: translateY(-2px);
+.save-btn:hover:not(:disabled) {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(55, 111, 255, 0.25);
 }
 
 .save-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
-.skeleton {
-  position: relative;
-  overflow: hidden;
-  border-radius: 12px;
-  background: rgba(255,255,255,0.05);
+/* 🎥 Animatsiyalar */
+@keyframes pageReveal {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.skeleton::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  transform: translateX(-100%);
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255,255,255,0.12),
-    transparent
-  );
-  animation: skeletonMove 1.3s infinite;
+@keyframes overlayFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-@keyframes skeletonMove {
-  100% {
-    transform: translateX(100%);
-  }
+@keyframes modalScaleUp {
+  from { opacity: 0; transform: scale(0.96) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-.skeleton-id {
-  width: 30px;
-  height: 14px;
-}
-
-.skeleton-avatar {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.skeleton-name {
-  width: 130px;
-  height: 14px;
-  margin-bottom: 8px;
-}
-
-.skeleton-sub {
-  width: 90px;
-  height: 10px;
-}
-
-.skeleton-phone {
-  width: 120px;
-  height: 14px;
-}
-
-.skeleton-badge {
-  width: 90px;
-  height: 34px;
-  border-radius: 999px;
-}
-
-.skeleton-status {
-  width: 75px;
-  height: 32px;
-  border-radius: 999px;
-}
-
-.skeleton-btn {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-}
-
-.student-user {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.student-user-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.student-actions-loading {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.students__table tbody tr {
-  animation: fadeSkeleton .4s ease;
-}
-
-@keyframes fadeSkeleton {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
+/* 📱 Moslashuvchanlik (Adaptive Breakpoints) */
 @media (max-width: 992px) {
   .view__grid,
   .modal__form {
     grid-template-columns: 1fr;
   }
-
   .form__group.full {
     grid-column: span 1;
   }
 }
 
 @media (max-width: 768px) {
-  .students {
-    padding: 16px;
-  }
-
   .students__header {
     flex-direction: column;
     align-items: stretch;
+    gap: 16px;
   }
-
   .primary-btn {
     width: 100%;
   }
-
-  .students__header h2 {
-    font-size: 24px;
+  .students__search-wrapper {
+    flex-direction: column;
+    align-items: stretch;
   }
-
-  .modal__box,
-  .view__box {
-    max-width: 100%;
-    border-radius: 20px;
-  }
-
-  .view__grid,
-  .modal__form {
-    padding: 18px;
-  }
-
-  .modal__actions {
-    padding: 0 18px 18px;
-  }
-}
-
-@media (max-width: 500px) {
-  .students__search input {
-    height: 48px;
-  }
-
-  .students__table th,
-  .students__table td {
-    padding: 13px;
-  }
-
-  .modal {
-    padding: 10px;
-  }
-
-  .modal__header {
-    padding: 16px 18px;
-  }
-
-  .modal__header h3 {
-    font-size: 17px;
+  .filter-select-box {
+    width: 100%;
   }
 }
