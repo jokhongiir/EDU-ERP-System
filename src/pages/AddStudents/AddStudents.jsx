@@ -22,7 +22,7 @@ import {
 
 import "./AddStudents.css";
 
-// 🛠️ Yordamchi tozalash va formatlash funksiyalari
+// 🛠️ Utility Functions for Formatting and Cleaning
 const onlyDigits = (v = "") => v?.toString().replace(/\D/g, "") || "";
 
 const normalizePhone = (value) => {
@@ -52,7 +52,7 @@ const formatPhone = (value) => {
 const formatMoney = (value) => {
   const num = onlyDigits(value);
   if (!num) return "";
-  return new Intl.NumberFormat("fr-FR").format(num);
+  return new Intl.NumberFormat("en-US").format(num); // Standardizing thousands separator
 };
 
 const formatPercent = (value) => {
@@ -76,7 +76,7 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
 
-  // 🔔 Custom Modal State (Alert interfeysi uchun)
+  // 🔔 Custom Modal State for Notifications and Alerts
   const [alertModal, setAlertModal] = useState({
     isOpen: false,
     type: "success", // "success" | "error"
@@ -102,7 +102,7 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
 
   const getTodayStr = () => new Date().toISOString().slice(0, 10);
 
-  // ⚙️ Alert chiqarish funksiyasi
+  // ⚙️ Alert Trigger System
   const showAlert = (type, message, callback = null) => {
     setAlertModal({
       isOpen: true,
@@ -118,7 +118,7 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
     if (callback) callback();
   };
 
-  // 📝 Tahrirlash rejimi
+  // 📝 Pre-populate Form on Edit Mode
   useEffect(() => {
     if (editStudent) {
       setForm({
@@ -138,7 +138,7 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
     }
   }, [editStudent]);
 
-  // 🔄 Ma'lumotlarni sinxronlash
+  // 🔄 Fetching Context-specific Dynamic Data
   useEffect(() => {
     if (!branchId) return;
 
@@ -157,7 +157,7 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
           groups: g.data || [],
         });
       } catch (err) {
-        console.error("Fetch error:", err);
+        console.error("Fetch data error:", err);
       } finally {
         setFetching(false);
       }
@@ -166,7 +166,7 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
     loadBranchData();
   }, [branchId]);
 
-  // Modal ochiqligida orqa fon skrollini bloklash
+  // Lock body scroll on overlay open
   useEffect(() => {
     document.body.style.overflow = alertModal.isOpen ? "hidden" : "unset";
     return () => {
@@ -174,11 +174,13 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
     };
   }, [alertModal.isOpen]);
 
+  // Cascading Logic: Instructors by Course
   const filteredTeachers = useMemo(() => {
     if (!form.course_id) return dbData.teachers;
     return dbData.teachers.filter((t) => String(t.course_id) === String(form.course_id));
   }, [dbData.teachers, form.course_id]);
 
+  // Cascading Logic: Classrooms by Course and Instructor
   const filteredGroups = useMemo(() => {
     return dbData.groups.filter((g) => {
       const matchCourse = !form.course_id || String(g.course_id) === String(form.course_id);
@@ -278,14 +280,17 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
 
       if (error) throw error;
 
-      // Muvaffaqiyatli xabar va yo'naltirish callback funksiyasi orqali bajariladi
-      showAlert("success", isEdit ? "Student record updated successfully!" : "New student successfully enrolled!", () => {
-        if (onFinish) {
-          onFinish();
-        } else {
-          navigate(`/dashboard/${branchId}/students`);
+      showAlert(
+        "success", 
+        isEdit ? "Student profile updated successfully!" : "New student has been successfully enrolled!", 
+        () => {
+          if (onFinish) {
+            onFinish();
+          } else {
+            navigate(`/dashboard/${branchId}/students`);
+          }
         }
-      });
+      );
 
     } catch (err) {
       console.error("Mutation error:", err);
@@ -493,7 +498,7 @@ export default function AddStudents({ activeBranch, editStudent = null, onFinish
               {alertModal.type === "success" ? <FiCheckCircle /> : <FiAlertCircle />}
             </div>
             <div className="alert-modal-content">
-              <h3>{alertModal.type === "success" ? "Success Operation" : "Validation Notice"}</h3>
+              <h3>{alertModal.type === "success" ? "Operation Successful" : "Validation Notice"}</h3>
               <p>{alertModal.message}</p>
             </div>
             <button type="button" className="alert-modal-close-btn" onClick={closeAlert}>
