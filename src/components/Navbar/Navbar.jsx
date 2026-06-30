@@ -12,16 +12,12 @@ export default function Navbar({
   refreshBranches,
 }) {
   const [user, setUser] = useState(null);
-
   const [dropdownOpen, setDropdownOpen] = useState(false);
-
   const [modalOpen, setModalOpen] = useState(false);
   const [editingBranch, setEditingBranch] = useState(null);
   const [form, setForm] = useState({ name: "" });
-
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState(null);
-
   const dropdownRef = useRef();
 
   useEffect(() => {
@@ -38,14 +34,12 @@ export default function Navbar({
         setDropdownOpen(false);
       }
     };
-
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
   const handleSave = async () => {
     if (!form.name.trim()) return;
-
     try {
       if (editingBranch) {
         await supabase
@@ -60,64 +54,39 @@ export default function Navbar({
           },
         ]);
       }
-
       setModalOpen(false);
       setEditingBranch(null);
       setForm({ name: "" });
-
       await refreshBranches?.();
-
       window.location.reload();
     } catch (err) {
       console.error("Save error:", err);
     }
   };
 
-  const handleEdit = (branch) => {
+  const handleEdit = (e, branch) => {
+    e.stopPropagation(); // Qator bosilganda filial o'zgarib ketishini oldini oladi
     setEditingBranch(branch);
     setForm({ name: branch.name });
     setModalOpen(true);
     setDropdownOpen(false);
   };
 
-  const handleDeleteClick = (branch) => {
+  const handleDeleteClick = (e, branch) => {
+    e.stopPropagation(); // Qator bosilganda filial o'zgarib ketishini oldini oladi
     setSelectedBranch(branch);
     setDeleteModalOpen(true);
     setDropdownOpen(false);
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (!selectedBranch) return;
-
-    try {
-      await supabase.from("branches").delete().eq("id", selectedBranch.id);
-
-      setDeleteModalOpen(false);
-      setSelectedBranch(null);
-
-      await refreshBranches?.();
-
-      window.location.reload();
-    } catch (err) {
-      console.error("Delete error:", err);
-    }
   };
 
   return (
     <header className="erp-navbar">
       <div className="erp-navbar__left">
         <button className="erp-navbar__menu-btn" onClick={toggleSidebar}>
-          <Menu size={22} />
+          <Menu size={20} />
         </button>
-
         <h1 className="erp-navbar__title">{centerName || "EDU ERP"}</h1>
-
-        {/* <div className="erp-navbar__search">
-          <Search size={18} />
-          <input placeholder="Search..." />
-        </div> */}
       </div>
-
       <div className="erp-navbar__right">
         <div className="erp-navbar__dropdown" ref={dropdownRef}>
           <button
@@ -125,9 +94,8 @@ export default function Navbar({
             onClick={() => setDropdownOpen(!dropdownOpen)}
           >
             {activeBranch?.name || "Select Branch"}
-            <ChevronDown size={16} />
+            <ChevronDown size={14} />
           </button>
-
           {dropdownOpen && (
             <div className="erp-navbar__dropdown-menu">
               <div
@@ -139,39 +107,44 @@ export default function Navbar({
                   setDropdownOpen(false);
                 }}
               >
-                <Plus size={16} />
+                <Plus size={15} />
                 New Branch
               </div>
-
               <div className="erp-navbar__divider" />
-
               {branches.map((b) => (
-                <div key={b.id} className="erp-navbar__branch-item">
-                  <span
-                    onClick={() => {
-                      setActiveBranch(b);
-                      setDropdownOpen(false);
-                    }}
-                  >
-                    {b.name}
-                  </span>
-
+                <div 
+                  key={b.id} 
+                  className={`erp-navbar__branch-item ${activeBranch?.id === b.id ? "is-active" : ""}`}
+                  onClick={() => {
+                    setActiveBranch(b);
+                    setDropdownOpen(false);
+                  }}
+                >
+                  <span className="erp-navbar__branch-name">{b.name}</span>
                   <div className="erp-navbar__actions">
-                    <Edit size={14} onClick={() => handleEdit(b)} />
-
-                    <Trash2 size={14} onClick={() => handleDeleteClick(b)} />
+                    <button 
+                      className="erp-navbar__action-btn edit" 
+                      onClick={(e) => handleEdit(e, b)}
+                    >
+                      <Edit size={13} />
+                    </button>
+                    <button 
+                      className="erp-navbar__action-btn delete" 
+                      onClick={(e) => handleDeleteClick(e, b)}
+                    >
+                      <Trash2 size={13} />
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
           )}
         </div>
-
         <div className="erp-navbar__user">
           <div className="erp-navbar__avatar">
             {user?.email?.charAt(0).toUpperCase()}
           </div>
-          <span>{user?.email}</span>
+          <span className="erp-navbar__email">{user?.email}</span>
         </div>
       </div>
 
@@ -179,17 +152,15 @@ export default function Navbar({
         <div className="erp-modal__overlay">
           <div className="erp-modal">
             <h3>{editingBranch ? "Edit Branch" : "Create Branch"}</h3>
-
             <input
               value={form.name}
               onChange={(e) => setForm({ name: e.target.value })}
               placeholder="Enter branch name"
+              autoFocus
             />
-
             <div className="erp-modal__actions">
-              <button onClick={() => setModalOpen(false)}>Cancel</button>
-
-              <button onClick={handleSave}>
+              <button className="btn-cancel" onClick={() => setModalOpen(false)}>Cancel</button>
+              <button className="btn-save" onClick={handleSave}>
                 {editingBranch ? "Update" : "Create"}
               </button>
             </div>
@@ -201,14 +172,13 @@ export default function Navbar({
         <div className="erp-modal__overlay">
           <div className="erp-modal erp-modal--danger">
             <h3>Confirm Deletion</h3>
-
             <p>
               Are you sure you want to delete <b>{selectedBranch?.name}</b>?
               This action cannot be undone.
             </p>
-
             <div className="erp-modal__actions">
               <button
+                className="btn-cancel"
                 onClick={() => {
                   setDeleteModalOpen(false);
                   setSelectedBranch(null);
@@ -216,8 +186,7 @@ export default function Navbar({
               >
                 Cancel
               </button>
-
-              <button className="danger" onClick={handleDeleteConfirm}>
+              <button className="btn-danger" onClick={handleDeleteConfirm}>
                 Yes, Delete
               </button>
             </div>
