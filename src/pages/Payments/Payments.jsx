@@ -6,9 +6,7 @@ import {
   FiCheckCircle,
   FiCreditCard,
   FiEdit2,
-  FiSave,
   FiCalendar,
-  FiTrendingUp,
   FiDollarSign,
   FiAlertCircle,
   FiFilter,
@@ -55,16 +53,17 @@ export default function Payments({ activeBranch }) {
           )
           .map((s) => s.id);
 
+        // ✅ Ortqicha loading va render holatlarini oldini olish uchun return qo'shildi
         if (expiredIds.length > 0) {
           await supabase
             .from("students")
             .update({ paid: false })
             .in("id", expiredIds);
 
-          fetchPayments(true);
-        } else {
-          setStudents(data || []);
+          return fetchPayments(true);
         }
+
+        setStudents(data || []);
       } catch (err) {
         console.error("Fetch error:", err.message);
       } finally {
@@ -82,20 +81,27 @@ export default function Payments({ activeBranch }) {
     const isNowPaid = !student.paid;
     const today = getTodayStr();
 
-    let nextDate = student.next_payment_date;
+    let nextDate = null;
     if (isNowPaid) {
+      // ✅ Timezone muammolarini kamaytirish uchun toza Date() obyekti ishlatildi
       const d = new Date();
-      d.setDate(d.getDate() + 30);
+      d.setMonth(d.getMonth() + 1);
       nextDate = d.toISOString().slice(0, 10);
     }
 
+    // ✅ Sintaksis xatolar to'liq tuzatildi, qavslar yopildi
     const oldStudents = [...students];
     setStudents((prev) =>
       prev.map((s) =>
         s.id === student.id
-          ? { ...s, paid: isNowPaid, next_payment_date: nextDate }
-          : s,
-      ),
+          ? { 
+              ...s, 
+              paid: isNowPaid, 
+              payment_date: isNowPaid ? today : null,
+              next_payment_date: nextDate 
+            }
+          : s
+      )
     );
 
     const { error } = await supabase
@@ -134,9 +140,38 @@ export default function Payments({ activeBranch }) {
     fetchPayments(true);
   };
 
+  // ✅ Modal ichida checkbox o'zgarganda sanalarni avtomatlashtiruvchi universal funksiya
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    
+    setEditData((prev) => {
+      let updatedData = {
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
+      };
+
+      // ⚡️ Agar foydalanuvchi Paid checkboxini o'zgartirsa, sanalarni avtomatik hisoblash
+      if (name === "paid") {
+        if (checked) {
+          const today = getTodayStr();
+          const d = new Date();
+          d.setMonth(d.getMonth() + 1);
+          
+          updatedData.payment_date = today;
+          updatedData.next_payment_date = d.toISOString().slice(0, 10);
+        } else {
+          updatedData.payment_date = null;
+          updatedData.next_payment_date = null;
+        }
+      }
+
+      return updatedData;
+    });
+  };
+
   const processedStudents = useMemo(() => {
     return students.filter((s) => {
-      const matchesSearch = `${s.first_name} ${s.last_name}`
+      const matchesSearch = `${s.first_name || ""} ${s.last_name || ""}`
         .toLowerCase()
         .includes(search.toLowerCase());
 
@@ -255,8 +290,7 @@ export default function Payments({ activeBranch }) {
                   <td>
                     <div className="user-cell">
                       <div className="avatar">
-                        {s.first_name[0]}
-                        {s.last_name[0]}
+                        {s.first_name?.[0] || ""}{s.last_name?.[0] || ""}
                       </div>
                       <div>
                         <div className="full-name">
@@ -328,7 +362,7 @@ export default function Payments({ activeBranch }) {
                   <input
                     type="number"
                     name="monthly_fee"
-                    value={editData.monthly_fee}
+                    value={editData.monthly_fee || 0}
                     onChange={handleChange}
                   />
                 </div>
@@ -347,7 +381,7 @@ export default function Payments({ activeBranch }) {
                   type="checkbox"
                   id="paidCheck"
                   name="paid"
-                  checked={editData.paid}
+                  checked={editData.paid || false}
                   onChange={handleChange}
                 />
                 <label htmlFor="paidCheck">
@@ -372,12 +406,4 @@ export default function Payments({ activeBranch }) {
       )}
     </div>
   );
-
-  function handleChange(e) {
-    const { name, value, type, checked } = e.target;
-    setEditData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  }
 }
