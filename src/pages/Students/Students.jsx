@@ -206,7 +206,8 @@ export default function Students({ activeBranch }) {
 
   return (
     <div className="students">
-      <div className="students__header">
+      <div className="Column-Table-Students">
+           <div className="students__header">
         <div className="title-area">
           <h1 className="page-main-title">
             {activeBranch?.name || "Management"} • Students
@@ -257,6 +258,8 @@ export default function Students({ activeBranch }) {
           </select>
         </div>
       </div>
+      </div>
+     
 
       <div className="students__table-wrapper">
         <table className="students__table">

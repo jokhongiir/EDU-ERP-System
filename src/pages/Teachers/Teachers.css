@@ -15,8 +15,11 @@
   --danger-light: #fef2f2;
   --warning: #f59e0b;
   --warning-light: #fef3c7;
-  --shadow-sm: 0 4px 6px -1px rgba(15, 23, 42, 0.03), 0 2px 4px -1px rgba(15, 23, 42, 0.02);
-  --shadow-md: 0 12px 24px -4px rgba(15, 23, 42, 0.06), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+  --shadow-sm:
+    0 4px 6px -1px rgba(15, 23, 42, 0.03), 0 2px 4px -1px rgba(15, 23, 42, 0.02);
+  --shadow-md:
+    0 12px 24px -4px rgba(15, 23, 42, 0.06),
+    0 4px 12px -2px rgba(15, 23, 42, 0.04);
   --shadow-lg: 0 24px 48px -12px rgba(15, 23, 42, 0.12);
   --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -25,7 +28,8 @@
 .teachers-page-container {
   max-width: 100%;
   margin: 0 auto;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   color: var(--text);
   animation: pageReveal 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -152,19 +156,40 @@
 }
 
 /* 📊 Modern Jadval Tizimi */
+/* 📊 Modern Jadval Tizimi */
 .teachers-table-overflow {
   background: var(--card);
   border-radius: 16px;
-  overflow: hidden;
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
-  overflow-x: auto;
+  overflow-y: auto; /* Vertikal scroll */
+  max-height: 65vh; /* Jadvalning maksimal balandligi */
+  position: relative;
 }
 
 .modern-data-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate; /* sticky ishlashi uchun juda muhim */
+  border-spacing: 0;
   min-width: 1050px;
+}
+
+.modern-data-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #f8fafc;
+}
+
+.modern-data-table thead th {
+  padding: 16px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--border);
+  background: #f8fafc; /* Scroll paytida fon ko'rinib qolmasligi uchun */
 }
 
 .modern-data-table thead {
@@ -756,37 +781,95 @@
 }
 
 @keyframes shimmerMove {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
-.sk-id { width: 18px; height: 16px; }
-.sk-avatar { width: 32px; height: 32px; border-radius: 50%; }
-.sk-name { width: 130px; height: 16px; }
-.sk-phone { width: 100px; height: 16px; }
-.sk-badge { width: 90px; height: 24px; border-radius: 8px; }
-.sk-students { width: 80px; height: 16px; }
-.sk-income { width: 85px; height: 16px; }
-.sk-status { width: 65px; height: 22px; border-radius: 6px; }
-.sk-btn { width: 32px; height: 32px; border-radius: 8px; }
+.sk-id {
+  width: 18px;
+  height: 16px;
+}
+.sk-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+.sk-name {
+  width: 130px;
+  height: 16px;
+}
+.sk-phone {
+  width: 100px;
+  height: 16px;
+}
+.sk-badge {
+  width: 90px;
+  height: 24px;
+  border-radius: 8px;
+}
+.sk-students {
+  width: 80px;
+  height: 16px;
+}
+.sk-income {
+  width: 85px;
+  height: 16px;
+}
+.sk-status {
+  width: 65px;
+  height: 22px;
+  border-radius: 6px;
+}
+.sk-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
 
-.teacher-user-cell { display: flex; align-items: center; gap: 12px; }
-.teacher-user-info { display: flex; flex-direction: column; }
+.teacher-user-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.teacher-user-info {
+  display: flex;
+  flex-direction: column;
+}
 
 /* 🎥 Kirish Animatsiyalari */
 @keyframes pageReveal {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes overlayFade {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes modalScaleUp {
-  from { opacity: 0; transform: scale(0.96) translateY(10px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 /* 📱 Moslashuvchanlik (Adaptive Layouts) */
