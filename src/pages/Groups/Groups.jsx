@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../services/supabaseClient";
 import "./Groups.css";
-
 import {
   FiPlus,
   FiX,
@@ -19,34 +18,20 @@ import {
 
 export default function Groups({ activeBranch }) {
   const branchId = activeBranch?.id;
-
   const [groups, setGroups] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [courses, setCourses] = useState([]);
   const [students, setStudents] = useState([]);
-
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-
   const [search, setSearch] = useState("");
   const [filterCourse, setFilterCourse] = useState("");
   const [filterTeacher, setFilterTeacher] = useState("");
-
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [editId, setEditId] = useState(null);
-  const [deleteId, setDeleteId] = useState(null); // O'chirish uchun ID state
-
-  const setForm = useState({
-    name: "",
-    teacher_id: "",
-    course_id: "",
-    start_date: "",
-    start_time: "",
-    end_time: "",
-    schedule_type: "all",
-  })[1];
-
+  const [deleteId, setDeleteId] = useState(null);
+  
   const [formValues, setFormValues] = useState({
     name: "",
     teacher_id: "",
@@ -71,7 +56,6 @@ export default function Groups({ activeBranch }) {
         supabase.from("courses").select("*").eq("branch_id", branchId),
         supabase.from("students").select("*").eq("branch_id", branchId),
       ]);
-
       setGroups(g.data || []);
       setTeachers(t.data || []);
       setCourses(c.data || []);
@@ -87,7 +71,6 @@ export default function Groups({ activeBranch }) {
     fetchData();
   }, [fetchData]);
 
-  // Modal ochilganda scrollni yopish (deleteId ham qo'shildi)
   useEffect(() => {
     if (modalOpen || selectedGroup || deleteId) {
       document.body.style.overflow = "hidden";
@@ -105,7 +88,6 @@ export default function Groups({ activeBranch }) {
     courses.find((c) => c.id === id)?.name || "No course";
   const getStudentsCount = (groupId) =>
     students.filter((s) => s.group_id === groupId).length;
-
   const getScheduleLabel = (type) => {
     const labels = { odd: "Odd days", even: "Even days", all: "Every day" };
     return labels[type] || "Every day";
@@ -133,9 +115,7 @@ export default function Groups({ activeBranch }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formValues.name.trim()) return;
-
     setSaving(true);
-
     const payload = {
       name: formValues.name,
       teacher_id: formValues.teacher_id || null,
@@ -146,7 +126,6 @@ export default function Groups({ activeBranch }) {
       schedule_type: formValues.schedule_type,
       branch_id: branchId,
     };
-
     try {
       let result;
       if (editId) {
@@ -154,11 +133,9 @@ export default function Groups({ activeBranch }) {
       } else {
         result = await supabase.from("groups").insert([payload]);
       }
-
       if (result.error) {
         throw result.error;
       }
-
       resetForm();
       fetchData();
     } catch (err) {
@@ -168,14 +145,11 @@ export default function Groups({ activeBranch }) {
     }
   };
 
-  // Haqiqiy o'chirish funksiyasi
   const confirmDelete = async () => {
     if (!deleteId) return;
     try {
       const { error } = await supabase.from("groups").delete().eq("id", deleteId);
-
       if (error) throw error;
-
       setGroups((prev) => prev.filter((g) => g.id !== deleteId));
       setDeleteId(null);
     } catch (err) {
@@ -223,7 +197,6 @@ export default function Groups({ activeBranch }) {
                   <FiX />
                 </button>
               </div>
-
               <form className="group-entry-form" onSubmit={handleSubmit}>
                 <div className="form-group-item">
                   <label className="form-label">Group Name</label>
@@ -237,7 +210,6 @@ export default function Groups({ activeBranch }) {
                     required
                   />
                 </div>
-
                 <div className="form-row-grid">
                   <div className="form-group-item">
                     <label className="form-label">Course</label>
@@ -255,7 +227,6 @@ export default function Groups({ activeBranch }) {
                       ))}
                     </select>
                   </div>
-
                   <div className="form-group-item">
                     <label className="form-label">Teacher</label>
                     <select
@@ -273,7 +244,6 @@ export default function Groups({ activeBranch }) {
                     </select>
                   </div>
                 </div>
-
                 <div className="form-row-grid">
                   <div className="form-group-item">
                     <label className="form-label">Start Date</label>
@@ -285,7 +255,6 @@ export default function Groups({ activeBranch }) {
                       onChange={handleChange}
                     />
                   </div>
-
                   <div className="form-group-item">
                     <label className="form-label">Schedule Type</label>
                     <select
@@ -300,7 +269,6 @@ export default function Groups({ activeBranch }) {
                     </select>
                   </div>
                 </div>
-
                 <div className="form-row-grid">
                   <div className="form-group-item">
                     <label className="form-label">Start Time</label>
@@ -312,7 +280,6 @@ export default function Groups({ activeBranch }) {
                       onChange={handleChange}
                     />
                   </div>
-
                   <div className="form-group-item">
                     <label className="form-label">End Time</label>
                     <input
@@ -324,7 +291,6 @@ export default function Groups({ activeBranch }) {
                     />
                   </div>
                 </div>
-
                 <button className="form-submit-button" disabled={saving}>
                   {saving
                     ? "Saving..."
@@ -337,7 +303,7 @@ export default function Groups({ activeBranch }) {
           </div>
         )}
 
-        {/* DETAILS MODAL */}
+        {/* DETAILS MODAL WITH STUDENTS LIST */}
         {selectedGroup && (
           <div
             className="app-modal-overlay"
@@ -356,7 +322,6 @@ export default function Groups({ activeBranch }) {
                   <FiX />
                 </button>
               </div>
-
               <div className="group-full-details">
                 <div className="info-badge">
                   <h2 className="info-title">{selectedGroup.name}</h2>
@@ -364,7 +329,6 @@ export default function Groups({ activeBranch }) {
                     {getCourse(selectedGroup.course_id)}
                   </span>
                 </div>
-
                 <div className="info-list">
                   <p className="detail-row">
                     <FiUser /> <strong>Teacher:</strong>{" "}
@@ -384,9 +348,62 @@ export default function Groups({ activeBranch }) {
                     {getScheduleLabel(selectedGroup.schedule_type)}
                   </p>
                   <p className="detail-row">
-                    <FiUsers /> <strong>Students:</strong>{" "}
+                    <FiUsers /> <strong>Total Students:</strong>{" "}
                     {getStudentsCount(selectedGroup.id)} active
                   </p>
+                </div>
+
+                {/* DYNAMIC STUDENTS LIST SECTION */}
+                <div className="students-list-section" style={{ marginTop: "24px" }}>
+                  <h4 style={{ 
+                    marginBottom: "12px", 
+                    borderBottom: "2px solid #f0f0f0", 
+                    paddingBottom: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    color: "#333"
+                  }}>
+                    <FiUsers /> Students Roster
+                  </h4>
+                  {students.filter((s) => s.group_id === selectedGroup.id).length === 0 ? (
+                    <p style={{ color: "#8c8c8c", fontStyle: "italic", padding: "10px 0" }}>
+                      No students registered in this group yet.
+                    </p>
+                  ) : (
+                    <ul style={{ 
+                      listStyle: "none", 
+                      padding: 0, 
+                      margin: 0, 
+                      maxHeight: "220px", 
+                      overflowY: "auto",
+                      border: "1px solid #f0f0f0",
+                      borderRadius: "6px"
+                    }}>
+                      {students
+                        .filter((s) => s.group_id === selectedGroup.id)
+                        .map((student, index) => (
+                          <li 
+                            key={student.id} 
+                            style={{ 
+                              padding: "10px 14px", 
+                              borderBottom: index === students.filter((s) => s.group_id === selectedGroup.id).length - 1 ? "none" : "1px solid #f5f5f5", 
+                              display: "flex", 
+                              alignItems: "center",
+                              gap: "12px",
+                              backgroundColor: index % 2 === 0 ? "#ffffff" : "#fafafa"
+                            }}
+                          >
+                            <span style={{ color: "#bfbfbf", fontSize: "13px", width: "20px" }}>
+                              {String(index + 1).padStart(2, '0')}
+                            </span>
+                            <span style={{ fontWeight: "500", color: "#262626" }}>
+                              {student.name || `${student.first_name || ""} ${student.last_name || ""}`}
+                            </span>
+                          </li>
+                        ))}
+                    </ul>
+                  )}
                 </div>
               </div>
             </div>
@@ -428,17 +445,14 @@ export default function Groups({ activeBranch }) {
           <h1 className="page-main-title">
             {activeBranch?.name || "Branch"} • Groups
           </h1>
-
           <p className="page-description">
             Manage class schedules, teachers, and groups
           </p>
         </div>
-
         <button className="add-group-btn" onClick={() => setModalOpen(true)}>
           <FiPlus /> New Group
         </button>
       </div>
-
       <div className="groups-filter-wrapper">
         <div className="search-input-box">
           <FiSearch className="search-icon" />
@@ -449,7 +463,6 @@ export default function Groups({ activeBranch }) {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-
         <select
           className="filter-select-dropdown"
           value={filterCourse}
@@ -462,7 +475,6 @@ export default function Groups({ activeBranch }) {
             </option>
           ))}
         </select>
-
         <select
           className="filter-select-dropdown"
           value={filterTeacher}
@@ -476,21 +488,18 @@ export default function Groups({ activeBranch }) {
           ))}
         </select>
       </div>
-
       {loading ? (
         <div className="groups-main-grid">
           {[...Array(6)].map((_, index) => (
             <div className="group-item-card skeleton-card" key={index}>
               <div className="group-card-info">
                 <div className="skeleton skeleton-title"></div>
-
                 <div className="card-details-stack">
                   <div className="skeleton skeleton-text"></div>
                   <div className="skeleton skeleton-text"></div>
                   <div className="skeleton skeleton-text short"></div>
                 </div>
               </div>
-
               <div className="group-card-actions">
                 <div className="skeleton skeleton-btn"></div>
                 <div className="skeleton skeleton-btn"></div>
@@ -507,10 +516,10 @@ export default function Groups({ activeBranch }) {
               key={g.id}
               className="group-item-card"
               onClick={() => setSelectedGroup(g)}
+              style={{ cursor: "pointer" }}
             >
               <div className="group-card-info">
                 <h3 className="group-card-name">{g.name}</h3>
-
                 <div className="card-details-stack">
                   <p>
                     <FiUser /> {getTeacher(g.teacher_id)}
@@ -523,7 +532,6 @@ export default function Groups({ activeBranch }) {
                   </p>
                 </div>
               </div>
-
               <div
                 className="group-card-actions"
                 onClick={(e) => e.stopPropagation()}
@@ -534,10 +542,9 @@ export default function Groups({ activeBranch }) {
                 >
                   <FiEdit2 />
                 </button>
-
                 <button
                   className="action-btn delete-action"
-                  onClick={() => setDeleteId(g.id)} // To'g'ridan-to'g'ri o'chirmay, modalni ochadi
+                  onClick={() => setDeleteId(g.id)}
                 >
                   <FiTrash2 />
                 </button>
