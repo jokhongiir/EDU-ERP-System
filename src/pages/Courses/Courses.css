@@ -18,22 +18,23 @@
   --cr-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 🏢 Modul Asosiy Konteyneri */
+/* 1. Asosiy konteyner: Sahifani to'liq egallaydi */
 .cr-module-root {
-  max-width: 100%;
-  margin: 0 auto;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  color: var(--cr-text);
+  display: flex;
+  flex-direction: column;
+  height: 100%;       /* Ota elementdan 100% balandlikni oladi */
+  overflow: hidden;   /* Sahifa o'zida scroll bo'lmaydi */
   animation: crReveal 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* 🧭 Yuqori qism (Header) */
+/* Header qismini qotiramiz */
 .cr-header-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 20px;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
+  flex-shrink: 0;     /* Jadval yoki grid kichrayganda header o'zgarmaydi */
 }
 
 .page-main-title {
@@ -81,11 +82,12 @@
   box-shadow: none;
 }
 
-/* 🗂️ Kurslar Grid Tizimi */
 .cr-grid-layout {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 22px;
+  overflow-y: auto;   /* Faqat shu qism scroll bo'ladi */
+  padding: 4px;      
 }
 
 /* 🎴 Kurs Kartochkasi */
