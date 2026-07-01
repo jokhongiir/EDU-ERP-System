@@ -148,7 +148,7 @@
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 20px;
   overflow-y: auto;
-  flex: 1;
+  /* flex: 1; */
   padding: 4px;
 }
 
