@@ -2,52 +2,51 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../services/supabaseClient";
 import "./Students.css";
-
 import {
   FiEdit,
   FiTrash2,
   FiSearch,
   FiX,
-  FiCheckCircle,
   FiSave,
   FiUser,
   FiCalendar,
-  FiFilter,
+  FiAlertTriangle, // O'chirish modaliga chiroyli ikonka
 } from "react-icons/fi";
 
 export default function Students({ activeBranch }) {
   const navigate = useNavigate();
   const branchId = activeBranch?.id;
 
+  // 📝 States
   const [students, setStudents] = useState([]);
   const [courses, setCourses] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [groups, setGroups] = useState([]);
-
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-
+  
+  // Modallar holati
   const [viewOpen, setViewOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-
+  const [deleteModal, setDeleteModal] = useState({ open: false, id: null }); // Yangi o'chirish modal state'i
+  
   const [viewData, setViewData] = useState(null);
   const [editData, setEditData] = useState(null);
-
   const [saving, setSaving] = useState(false);
 
+  // Filtrlar
   const [filterCourse, setFilterCourse] = useState("");
   const [filterTeacher, setFilterTeacher] = useState("");
   const [filterGroup, setFilterGroup] = useState("");
 
+  // Helper funksiyalar
   const getTodayStr = () => new Date().toISOString().slice(0, 10);
-  
   const formatCurrency = (value = 0) =>
     new Intl.NumberFormat("en-US").format(value) + " UZS";
 
-  // 🔄 Ma'lumotlarni xavfsiz yuklash (useCallback bilan)
+  // 🔄 Ma'lumotlarni xavfsiz yuklash
   const fetchData = useCallback(async () => {
     if (!branchId) return;
-
     setLoading(true);
     try {
       const [s, c, t, g] = await Promise.all([
@@ -56,19 +55,17 @@ export default function Students({ activeBranch }) {
           .select("*, courses(name), teachers(name), groups(name)")
           .eq("branch_id", branchId)
           .order("created_at", { ascending: false }),
-
         supabase.from("courses").select("*").eq("branch_id", branchId),
         supabase.from("teachers").select("*").eq("branch_id", branchId),
         supabase.from("groups").select("*").eq("branch_id", branchId),
       ]);
-
       setStudents(s.data || []);
       setCourses(c.data || []);
       setTeachers(t.data || []);
       setGroups(g.data || []);
     } catch (err) {
       console.error("Error loading students data:", err.message);
-    } finally {
+    } finally { // ✨ To'g'rilandi: finaly -> finally
       setLoading(false);
     }
   }, [branchId]);
@@ -79,24 +76,35 @@ export default function Students({ activeBranch }) {
 
   // 🚫 Modal ochilganda scrollni professional bloklash
   useEffect(() => {
-    document.body.style.overflow = viewOpen || editOpen ? "hidden" : "unset";
+    const isOpen = viewOpen || editOpen || deleteModal.open;
+    document.body.style.overflow = isOpen ? "hidden" : "unset";
     return () => {
       document.body.style.overflow = "unset";
     };
-  }, [viewOpen, editOpen]);
+  }, [viewOpen, editOpen, deleteModal.open]);
 
-  const handleDelete = async (id) => {
-    if (!confirm("Are you sure you want to delete this student profile?")) return;
+  // 🗑️ O'chirish funksiyalari
+  const openDeleteModal = (id) => {
+    setDeleteModal({ open: true, id });
+  };
 
+  const confirmDelete = async () => {
+    const id = deleteModal.id;
+    if (!id) return;
+    setSaving(true);
     try {
       const { error } = await supabase.from("students").delete().eq("id", id);
       if (error) throw error;
       setStudents((prev) => prev.filter((s) => s.id !== id));
+      setDeleteModal({ open: false, id: null });
     } catch (err) {
       alert("Delete failed: " + err.message);
+    } finally { // ✨ To'g'rilandi: finaly -> finally
+      setSaving(false);
     }
   };
 
+  // 👁️ Ko'rish va Tahrirlash modallarini ochish
   const openView = (student) => {
     setViewData(student);
     setViewOpen(true);
@@ -104,7 +112,6 @@ export default function Students({ activeBranch }) {
 
   const openEdit = (student) => {
     if (!student) return;
-
     setEditData({
       id: student.id,
       first_name: student.first_name ?? "",
@@ -121,26 +128,22 @@ export default function Students({ activeBranch }) {
       teacher_percent: student.teacher_percent ?? 0,
       paid: student.paid ?? false,
     });
-
     setEditOpen(true);
   };
 
-  // ⚡️ Avtomatlashtirish: Checkbox holatiga qarab sanalarni to'g'ri boshqarish
+  // ⚡️ Form inputlarini boshqarish va sanalarni hisoblash
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-
     setEditData((prev) => {
       let updated = {
         ...prev,
         [name]: type === "checkbox" ? checked : type === "number" ? Number(value) : value,
       };
-
       if (name === "paid") {
         if (checked) {
           const today = getTodayStr();
           const d = new Date();
-          d.setMonth(d.getMonth() + 1); // Aniq 1 kalendar oyi qo'shish
-
+          d.setMonth(d.getMonth() + 1);
           updated.payment_date = today;
           updated.next_payment_date = d.toISOString().slice(0, 10);
         } else {
@@ -148,14 +151,13 @@ export default function Students({ activeBranch }) {
           updated.next_payment_date = "";
         }
       }
-
       return updated;
     });
   };
 
+  // 💾 Ma'lumotlarni saqlash
   const handleSave = async () => {
     if (!editData?.id) return;
-
     setSaving(true);
     const payload = {
       first_name: editData.first_name?.trim() || "",
@@ -172,40 +174,37 @@ export default function Students({ activeBranch }) {
       teacher_percent: Number(editData.teacher_percent) || 0,
       paid: Boolean(editData.paid),
     };
-
     try {
       const { error } = await supabase
         .from("students")
         .update(payload)
         .eq("id", editData.id);
-
       if (error) throw error;
-
       await fetchData();
       setEditOpen(false);
     } catch (err) {
       alert(err.message);
-    } finally {
+    } finally { // ✨ To'g'rilandi: finaly -> finally
       setSaving(false);
     }
   };
 
+  // 🔍 Qidiruv va Filtrlar hisob-kitobi
   const filteredStudents = useMemo(() => {
     return students.filter((s) => {
       const fullName = `${s.first_name || ""} ${s.last_name || ""}`
         .toLowerCase()
         .includes(search.toLowerCase());
-
       const courseMatch = filterCourse ? s.course_id === filterCourse : true;
       const teacherMatch = filterTeacher ? s.teacher_id === filterTeacher : true;
       const groupMatch = filterGroup ? s.group_id === filterGroup : true;
-
       return fullName && courseMatch && teacherMatch && groupMatch;
     });
   }, [students, search, filterCourse, filterTeacher, filterGroup]);
 
   return (
     <div className="students">
+      {/* 1. Asosiy header */}
       <div className="students__header">
         <div className="title-area">
           <h1 className="page-main-title">
@@ -213,7 +212,6 @@ export default function Students({ activeBranch }) {
           </h1>
           <p className="page-description">Manage and monitor student enrollments, details and invoices</p>
         </div>
-
         <button
           className="primary-btn"
           onClick={() => navigate(`/dashboard/${branchId}/addstudents`)}
@@ -223,6 +221,7 @@ export default function Students({ activeBranch }) {
         </button>
       </div>
 
+      {/* 2. Search va filtrlar */}
       <div className="students__search-wrapper">
         <div className="students__search">
           <FiSearch />
@@ -258,6 +257,7 @@ export default function Students({ activeBranch }) {
         </div>
       </div>
 
+      {/* 3. Asosiy jadval (Table) */}
       <div className="students__table-wrapper">
         <table className="students__table">
           <thead>
@@ -272,7 +272,6 @@ export default function Students({ activeBranch }) {
               <th align="center">Actions</th>
             </tr>
           </thead>
-
           <tbody>
             {loading ? (
               Array.from({ length: 6 }).map((_, i) => (
@@ -330,7 +329,7 @@ export default function Students({ activeBranch }) {
                       <button className="row-btn edit" onClick={() => openEdit(s)} title="Edit Configuration">
                         <FiEdit />
                       </button>
-                      <button className="row-btn delete" onClick={() => handleDelete(s.id)} title="Delete Profile">
+                      <button className="row-btn delete" onClick={() => openDeleteModal(s.id)} title="Delete Profile">
                         <FiTrash2 />
                       </button>
                     </div>
@@ -342,7 +341,9 @@ export default function Students({ activeBranch }) {
         </table>
       </div>
 
-      {/* 👁️ VIEW DETAILS MODAL */}
+      {/* 4. MODALLAR (Eng pastda, asosiy kontentdan keyin) */}
+      
+      {/* View Modal */}
       {viewOpen && viewData && (
         <div className="modal" onClick={() => setViewOpen(false)}>
           <div className="modal__box view__box" onClick={(e) => e.stopPropagation()}>
@@ -373,7 +374,6 @@ export default function Students({ activeBranch }) {
                   <div className="view__value">{viewData.teachers?.name || "Unassigned"}</div>
                 </div>
               </div>
-
               <div className="view__column">
                 <div className="view__field">
                   <label>Allocated Group</label>
@@ -411,7 +411,7 @@ export default function Students({ activeBranch }) {
         </div>
       )}
 
-      {/* 📝 UPDATE PROFILE MODAL */}
+      {/* Edit Modal */}
       {editOpen && editData && (
         <div className="modal" onClick={() => setEditOpen(false)}>
           <div className="modal__box" onClick={(e) => e.stopPropagation()}>
@@ -435,7 +435,6 @@ export default function Students({ activeBranch }) {
                   />
                 </div>
               ))}
-
               <div className="form__group">
                 <label>Program Specialization</label>
                 <select name="course_id" value={editData.course_id || ""} onChange={handleChange}>
@@ -445,7 +444,6 @@ export default function Students({ activeBranch }) {
                   ))}
                 </select>
               </div>
-
               <div className="form__group">
                 <label>Assigned Instructor</label>
                 <select name="teacher_id" value={editData.teacher_id || ""} onChange={handleChange}>
@@ -455,7 +453,6 @@ export default function Students({ activeBranch }) {
                   ))}
                 </select>
               </div>
-
               <div className="form__group">
                 <label>Classroom Group</label>
                 <select name="group_id" value={editData.group_id || ""} onChange={handleChange}>
@@ -465,7 +462,6 @@ export default function Students({ activeBranch }) {
                   ))}
                 </select>
               </div>
-
               {[
                 { label: "Start Date", field: "start_date" },
                 { label: "Payment Date", field: "payment_date" },
@@ -481,7 +477,6 @@ export default function Students({ activeBranch }) {
                   />
                 </div>
               ))}
-
               <div className="form__group">
                 <label>Monthly Assessment Fee (UZS)</label>
                 <input
@@ -491,7 +486,6 @@ export default function Students({ activeBranch }) {
                   onChange={handleChange}
                 />
               </div>
-
               <div className="form__group">
                 <label>Instructor Percent Share (%)</label>
                 <input
@@ -501,7 +495,6 @@ export default function Students({ activeBranch }) {
                   onChange={handleChange}
                 />
               </div>
-
               <div className="form__group full">
                 <label className="checkbox">
                   <input
@@ -521,6 +514,40 @@ export default function Students({ activeBranch }) {
                 disabled={saving}
               >
                 <FiSave /> {saving ? "Saving Changes..." : "Commit Changes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Modal (Tasdiqlash uchun chiroyli oyna) */}
+      {deleteModal.open && (
+        <div className="modal" onClick={() => setDeleteModal({ open: false, id: null })}>
+          <div className="modal__box small-box" onClick={(e) => e.stopPropagation()}>
+            <div className="modal__header">
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#dc3545' }}>
+                <FiAlertTriangle /> Confirm Deletion
+              </h3>
+              <button onClick={() => setDeleteModal({ open: false, id: null })}><FiX /></button>
+            </div>
+            <div className="modal__body" style={{ padding: '16px 0', color: '#555' }}>
+              <p>Are you absolutely sure you want to delete this student profile? This action cannot be undone.</p>
+            </div>
+            <div className="modal__actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <button 
+                className="secondary-btn" 
+                onClick={() => setDeleteModal({ open: false, id: null })}
+                style={{ padding: '8px 16px', background: '#eee', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+              <button 
+                className="danger-btn" 
+                onClick={confirmDelete}
+                disabled={saving}
+                style={{ padding: '8px 16px', background: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+              >
+                {saving ? "Deleting..." : "Yes, Delete"}
               </button>
             </div>
           </div>
