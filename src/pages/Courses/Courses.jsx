@@ -22,7 +22,7 @@ export default function Courses({ activeBranch }) {
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [modalMode, setModalMode] = useState(null); // 'create' | 'edit' | 'details' | 'delete_confirm'
+  const [modalMode, setModalMode] = useState(null);
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [courseName, setCourseName] = useState("");
   const branchId = activeBranch?.id;
@@ -124,7 +124,9 @@ export default function Courses({ activeBranch }) {
         .delete()
         .eq("id", selectedCourse.id);
       if (delErr) throw delErr;
-      setCourses((prev) => prev.filter((item) => item.id !== selectedCourse.id));
+      setCourses((prev) =>
+        prev.filter((item) => item.id !== selectedCourse.id),
+      );
       setModalMode(null);
       setSelectedCourse(null);
     } catch (err) {
@@ -143,28 +145,37 @@ export default function Courses({ activeBranch }) {
     return createPortal(
       <div className="cr-modal-overlay" onClick={() => setModalMode(null)}>
         {modalMode === "delete_confirm" ? (
-          /* ⚠️ CUSTOM TASDIQLASH MODALI */
-          <div className="cr-modal-content cr-confirm-box" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="cr-modal-content cr-confirm-box"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="cr-confirm-icon-wrapper">
               <FiAlertTriangle />
             </div>
             <h3>Delete Course</h3>
             <p>
-              Are you sure you want to delete <strong>{selectedCourse?.name}</strong>? 
-              This action cannot be undone.
+              Are you sure you want to delete{" "}
+              <strong>{selectedCourse?.name}</strong>? This action cannot be
+              undone.
             </p>
             <div className="cr-confirm-footer-btns">
               <button className="cr-btn-no" onClick={() => setModalMode(null)}>
                 Cancel
               </button>
-              <button className="cr-btn-yes" onClick={confirmDelete} disabled={actionLoading}>
+              <button
+                className="cr-btn-yes"
+                onClick={confirmDelete}
+                disabled={actionLoading}
+              >
                 {actionLoading ? "Deleting..." : "Delete"}
               </button>
             </div>
           </div>
         ) : (
-          /* STANDARD MODAL (DETAILS / FORM) */
-          <div className="cr-modal-content" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="cr-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="cr-modal-header">
               <h3>
                 {modalMode === "create" && "Create New Course"}
@@ -191,7 +202,9 @@ export default function Courses({ activeBranch }) {
                 </div>
                 <div className="cr-detail-card">
                   <span>Total Groups</span>
-                  <strong>{currentStats?.groupsCount || 0} active groups</strong>
+                  <strong>
+                    {currentStats?.groupsCount || 0} active groups
+                  </strong>
                 </div>
                 <div className="cr-detail-card">
                   <span>Assigned Teachers</span>
