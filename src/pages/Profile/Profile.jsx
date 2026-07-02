@@ -226,42 +226,54 @@ export default function Profile() {
       {/* 📊 CORE STATS COUNTER GRID */}
       <div className="erp-global-grid">
         <div className="erp-stat-box">
-          <div className="stat-icon-box"><FiUsers /></div>
+          <div className="stat-icon-box">
+            <FiUsers />
+          </div>
           <div className="stat-meta">
             <h2>{profileData.totalStudents}</h2>
             <p>Total Students</p>
           </div>
         </div>
         <div className="erp-stat-box">
-          <div className="stat-icon-box"><FiAward /></div>
+          <div className="stat-icon-box">
+            <FiAward />
+          </div>
           <div className="stat-meta">
             <h2>{profileData.totalTeachers}</h2>
             <p>Total Teachers</p>
           </div>
         </div>
         <div className="erp-stat-box">
-          <div className="stat-icon-box"><FiBookOpen /></div>
+          <div className="stat-icon-box">
+            <FiBookOpen />
+          </div>
           <div className="stat-meta">
             <h2>{profileData.totalCourses}</h2>
             <p>Total Courses</p>
           </div>
         </div>
         <div className="erp-stat-box">
-          <div className="stat-icon-box"><FiLayers /></div>
+          <div className="stat-icon-box">
+            <FiLayers />
+          </div>
           <div className="stat-meta">
             <h2>{profileData.totalGroups}</h2>
             <p>Total Groups</p>
           </div>
         </div>
         <div className="erp-stat-box income">
-          <div className="stat-icon-box"><FiTrendingUp /></div>
+          <div className="stat-icon-box">
+            <FiTrendingUp />
+          </div>
           <div className="stat-meta">
             <h2>{formatMoney(profileData.totalIncome)}</h2>
             <p>Total Income</p>
           </div>
         </div>
         <div className="erp-stat-box expense">
-          <div className="stat-icon-box"><FiTrendingDown /></div>
+          <div className="stat-icon-box">
+            <FiTrendingDown />
+          </div>
           <div className="stat-meta">
             <h2>{formatMoney(profileData.totalExpense)}</h2>
             <p>Total Expense</p>
@@ -279,35 +291,48 @@ export default function Profile() {
             <FiCalendar />
             <span>Monthly Revenue</span>
           </div>
-          <h2>{formatMoney(profileData.monthlyIncome)} <span className="currency">UZS</span></h2>
+          <h2>
+            {formatMoney(profileData.monthlyIncome)}{" "}
+            <span className="currency">UZS</span>
+          </h2>
         </div>
         <div className="analytics-card expense-variant">
           <div className="analytics-top">
             <FiCreditCard />
             <span>Teacher Expense</span>
           </div>
-          <h2>{formatMoney(profileData.monthlyExpense)} <span className="currency">UZS</span></h2>
+          <h2>
+            {formatMoney(profileData.monthlyExpense)}{" "}
+            <span className="currency">UZS</span>
+          </h2>
         </div>
         <div className="analytics-card success-variant">
           <div className="analytics-top">
             <FiTarget />
             <span>Pure Profit</span>
           </div>
-          <h2>{formatMoney(profileData.monthlyProfit)} <span className="currency">UZS</span></h2>
+          <h2>
+            {formatMoney(profileData.monthlyProfit)}{" "}
+            <span className="currency">UZS</span>
+          </h2>
         </div>
       </div>
 
       {/* 💳 STUDENT PAYMENT RATIO STRIP */}
       <div className="payment-status-grid">
         <div className="payment-box paid">
-          <div className="p-icon"><FiCheckCircle /></div>
+          <div className="p-icon">
+            <FiCheckCircle />
+          </div>
           <div className="p-meta">
             <h2>{profileData.paidStudents}</h2>
             <p>Paid Students</p>
           </div>
         </div>
         <div className="payment-box unpaid">
-          <div className="p-icon"><FiAlertCircle /></div>
+          <div className="p-icon">
+            <FiAlertCircle />
+          </div>
           <div className="p-meta">
             <h2>{profileData.unpaidStudents}</h2>
             <p>Unpaid Students</p>

@@ -1,7 +1,3 @@
-/* * 🎨 Premium ERP Dashboard Stylesheet
- * Design System: Apple Minimalist / SaaS Premium
- */
-
 :root {
   --pr-primary: #376fff;
   --pr-primary-dark: #1a56db;
@@ -13,37 +9,39 @@
   --pr-text-soft: #64748b;
   --pr-muted: #94a3b8;
   --pr-border: #e2e8f0;
-  
+
   --pr-success: #10b981;
   --pr-success-light: #ecfdf5;
   --pr-success-text: #065f46;
-  
+
   --pr-danger: #ef4444;
   --pr-danger-light: #fef2f2;
   --pr-danger-text: #991b1b;
-  
+
   --pr-warning: #f59e0b;
   --pr-warning-light: #fffbeb;
   --pr-warning-text: #92400e;
-  
-  --pr-shadow-sm: 0 4px 6px -1px rgba(15, 23, 42, 0.02), 0 2px 4px -1px rgba(15, 23, 42, 0.02);
-  --pr-shadow-md: 0 10px 20px -4px rgba(15, 23, 42, 0.04), 0 4px 8px -2px rgba(15, 23, 42, 0.03);
+
+  --pr-shadow-sm:
+    0 4px 6px -1px rgba(15, 23, 42, 0.02), 0 2px 4px -1px rgba(15, 23, 42, 0.02);
+  --pr-shadow-md:
+    0 10px 20px -4px rgba(15, 23, 42, 0.04),
+    0 4px 8px -2px rgba(15, 23, 42, 0.03);
   --pr-shadow-lg: 0 20px 32px -8px rgba(15, 23, 42, 0.08);
   --pr-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 🏢 Umumiy Sahifa Konteyneri */
 .erp-profile-page {
   max-width: 100%;
   margin: 0 auto;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   color: var(--pr-text);
   background-color: var(--pr-bg);
   min-height: 100vh;
   animation: prReveal 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* 👤 Profil Yuqori Qismi (Header Section) */
 .erp-profile-top {
   display: flex;
   justify-content: space-between;
@@ -116,7 +114,6 @@
   font-size: 14px;
 }
 
-/* 💰 Global Umumiy Foyda Vidjeti (Header O'ng Tomoni) */
 .erp-profit-box {
   display: flex;
   align-items: center;
@@ -164,8 +161,12 @@
   letter-spacing: -0.01em;
 }
 
-.erp-profit-box.profit h2 { color: var(--pr-success-text); }
-.erp-profit-box.loss h2 { color: var(--pr-danger-text); }
+.erp-profit-box.profit h2 {
+  color: var(--pr-success-text);
+}
+.erp-profit-box.loss h2 {
+  color: var(--pr-danger-text);
+}
 
 .profit-value-stack p {
   margin: 0;
@@ -176,7 +177,6 @@
   letter-spacing: 0.05em;
 }
 
-/* 📊 Asosiy Hisoblagichlar (Core Stats Grid) */
 .erp-global-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -215,13 +215,13 @@
   transition: var(--pr-transition);
 }
 
-.erp-stat-box.income .stat-icon-box { 
-  background: var(--pr-success-light); 
-  color: var(--pr-success); 
+.erp-stat-box.income .stat-icon-box {
+  background: var(--pr-success-light);
+  color: var(--pr-success);
 }
-.erp-stat-box.expense .stat-icon-box { 
-  background: var(--pr-danger-light); 
-  color: var(--pr-danger); 
+.erp-stat-box.expense .stat-icon-box {
+  background: var(--pr-danger-light);
+  color: var(--pr-danger);
 }
 
 .stat-meta h2 {
@@ -238,7 +238,6 @@
   color: var(--pr-text-soft);
 }
 
-/* 📈 Sektsiyalar va Blok Sarlavhalari */
 .section-block-title {
   display: flex;
   align-items: center;
@@ -259,7 +258,6 @@
   font-size: 20px;
 }
 
-/* Oylik Analitika Grid (Monthly Analytics) */
 .analytics-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -289,9 +287,16 @@
   margin-bottom: 14px;
 }
 
-.analytics-top svg { color: var(--pr-primary); font-size: 16px; }
-.analytics-card.expense-variant .analytics-top svg { color: var(--pr-warning); }
-.analytics-card.success-variant .analytics-top svg { color: var(--pr-success); }
+.analytics-top svg {
+  color: var(--pr-primary);
+  font-size: 16px;
+}
+.analytics-card.expense-variant .analytics-top svg {
+  color: var(--pr-warning);
+}
+.analytics-card.success-variant .analytics-top svg {
+  color: var(--pr-success);
+}
 
 .analytics-card h2 {
   font-size: 26px;
@@ -307,9 +312,8 @@
   margin-left: 4px;
 }
 
-/* Maxsus yon chiziq indikatori (Apple Style Tab Accent) */
 .analytics-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -317,10 +321,13 @@
   width: 4px;
   background: var(--pr-primary);
 }
-.analytics-card.expense-variant::before { background: var(--pr-warning); }
-.analytics-card.success-variant::before { background: var(--pr-success); }
+.analytics-card.expense-variant::before {
+  background: var(--pr-warning);
+}
+.analytics-card.success-variant::before {
+  background: var(--pr-success);
+}
 
-/* 💳 Talabalar To'lov Statusi (Payment Strip) */
 .payment-status-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -345,11 +352,19 @@
   align-items: center;
 }
 
-.payment-box.paid { border-left: 4px solid var(--pr-success); }
-.payment-box.unpaid { border-left: 4px solid var(--pr-warning); }
+.payment-box.paid {
+  border-left: 4px solid var(--pr-success);
+}
+.payment-box.unpaid {
+  border-left: 4px solid var(--pr-warning);
+}
 
-.payment-box.paid .p-icon { color: var(--pr-success); }
-.payment-box.unpaid .p-icon { color: var(--pr-warning); }
+.payment-box.paid .p-icon {
+  color: var(--pr-success);
+}
+.payment-box.unpaid .p-icon {
+  color: var(--pr-warning);
+}
 
 .p-meta h2 {
   font-size: 22px;
@@ -365,7 +380,6 @@
   font-weight: 550;
 }
 
-/* 🏢 Modul Sektsiya Qutisi (Section Blocks) */
 .erp-section-box {
   background: var(--pr-card);
   border: 1px solid var(--pr-border);
@@ -398,7 +412,6 @@
   color: var(--pr-muted);
 }
 
-/* 🏢 Filiallar Konteyneri (Branches Layout) */
 .branches-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -460,8 +473,8 @@
   font-weight: 550;
 }
 
-.branch-stat-line svg { 
-  color: var(--pr-muted); 
+.branch-stat-line svg {
+  color: var(--pr-muted);
   font-size: 15px;
 }
 
@@ -479,7 +492,6 @@
   color: var(--pr-primary);
 }
 
-/* ⏱️ Oxirgi To'lovlar Ro'yxati (Recent Payments) */
 .recent-payments-list {
   display: flex;
   flex-direction: column;
@@ -564,9 +576,8 @@
   font-weight: 500;
 }
 
-/* 💀 SKELETON LOADING STRUCTURE */
-.skeleton-active { 
-  pointer-events: none; 
+.skeleton-active {
+  pointer-events: none;
   user-select: none;
 }
 
@@ -586,10 +597,15 @@
   gap: 8px;
 }
 
-.pr-skeleton.s-title { width: 220px; height: 26px; }
-.pr-skeleton.s-subtitle { width: 140px; height: 16px; }
+.pr-skeleton.s-title {
+  width: 220px;
+  height: 26px;
+}
+.pr-skeleton.s-subtitle {
+  width: 140px;
+  height: 16px;
+}
 
-/* Shimmer Animatsiya effekti */
 .shimmer {
   background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
   background-size: 200% 100%;
@@ -597,17 +613,25 @@
 }
 
 @keyframes prShimmerAnimation {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
-/* 🎥 Yumshoq paydo bo'lish animatsiyasi */
 @keyframes prReveal {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* 📱 Mobil Qurilmalarga Moslashuvchanlik (Responsive Media Queries) */
 @media (max-width: 992px) {
   .erp-profile-top {
     flex-direction: column;
