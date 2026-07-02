@@ -51,7 +51,7 @@ const formatPhone = (value) => {
 const formatMoney = (value) => {
   const num = onlyDigits(value);
   if (!num) return "";
-  return new Intl.NumberFormat("en-US").format(num); // Standardizing thousands separator
+  return new Intl.NumberFormat("en-US").format(num);
 };
 
 const formatPercent = (value) => {
@@ -79,10 +79,9 @@ export default function AddStudents({
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
 
-  // 🔔 Custom Modal State for Notifications and Alerts
   const [alertModal, setAlertModal] = useState({
     isOpen: false,
-    type: "success", // "success" | "error"
+    type: "success",
     message: "",
     onCloseCallback: null,
   });
@@ -105,7 +104,6 @@ export default function AddStudents({
 
   const getTodayStr = () => new Date().toISOString().slice(0, 10);
 
-  // ⚙️ Alert Trigger System
   const showAlert = (type, message, callback = null) => {
     setAlertModal({
       isOpen: true,
@@ -121,7 +119,6 @@ export default function AddStudents({
     if (callback) callback();
   };
 
-  // 📝 Pre-populate Form on Edit Mode
   useEffect(() => {
     if (editStudent) {
       setForm({
@@ -143,7 +140,6 @@ export default function AddStudents({
     }
   }, [editStudent]);
 
-  // 🔄 Fetching Context-specific Dynamic Data
   useEffect(() => {
     if (!branchId) return;
 
@@ -183,7 +179,6 @@ export default function AddStudents({
     loadBranchData();
   }, [branchId]);
 
-  // Lock body scroll on overlay open
   useEffect(() => {
     document.body.style.overflow = alertModal.isOpen ? "hidden" : "unset";
     return () => {
@@ -191,7 +186,6 @@ export default function AddStudents({
     };
   }, [alertModal.isOpen]);
 
-  // Cascading Logic: Instructors by Course
   const filteredTeachers = useMemo(() => {
     if (!form.course_id) return dbData.teachers;
     return dbData.teachers.filter(
@@ -199,7 +193,6 @@ export default function AddStudents({
     );
   }, [dbData.teachers, form.course_id]);
 
-  // Cascading Logic: Classrooms by Course and Instructor
   const filteredGroups = useMemo(() => {
     return dbData.groups.filter((g) => {
       const matchCourse =
@@ -367,7 +360,6 @@ export default function AddStudents({
       )}
 
       <form onSubmit={handleSubmit} className="form">
-        {/* SECTION 1: PERSONAL */}
         <div className="section">
           <h4>
             <FiUser /> Personal Information
@@ -414,7 +406,6 @@ export default function AddStudents({
           </div>
         </div>
 
-        {/* SECTION 2: ACADEMICS */}
         <div className="section">
           <h4>
             <FiBookOpen /> Academic Allocation
@@ -470,7 +461,6 @@ export default function AddStudents({
           </div>
         </div>
 
-        {/* SECTION 3: BILLING */}
         <div className="section">
           <h4>
             <FiCreditCard /> Financial Ledger Configuration
@@ -528,7 +518,6 @@ export default function AddStudents({
           </label>
         </div>
 
-        {/* ACTIONS */}
         <div className="actions">
           <button type="submit" className="submit-btn" disabled={loading}>
             <FiSave />
@@ -549,7 +538,6 @@ export default function AddStudents({
         </div>
       </form>
 
-      {/* 🚨 PREMIUM ALERT MODAL SYSTEM */}
       {alertModal.isOpen && (
         <div className="alert-modal-overlay" onClick={closeAlert}>
           <div
@@ -585,7 +573,6 @@ export default function AddStudents({
   );
 }
 
-// 🧱 Sub-components
 const Field = ({ label, children }) => (
   <div className="field">
     <label>{label}</label>
