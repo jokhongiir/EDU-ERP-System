@@ -31,7 +31,7 @@ export default function Groups({ activeBranch }) {
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [editId, setEditId] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
-  
+
   const [formValues, setFormValues] = useState({
     name: "",
     teacher_id: "",
@@ -148,7 +148,10 @@ export default function Groups({ activeBranch }) {
   const confirmDelete = async () => {
     if (!deleteId) return;
     try {
-      const { error } = await supabase.from("groups").delete().eq("id", deleteId);
+      const { error } = await supabase
+        .from("groups")
+        .delete()
+        .eq("id", deleteId);
       if (error) throw error;
       setGroups((prev) => prev.filter((g) => g.id !== deleteId));
       setDeleteId(null);
@@ -185,7 +188,6 @@ export default function Groups({ activeBranch }) {
   const renderModals = () => {
     return createPortal(
       <>
-        {/* CREATE / EDIT MODAL */}
         {modalOpen && (
           <div className="app-modal-overlay" onClick={resetForm}>
             <div className="app-modal-box" onClick={(e) => e.stopPropagation()}>
@@ -303,7 +305,6 @@ export default function Groups({ activeBranch }) {
           </div>
         )}
 
-        {/* DETAILS MODAL WITH STUDENTS LIST */}
         {selectedGroup && (
           <div
             className="app-modal-overlay"
@@ -353,52 +354,82 @@ export default function Groups({ activeBranch }) {
                   </p>
                 </div>
 
-                {/* DYNAMIC STUDENTS LIST SECTION */}
-                <div className="students-list-section" style={{ marginTop: "24px" }}>
-                  <h4 style={{ 
-                    marginBottom: "12px", 
-                    borderBottom: "2px solid #f0f0f0", 
-                    paddingBottom: "8px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    color: "#333"
-                  }}>
+                <div
+                  className="students-list-section"
+                  style={{ marginTop: "24px" }}
+                >
+                  <h4
+                    style={{
+                      marginBottom: "12px",
+                      borderBottom: "2px solid #f0f0f0",
+                      paddingBottom: "8px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      color: "#333",
+                    }}
+                  >
                     <FiUsers /> Students Roster
                   </h4>
-                  {students.filter((s) => s.group_id === selectedGroup.id).length === 0 ? (
-                    <p style={{ color: "#8c8c8c", fontStyle: "italic", padding: "10px 0" }}>
+                  {students.filter((s) => s.group_id === selectedGroup.id)
+                    .length === 0 ? (
+                    <p
+                      style={{
+                        color: "#8c8c8c",
+                        fontStyle: "italic",
+                        padding: "10px 0",
+                      }}
+                    >
                       No students registered in this group yet.
                     </p>
                   ) : (
-                    <ul style={{ 
-                      listStyle: "none", 
-                      padding: 0, 
-                      margin: 0, 
-                      maxHeight: "220px", 
-                      overflowY: "auto",
-                      border: "1px solid #f0f0f0",
-                      borderRadius: "6px"
-                    }}>
+                    <ul
+                      style={{
+                        listStyle: "none",
+                        padding: 0,
+                        margin: 0,
+                        maxHeight: "220px",
+                        overflowY: "auto",
+                        border: "1px solid #f0f0f0",
+                        borderRadius: "6px",
+                      }}
+                    >
                       {students
                         .filter((s) => s.group_id === selectedGroup.id)
                         .map((student, index) => (
-                          <li 
-                            key={student.id} 
-                            style={{ 
-                              padding: "10px 14px", 
-                              borderBottom: index === students.filter((s) => s.group_id === selectedGroup.id).length - 1 ? "none" : "1px solid #f5f5f5", 
-                              display: "flex", 
+                          <li
+                            key={student.id}
+                            style={{
+                              padding: "10px 14px",
+                              borderBottom:
+                                index ===
+                                students.filter(
+                                  (s) => s.group_id === selectedGroup.id,
+                                ).length -
+                                  1
+                                  ? "none"
+                                  : "1px solid #f5f5f5",
+                              display: "flex",
                               alignItems: "center",
                               gap: "12px",
-                              backgroundColor: index % 2 === 0 ? "#ffffff" : "#fafafa"
+                              backgroundColor:
+                                index % 2 === 0 ? "#ffffff" : "#fafafa",
                             }}
                           >
-                            <span style={{ color: "#bfbfbf", fontSize: "13px", width: "20px" }}>
-                              {String(index + 1).padStart(2, '0')}
+                            <span
+                              style={{
+                                color: "#bfbfbf",
+                                fontSize: "13px",
+                                width: "20px",
+                              }}
+                            >
+                              {String(index + 1).padStart(2, "0")}
                             </span>
-                            <span style={{ fontWeight: "500", color: "#262626" }}>
-                              {student.name || `${student.first_name || ""} ${student.last_name || ""}`}
+                            <span
+                              style={{ fontWeight: "500", color: "#262626" }}
+                            >
+                              {student.name ||
+                                `${student.first_name || ""} ${student.last_name || ""}`}
                             </span>
                           </li>
                         ))}
@@ -410,7 +441,6 @@ export default function Groups({ activeBranch }) {
           </div>
         )}
 
-        {/* ⚠️ CONFIRM DELETE MODAL */}
         {deleteId && (
           <div className="app-modal-overlay" onClick={() => setDeleteId(null)}>
             <div
@@ -421,7 +451,10 @@ export default function Groups({ activeBranch }) {
                 <FiAlertTriangle />
               </div>
               <h3>Delete Group</h3>
-              <p>Are you sure you want to delete this group? This action cannot be undone.</p>
+              <p>
+                Are you sure you want to delete this group? This action cannot
+                be undone.
+              </p>
               <div className="confirm-footer-btns">
                 <button className="btn-no" onClick={() => setDeleteId(null)}>
                   Cancel

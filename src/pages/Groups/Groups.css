@@ -13,13 +13,15 @@
   --success-light: #ecfdf5;
   --danger: #ef4444;
   --danger-light: #fef2f2;
-  --shadow-sm: 0 4px 6px -1px rgba(15, 23, 42, 0.03), 0 2px 4px -1px rgba(15, 23, 42, 0.02);
-  --shadow-md: 0 12px 24px -4px rgba(15, 23, 42, 0.06), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+  --shadow-sm:
+    0 4px 6px -1px rgba(15, 23, 42, 0.03), 0 2px 4px -1px rgba(15, 23, 42, 0.02);
+  --shadow-md:
+    0 12px 24px -4px rgba(15, 23, 42, 0.06),
+    0 4px 12px -2px rgba(15, 23, 42, 0.04);
   --shadow-lg: 0 24px 48px -12px rgba(15, 23, 42, 0.12);
   --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 🏢 Asosiy konteyner */
 .groups-container {
   display: flex;
   flex-direction: column;
@@ -52,7 +54,6 @@
   font-weight: 500;
 }
 
-/* ➕ Yangi guruh qo'shish tugmasi */
 .add-group-btn {
   height: 46px;
   border: none;
@@ -142,13 +143,11 @@
   border-color: var(--primary);
 }
 
-/* 🎴 Kartochkalar paneli */
 .groups-main-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 20px;
   overflow-y: auto;
-  /* flex: 1; */
   padding: 4px;
 }
 
@@ -204,7 +203,6 @@
   font-size: 15px;
 }
 
-/* ⚙️ Kartochka boshqaruv tugmalari */
 .group-card-actions {
   display: flex;
   flex-direction: column;
@@ -244,7 +242,6 @@
   color: var(--danger);
 }
 
-/* 🌐 Portal Modal Overlay */
 .app-modal-overlay {
   position: fixed;
   inset: 0;
@@ -304,7 +301,6 @@
   color: var(--danger);
 }
 
-/* 📝 Forma elementlari */
 .group-entry-form {
   padding: 24px;
   display: flex;
@@ -373,7 +369,6 @@
   cursor: not-allowed;
 }
 
-/* 👁️ Tafsilotlar (Details) Modali va O'quvchilar Ro'yxati */
 .detail-modal {
   max-width: 480px;
 }
@@ -428,7 +423,6 @@
   font-size: 16px;
 }
 
-/* 🧑‍🎓 Dynamic Students List (Yangi qo'shilgan qism uchun toliq dizayn) */
 .students-list-section h4 {
   font-size: 15px;
   font-weight: 700;
@@ -456,7 +450,6 @@
   transition: var(--transition);
 }
 
-/* ⚠️ O'chirishni tasdiqlash (Confirm Delete) Modali */
 .confirm-modal {
   max-width: 400px;
   padding: 32px 24px;
@@ -527,7 +520,6 @@
   background: #dc2626;
 }
 
-/* 📭 Bo'sh holat va Yuklanish */
 .empty-state {
   text-align: center;
   padding: 48px;
@@ -536,7 +528,6 @@
   font-size: 15px;
 }
 
-/* 💀 Skeleton Yuklanish Shimmer */
 .skeleton-card {
   cursor: default !important;
   pointer-events: none;
@@ -550,32 +541,63 @@
 }
 
 @keyframes shimmerMove {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
-.skeleton-title { width: 60%; height: 20px; margin-bottom: 16px; }
-.skeleton-text { width: 80%; height: 14px; }
-.skeleton-text.short { width: 45%; }
-.skeleton-btn { width: 34px; height: 34px; border-radius: 8px; }
+.skeleton-title {
+  width: 60%;
+  height: 20px;
+  margin-bottom: 16px;
+}
+.skeleton-text {
+  width: 80%;
+  height: 14px;
+}
+.skeleton-text.short {
+  width: 45%;
+}
+.skeleton-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+}
 
-/* 🎥 Animatsiyalar */
 @keyframes pageReveal {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes overlayFade {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes modalScaleUp {
-  from { opacity: 0; transform: scale(0.97) translateY(8px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
-/* 📱 Mobile Responsive */
 @media (max-width: 768px) {
   .groups-top-bar {
     flex-direction: column;
