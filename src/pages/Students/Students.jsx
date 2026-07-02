@@ -40,11 +40,10 @@ export default function Students({ activeBranch }) {
   const [filterGroup, setFilterGroup] = useState("");
 
   const getTodayStr = () => new Date().toISOString().slice(0, 10);
-  
+
   const formatCurrency = (value = 0) =>
     new Intl.NumberFormat("en-US").format(value) + " UZS";
 
-  // 🔄 Ma'lumotlarni xavfsiz yuklash (useCallback bilan)
   const fetchData = useCallback(async () => {
     if (!branchId) return;
 
@@ -77,7 +76,6 @@ export default function Students({ activeBranch }) {
     fetchData();
   }, [fetchData]);
 
-  // 🚫 Modal ochilganda scrollni professional bloklash
   useEffect(() => {
     document.body.style.overflow = viewOpen || editOpen ? "hidden" : "unset";
     return () => {
@@ -86,7 +84,8 @@ export default function Students({ activeBranch }) {
   }, [viewOpen, editOpen]);
 
   const handleDelete = async (id) => {
-    if (!confirm("Are you sure you want to delete this student profile?")) return;
+    if (!confirm("Are you sure you want to delete this student profile?"))
+      return;
 
     try {
       const { error } = await supabase.from("students").delete().eq("id", id);
@@ -125,21 +124,25 @@ export default function Students({ activeBranch }) {
     setEditOpen(true);
   };
 
-  // ⚡️ Avtomatlashtirish: Checkbox holatiga qarab sanalarni to'g'ri boshqarish
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
     setEditData((prev) => {
       let updated = {
         ...prev,
-        [name]: type === "checkbox" ? checked : type === "number" ? Number(value) : value,
+        [name]:
+          type === "checkbox"
+            ? checked
+            : type === "number"
+              ? Number(value)
+              : value,
       };
 
       if (name === "paid") {
         if (checked) {
           const today = getTodayStr();
           const d = new Date();
-          d.setMonth(d.getMonth() + 1); // Aniq 1 kalendar oyi qo'shish
+          d.setMonth(d.getMonth() + 1);
 
           updated.payment_date = today;
           updated.next_payment_date = d.toISOString().slice(0, 10);
@@ -197,7 +200,9 @@ export default function Students({ activeBranch }) {
         .includes(search.toLowerCase());
 
       const courseMatch = filterCourse ? s.course_id === filterCourse : true;
-      const teacherMatch = filterTeacher ? s.teacher_id === filterTeacher : true;
+      const teacherMatch = filterTeacher
+        ? s.teacher_id === filterTeacher
+        : true;
       const groupMatch = filterGroup ? s.group_id === filterGroup : true;
 
       return fullName && courseMatch && teacherMatch && groupMatch;
@@ -207,59 +212,75 @@ export default function Students({ activeBranch }) {
   return (
     <div className="students">
       <div className="Column-Table-Students">
-           <div className="students__header">
-        <div className="title-area">
-          <h1 className="page-main-title">
-            {activeBranch?.name || "Management"} • Students
-          </h1>
-          <p className="page-description">Manage and monitor student enrollments, details and invoices</p>
+        <div className="students__header">
+          <div className="title-area">
+            <h1 className="page-main-title">
+              {activeBranch?.name || "Management"} • Students
+            </h1>
+            <p className="page-description">
+              Manage and monitor student enrollments, details and invoices
+            </p>
+          </div>
+
+          <button
+            className="primary-btn"
+            onClick={() => navigate(`/dashboard/${branchId}/addstudents`)}
+            disabled={!branchId}
+          >
+            + Add Student
+          </button>
         </div>
 
-        <button
-          className="primary-btn"
-          onClick={() => navigate(`/dashboard/${branchId}/addstudents`)}
-          disabled={!branchId}
-        >
-          + Add Student
-        </button>
+        <div className="students__search-wrapper">
+          <div className="students__search">
+            <FiSearch />
+            <input
+              placeholder="Search student profiles by name..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <div className="filter-select-box">
+            <select
+              value={filterCourse}
+              onChange={(e) => setFilterCourse(e.target.value)}
+            >
+              <option value="">All Courses</option>
+              {courses.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="filter-select-box">
+            <select
+              value={filterTeacher}
+              onChange={(e) => setFilterTeacher(e.target.value)}
+            >
+              <option value="">All Teachers</option>
+              {teachers.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="filter-select-box">
+            <select
+              value={filterGroup}
+              onChange={(e) => setFilterGroup(e.target.value)}
+            >
+              <option value="">All Groups</option>
+              {groups.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
       </div>
-
-      <div className="students__search-wrapper">
-        <div className="students__search">
-          <FiSearch />
-          <input
-            placeholder="Search student profiles by name..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <div className="filter-select-box">
-          <select value={filterCourse} onChange={(e) => setFilterCourse(e.target.value)}>
-            <option value="">All Courses</option>
-            {courses.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-        </div>
-        <div className="filter-select-box">
-          <select value={filterTeacher} onChange={(e) => setFilterTeacher(e.target.value)}>
-            <option value="">All Teachers</option>
-            {teachers.map((t) => (
-              <option key={t.id} value={t.id}>{t.name}</option>
-            ))}
-          </select>
-        </div>
-        <div className="filter-select-box">
-          <select value={filterGroup} onChange={(e) => setFilterGroup(e.target.value)}>
-            <option value="">All Groups</option>
-            {groups.map((g) => (
-              <option key={g.id} value={g.id}>{g.name}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-      </div>
-     
 
       <div className="students__table-wrapper">
         <table className="students__table">
@@ -280,7 +301,9 @@ export default function Students({ activeBranch }) {
             {loading ? (
               Array.from({ length: 6 }).map((_, i) => (
                 <tr key={i}>
-                  <td><div className="skeleton skeleton-id"></div></td>
+                  <td>
+                    <div className="skeleton skeleton-id"></div>
+                  </td>
                   <td>
                     <div className="student-user">
                       <div className="skeleton skeleton-avatar"></div>
@@ -290,11 +313,21 @@ export default function Students({ activeBranch }) {
                       </div>
                     </div>
                   </td>
-                  <td><div className="skeleton skeleton-phone"></div></td>
-                  <td><div className="skeleton skeleton-badge"></div></td>
-                  <td><div className="skeleton skeleton-badge"></div></td>
-                  <td><div className="skeleton skeleton-badge"></div></td>
-                  <td><div className="skeleton skeleton-status"></div></td>
+                  <td>
+                    <div className="skeleton skeleton-phone"></div>
+                  </td>
+                  <td>
+                    <div className="skeleton skeleton-badge"></div>
+                  </td>
+                  <td>
+                    <div className="skeleton skeleton-badge"></div>
+                  </td>
+                  <td>
+                    <div className="skeleton skeleton-badge"></div>
+                  </td>
+                  <td>
+                    <div className="skeleton skeleton-status"></div>
+                  </td>
                   <td>
                     <div className="student-actions-loading">
                       <div className="skeleton skeleton-btn"></div>
@@ -307,7 +340,10 @@ export default function Students({ activeBranch }) {
               <tr>
                 <td colSpan="8">
                   <div className="students__empty">
-                    <FiUser size={40} style={{ marginBottom: "12px", opacity: 0.4 }} />
+                    <FiUser
+                      size={40}
+                      style={{ marginBottom: "12px", opacity: 0.4 }}
+                    />
                     <p>No active records matching the selected parameters</p>
                   </div>
                 </td>
@@ -320,20 +356,34 @@ export default function Students({ activeBranch }) {
                     {s.first_name} {s.last_name}
                   </td>
                   <td>{s.phone || "—"}</td>
-                  <td><span className="badge-course">{s.courses?.name || "N/A"}</span></td>
+                  <td>
+                    <span className="badge-course">
+                      {s.courses?.name || "N/A"}
+                    </span>
+                  </td>
                   <td>{s.teachers?.name || "—"}</td>
                   <td>{s.groups?.name || "—"}</td>
                   <td>
-                    <span className={`status-pill-small ${s.paid ? "paid" : "unpaid"}`}>
+                    <span
+                      className={`status-pill-small ${s.paid ? "paid" : "unpaid"}`}
+                    >
                       {s.paid ? "COLLECTED" : "OVERDUE"}
                     </span>
                   </td>
                   <td onClick={(e) => e.stopPropagation()} align="center">
                     <div className="actions-cell-row">
-                      <button className="row-btn edit" onClick={() => openEdit(s)} title="Edit Configuration">
+                      <button
+                        className="row-btn edit"
+                        onClick={() => openEdit(s)}
+                        title="Edit Configuration"
+                      >
                         <FiEdit />
                       </button>
-                      <button className="row-btn delete" onClick={() => handleDelete(s.id)} title="Delete Profile">
+                      <button
+                        className="row-btn delete"
+                        onClick={() => handleDelete(s.id)}
+                        title="Delete Profile"
+                      >
                         <FiTrash2 />
                       </button>
                     </div>
@@ -345,66 +395,95 @@ export default function Students({ activeBranch }) {
         </table>
       </div>
 
-      {/* 👁️ VIEW DETAILS MODAL */}
       {viewOpen && viewData && (
         <div className="modal" onClick={() => setViewOpen(false)}>
-          <div className="modal__box view__box" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="modal__box view__box"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="modal__header">
               <h3>Student Master Record</h3>
-              <button onClick={() => setViewOpen(false)}><FiX /></button>
+              <button onClick={() => setViewOpen(false)}>
+                <FiX />
+              </button>
             </div>
             <div className="view__grid">
               <div className="view__column">
                 <div className="view__field">
                   <label>Full Name</label>
-                  <div className="view__value">{viewData.first_name} {viewData.last_name}</div>
+                  <div className="view__value">
+                    {viewData.first_name} {viewData.last_name}
+                  </div>
                 </div>
                 <div className="view__field">
                   <label>Personal Mobile</label>
-                  <div className="view__value">{viewData.phone || "Not specified"}</div>
+                  <div className="view__value">
+                    {viewData.phone || "Not specified"}
+                  </div>
                 </div>
                 <div className="view__field">
                   <label>Emergency Parent Contact</label>
-                  <div className="view__value">{viewData.parent_phone || "Not specified"}</div>
+                  <div className="view__value">
+                    {viewData.parent_phone || "Not specified"}
+                  </div>
                 </div>
                 <div className="view__field">
                   <label>Program / Course</label>
-                  <div className="view__value">{viewData.courses?.name || "Unassigned"}</div>
+                  <div className="view__value">
+                    {viewData.courses?.name || "Unassigned"}
+                  </div>
                 </div>
                 <div className="view__field">
                   <label>Primary Instructor</label>
-                  <div className="view__value">{viewData.teachers?.name || "Unassigned"}</div>
+                  <div className="view__value">
+                    {viewData.teachers?.name || "Unassigned"}
+                  </div>
                 </div>
               </div>
 
               <div className="view__column">
                 <div className="view__field">
                   <label>Allocated Group</label>
-                  <div className="view__value">{viewData.groups?.name || "Unassigned"}</div>
+                  <div className="view__value">
+                    {viewData.groups?.name || "Unassigned"}
+                  </div>
                 </div>
                 <div className="view__field">
                   <label>Enrollment Commencement</label>
-                  <div className="view__value"><FiCalendar /> {viewData.start_date || "—"}</div>
+                  <div className="view__value">
+                    <FiCalendar /> {viewData.start_date || "—"}
+                  </div>
                 </div>
                 <div className="view__field">
                   <label>Latest Settlement Date</label>
-                  <div className="view__value">{viewData.payment_date || "—"}</div>
+                  <div className="view__value">
+                    {viewData.payment_date || "—"}
+                  </div>
                 </div>
                 <div className="view__field">
                   <label>Next Invoicing Cycle</label>
-                  <div className="view__value">{viewData.next_payment_date || "—"}</div>
+                  <div className="view__value">
+                    {viewData.next_payment_date || "—"}
+                  </div>
                 </div>
                 <div className="view__field">
                   <label>Standard Monthly Fee</label>
-                  <div className="view__value income-highlight">{formatCurrency(viewData.monthly_fee)}</div>
+                  <div className="view__value income-highlight">
+                    {formatCurrency(viewData.monthly_fee)}
+                  </div>
                 </div>
                 <div className="view__field">
                   <label>Teacher Share Yield</label>
-                  <div className="view__value">{viewData.teacher_percent || 0}%</div>
+                  <div className="view__value">
+                    {viewData.teacher_percent || 0}%
+                  </div>
                 </div>
                 <div className="view__field">
                   <label>Current Status</label>
-                  <div className={`status-pill-small ${viewData.paid ? "paid" : "unpaid"}`} style={{ display: "inline-block" }}>
+                  <div
+                    className={`status-pill-small ${viewData.paid ? "paid" : "unpaid"}`}
+                    style={{ display: "inline-block" }}
+                  >
                     {viewData.paid ? "PAID" : "UNPAID"}
                   </div>
                 </div>
@@ -414,13 +493,14 @@ export default function Students({ activeBranch }) {
         </div>
       )}
 
-      {/* 📝 UPDATE PROFILE MODAL */}
       {editOpen && editData && (
         <div className="modal" onClick={() => setEditOpen(false)}>
           <div className="modal__box" onClick={(e) => e.stopPropagation()}>
             <div className="modal__header">
               <h3>Update Student Parameters</h3>
-              <button onClick={() => setEditOpen(false)}><FiX /></button>
+              <button onClick={() => setEditOpen(false)}>
+                <FiX />
+              </button>
             </div>
             <div className="modal__form">
               {[
@@ -441,30 +521,48 @@ export default function Students({ activeBranch }) {
 
               <div className="form__group">
                 <label>Program Specialization</label>
-                <select name="course_id" value={editData.course_id || ""} onChange={handleChange}>
+                <select
+                  name="course_id"
+                  value={editData.course_id || ""}
+                  onChange={handleChange}
+                >
                   <option value="">Select program...</option>
                   {courses.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div className="form__group">
                 <label>Assigned Instructor</label>
-                <select name="teacher_id" value={editData.teacher_id || ""} onChange={handleChange}>
+                <select
+                  name="teacher_id"
+                  value={editData.teacher_id || ""}
+                  onChange={handleChange}
+                >
                   <option value="">Select teacher...</option>
                   {teachers.map((t) => (
-                    <option key={t.id} value={t.id}>{t.name}</option>
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div className="form__group">
                 <label>Classroom Group</label>
-                <select name="group_id" value={editData.group_id || ""} onChange={handleChange}>
+                <select
+                  name="group_id"
+                  value={editData.group_id || ""}
+                  onChange={handleChange}
+                >
                   <option value="">Select group...</option>
                   {groups.map((g) => (
-                    <option key={g.id} value={g.id}>{g.name}</option>
+                    <option key={g.id} value={g.id}>
+                      {g.name}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -472,7 +570,7 @@ export default function Students({ activeBranch }) {
               {[
                 { label: "Start Date", field: "start_date" },
                 { label: "Payment Date", field: "payment_date" },
-                { label: "Next Payment Date", field: "next_payment_date" }
+                { label: "Next Payment Date", field: "next_payment_date" },
               ].map((d) => (
                 <div className="form__group" key={d.field}>
                   <label>{d.label}</label>
