@@ -167,7 +167,6 @@ export default function Profile() {
     return profileData.totalProfit >= 0 ? "profit" : "loss";
   }, [profileData.totalProfit]);
 
-  // 💀 SKELETON LOADING TEMPLATE
   if (loading) {
     return (
       <div className="erp-profile-page skeleton-active">
@@ -191,7 +190,6 @@ export default function Profile() {
 
   return (
     <div className="erp-profile-page">
-      {/* 👤 TOP HEADER SECTION */}
       <div className="erp-profile-top">
         <div className="profile-main-left">
           <div className="erp-avatar">{profileData.centerName?.charAt(0)}</div>
@@ -211,7 +209,6 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* 💰 GLOBAL NET PROFIT CARD */}
         <div className={`erp-profit-box ${profitStatus}`}>
           <div className="profit-icon">
             {profitStatus === "profit" ? <FiTrendingUp /> : <FiTrendingDown />}
@@ -223,7 +220,6 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* 📊 CORE STATS COUNTER GRID */}
       <div className="erp-global-grid">
         <div className="erp-stat-box">
           <div className="stat-icon-box">
@@ -281,7 +277,6 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* 📈 CURRENT MONTH FINANCIAL ANALYTICS */}
       <div className="section-block-title">
         <FiPieChart /> <h2>Monthly Analytics (Current Period)</h2>
       </div>
@@ -318,7 +313,6 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* 💳 STUDENT PAYMENT RATIO STRIP */}
       <div className="payment-status-grid">
         <div className="payment-box paid">
           <div className="p-icon">
@@ -340,7 +334,6 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* 🏢 BRANCHES PERFORMANCE OVERVIEW */}
       <div className="erp-section-box">
         <div className="section-title">
           <div className="title-left">
@@ -378,7 +371,6 @@ export default function Profile() {
         )}
       </div>
 
-      {/* ⏱️ RECENT INCOMING TRANSACTIONS */}
       <div className="erp-section-box">
         <div className="section-title">
           <div className="title-left">
