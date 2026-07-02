@@ -1,22 +1,22 @@
-import { supabase } from './supabaseClient';
+import { supabase } from "./supabaseClient";
 
 export const registerUser = async (centerName, email, password) => {
   try {
     const { data, error } = await supabase.auth.signUp(
       { email, password },
-      { emailRedirectTo: window.location.origin }
+      { emailRedirectTo: window.location.origin },
     );
 
     if (error) return { error: error.message };
 
     const user = data.user;
-    if (!user) return { error: 'User yaratilmadi' };
+    if (!user) return { error: "User yaratilmadi" };
 
-    const { error: insertError } = await supabase.from('users').upsert([
+    const { error: insertError } = await supabase.from("users").upsert([
       {
         full_name: centerName,
         email,
-        role: 'admin',
+        role: "admin",
         owner_uid: user.id,
       },
     ]);
@@ -37,8 +37,11 @@ export const registerUser = async (centerName, email, password) => {
 };
 
 export const loginUser = async (email, password) => {
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return { error: 'Email yoki parol noto‘g‘ri' };
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+  if (error) return { error: "Email yoki parol noto‘g‘ri" };
   return { user: data.user };
 };
 
