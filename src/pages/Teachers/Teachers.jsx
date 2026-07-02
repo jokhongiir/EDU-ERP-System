@@ -53,56 +53,57 @@ export default function Teachers({ activeBranch }) {
   const branchId = activeBranch?.id;
   const getTodayStr = () => new Date().toISOString().slice(0, 10);
 
-  const fetchData = useCallback(async (showSilent = false) => {
-    if (!branchId) return;
+  const fetchData = useCallback(
+    async (showSilent = false) => {
+      if (!branchId) return;
 
-    if (!showSilent) setLoading(true);
-    try {
-      const [tRes, cRes, sRes] = await Promise.all([
-        supabase
-          .from("teachers")
-          .select("*")
-          .eq("branch_id", branchId)
-          .order("created_at", { ascending: false }),
+      if (!showSilent) setLoading(true);
+      try {
+        const [tRes, cRes, sRes] = await Promise.all([
+          supabase
+            .from("teachers")
+            .select("*")
+            .eq("branch_id", branchId)
+            .order("created_at", { ascending: false }),
 
-        supabase.from("courses").select("*").eq("branch_id", branchId),
+          supabase.from("courses").select("*").eq("branch_id", branchId),
 
-        supabase.from("students").select("*").eq("branch_id", branchId),
-      ]);
+          supabase.from("students").select("*").eq("branch_id", branchId),
+        ]);
 
-      if (tRes.error) throw tRes.error;
-      if (cRes.error) throw cRes.error;
-      if (sRes.error) throw sRes.error;
+        if (tRes.error) throw tRes.error;
+        if (cRes.error) throw cRes.error;
+        if (sRes.error) throw sRes.error;
 
-      const today = getTodayStr();
-      const currentTeachers = tRes.data || [];
+        const today = getTodayStr();
+        const currentTeachers = tRes.data || [];
 
-      // ⚡️ 1. Avtomatlashtirish: Muddati o'tgan oylik statuslarini fonda yangilash
-      const expiredTeacherIds = currentTeachers
-        .filter(
-          (t) =>
-            t.salary_paid && t.next_payment && t.next_payment <= today
-        )
-        .map((t) => t.id);
+        const expiredTeacherIds = currentTeachers
+          .filter(
+            (t) => t.salary_paid && t.next_payment && t.next_payment <= today,
+          )
+          .map((t) => t.id);
 
-      if (expiredTeacherIds.length > 0) {
-        await supabase
-          .from("teachers")
-          .update({ salary_paid: false })
-          .in("id", expiredTeacherIds);
+        if (expiredTeacherIds.length > 0) {
+          await supabase
+            .from("teachers")
+            .update({ salary_paid: false })
+            .in("id", expiredTeacherIds);
 
-        return fetchData(true); // Yangilangan ma'lumotlarni fonda qayta o'qish
+          return fetchData(true);
+        }
+
+        setTeachers(currentTeachers);
+        setCourses(cRes.data || []);
+        setStudents(sRes.data || []);
+      } catch (err) {
+        console.error("Error while loading data:", err.message);
+      } finally {
+        setLoading(false);
       }
-
-      setTeachers(currentTeachers);
-      setCourses(cRes.data || []);
-      setStudents(sRes.data || []);
-    } catch (err) {
-      console.error("Error while loading data:", err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [branchId]);
+    },
+    [branchId],
+  );
 
   useEffect(() => {
     fetchData();
@@ -159,7 +160,6 @@ export default function Teachers({ activeBranch }) {
     });
   }, [teachers, search, filterCourse]);
 
-  // ⚡️ 2. Avtomatlashtirish: Checkbox bosilganda sanalarni auto-hisoblash
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
 
@@ -173,7 +173,7 @@ export default function Teachers({ activeBranch }) {
         if (checked) {
           const today = getTodayStr();
           const d = new Date();
-          d.setMonth(d.getMonth() + 1); // 1 oy qo'shish
+          d.setMonth(d.getMonth() + 1);
 
           updatedForm.last_payment = today;
           updatedForm.next_payment = d.toISOString().slice(0, 10);
