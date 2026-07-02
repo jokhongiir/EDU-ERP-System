@@ -2,7 +2,7 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* Asosiy sahifada scroll bo'lmaydi */
+  overflow: hidden;
   animation: fadeIn 0.7s ease;
 }
 .payments-header {
@@ -171,25 +171,23 @@
   appearance: none;
 }
 
-/* 📊 Jadval Konteyneri */
 .table-container {
   background: white;
   border-radius: 24px;
   border: 1px solid var(--border);
   box-shadow: var(--shadow-md);
-  overflow-y: auto;       /* Vertikal scroll */
-  max-height: 65vh;       /* Jadval uchun maksimal balandlik */
-  position: relative;     /* Sticky ishlashi uchun */
+  overflow-y: auto;
+  max-height: 65vh;
+  position: relative;
 }
 
 .modern-table {
   width: 100%;
-  border-collapse: separate; /* Sticky ishlashi uchun juda muhim */
+  border-collapse: separate;
   border-spacing: 0;
   min-width: 900px;
 }
 
-/* 📌 Sticky Sarlavha */
 .modern-table thead {
   position: sticky;
   top: 0;
@@ -206,7 +204,7 @@
   color: var(--text-soft);
   letter-spacing: 0.05em;
   border-bottom: 2px solid var(--border);
-  background: #f8fbff; /* Scroll paytida fon yopib turishi uchun */
+  background: #f8fbff;
 }
 
 .modern-table td {

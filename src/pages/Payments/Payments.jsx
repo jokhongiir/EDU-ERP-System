@@ -53,7 +53,6 @@ export default function Payments({ activeBranch }) {
           )
           .map((s) => s.id);
 
-        // ✅ Ortqicha loading va render holatlarini oldini olish uchun return qo'shildi
         if (expiredIds.length > 0) {
           await supabase
             .from("students")
@@ -83,25 +82,23 @@ export default function Payments({ activeBranch }) {
 
     let nextDate = null;
     if (isNowPaid) {
-      // ✅ Timezone muammolarini kamaytirish uchun toza Date() obyekti ishlatildi
       const d = new Date();
       d.setMonth(d.getMonth() + 1);
       nextDate = d.toISOString().slice(0, 10);
     }
 
-    // ✅ Sintaksis xatolar to'liq tuzatildi, qavslar yopildi
     const oldStudents = [...students];
     setStudents((prev) =>
       prev.map((s) =>
         s.id === student.id
-          ? { 
-              ...s, 
-              paid: isNowPaid, 
+          ? {
+              ...s,
+              paid: isNowPaid,
               payment_date: isNowPaid ? today : null,
-              next_payment_date: nextDate 
+              next_payment_date: nextDate,
             }
-          : s
-      )
+          : s,
+      ),
     );
 
     const { error } = await supabase
@@ -140,23 +137,21 @@ export default function Payments({ activeBranch }) {
     fetchPayments(true);
   };
 
-  // ✅ Modal ichida checkbox o'zgarganda sanalarni avtomatlashtiruvchi universal funksiya
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    
+
     setEditData((prev) => {
       let updatedData = {
         ...prev,
         [name]: type === "checkbox" ? checked : value,
       };
 
-      // ⚡️ Agar foydalanuvchi Paid checkboxini o'zgartirsa, sanalarni avtomatik hisoblash
       if (name === "paid") {
         if (checked) {
           const today = getTodayStr();
           const d = new Date();
           d.setMonth(d.getMonth() + 1);
-          
+
           updatedData.payment_date = today;
           updatedData.next_payment_date = d.toISOString().slice(0, 10);
         } else {
@@ -290,7 +285,8 @@ export default function Payments({ activeBranch }) {
                   <td>
                     <div className="user-cell">
                       <div className="avatar">
-                        {s.first_name?.[0] || ""}{s.last_name?.[0] || ""}
+                        {s.first_name?.[0] || ""}
+                        {s.last_name?.[0] || ""}
                       </div>
                       <div>
                         <div className="full-name">
