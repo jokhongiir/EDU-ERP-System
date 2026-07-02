@@ -1,23 +1,15 @@
-/* ==========================================================================
-   🎨 PREMIUM SYSTEM DESIGN VARIABLES & RESETS
-   ========================================================================== */
 :root {
   --nav-bg: #ffffff;
   --nav-border: #eceff3;
   --text-main: #111827;
   --text-soft: #475569;
   --text-muted: #6b7280;
-  
-  /* Brand Actions */
   --primary: #2563eb;
   --primary-hover: #1d4ed8;
   --primary-light: #f0f6ff;
-  
   --danger: #ef4444;
   --danger-hover: #dc2626;
   --danger-light: #fef2f2;
-  
-  /* Micro Tokens */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
@@ -29,12 +21,13 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Inter', -apple-system, system-ui, sans-serif;
+  font-family:
+    "Inter",
+    -apple-system,
+    system-ui,
+    sans-serif;
 }
 
-/* ==========================================================================
-   🚀 ERP NAVBAR STRUCTURAL CONTAINER
-   ========================================================================== */
 .erp-navbar {
   width: 100%;
   height: 89px;
@@ -49,7 +42,6 @@
   z-index: 1000;
 }
 
-/* Left Workspace */
 .erp-navbar__left {
   display: flex;
   align-items: center;
@@ -101,16 +93,12 @@
   color: var(--text-main);
 }
 
-/* Right Workspace */
 .erp-navbar__right {
   display: flex;
   align-items: center;
   gap: 16px;
 }
 
-/* ==========================================================================
-   💎 FILIAL SELECT DROPDOWN ARCHITECTURE
-   ========================================================================== */
 .erp-navbar__dropdown {
   position: relative;
 }
@@ -172,7 +160,6 @@
   margin: 6px 4px;
 }
 
-/* 🏢 Row integration (Faqat span emas, butun qator faol) */
 .erp-navbar__branch-item {
   display: flex;
   justify-content: space-between;
@@ -196,23 +183,18 @@
   text-overflow: ellipsis;
 }
 
-/* ==========================================================================
-   ⚙️ PREMIUM MICRO ACTION BUTTONS
-   ========================================================================== */
 .erp-navbar__actions {
   display: flex;
   align-items: center;
   gap: 4px;
-  opacity: 0; /* Oddiy holatda yashirin (SaaS toza UI) */
+  opacity: 0;
   transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Qatorga sichqoncha kelganda tugmalarni silliq chiqarish */
 .erp-navbar__branch-item:hover .erp-navbar__actions {
   opacity: 1;
 }
 
-/* Universal Action Button Base */
 .erp-navbar__action-btn {
   width: 26px;
   height: 26px;
@@ -230,17 +212,15 @@
 }
 
 .erp-navbar__action-btn:active {
-  transform: scale(0.9); /* Bosilganda sezilarli mikro-reaksiya */
+  transform: scale(0.9);
 }
 
-/* 📝 Edit (Tahrirlash) hover */
 .erp-navbar__action-btn.edit:hover {
   background-color: #f1f5f9;
   color: var(--text-main);
   border-color: #e2e8f0;
 }
 
-/* 🗑️ Delete (O'chirish) hover */
 .erp-navbar__action-btn.delete:hover {
   background-color: var(--danger-light);
   color: var(--danger);
@@ -252,9 +232,6 @@
   flex-shrink: 0;
 }
 
-/* ==========================================================================
-   👤 USER PROFILE AVATAR
-   ========================================================================== */
 .erp-navbar__user {
   display: flex;
   align-items: center;
@@ -280,9 +257,6 @@
   color: var(--text-soft);
 }
 
-/* ==========================================================================
-   🖼 MODERN MODALS ARCHITECTURE
-   ========================================================================== */
 .erp-modal__overlay {
   position: fixed;
   inset: 0;
@@ -347,7 +321,6 @@
   transition: all 0.15s ease;
 }
 
-/* Cancel element */
 .erp-modal__actions button:first-child {
   background: #f3f4f6;
   color: var(--text-soft);
@@ -357,7 +330,6 @@
   background: #e5e7eb;
 }
 
-/* Create / Update element */
 .erp-modal__actions button:last-child {
   background: var(--primary);
   color: white;
@@ -367,7 +339,6 @@
   background: var(--primary-hover);
 }
 
-/* Danger Modal customization */
 .erp-modal--danger {
   border-top: 4px solid var(--danger);
 }
@@ -388,27 +359,37 @@
   background: var(--danger-hover) !important;
 }
 
-/* ==========================================================================
-   🔮 TIMING ANIMATIONS DISTRIBUTOR
-   ========================================================================== */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes modalOverlayFade {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes modalPop {
-  from { transform: scale(0.94); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.94);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
-/* ==========================================================================
-   📱 ADAPTIVE MOBILE BREAKPOINTS
-   ========================================================================== */
 @media (max-width: 768px) {
   .erp-navbar__search {
     display: none;
