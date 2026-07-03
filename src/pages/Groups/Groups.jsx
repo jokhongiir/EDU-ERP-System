@@ -162,7 +162,6 @@ export default function Groups({ activeBranch }) {
     }
   };
 
-  // MODAL ORQALI TASDIQLANGANIDAN KEYIN ISHLAYDIGAN FUNKSIYA
   const confirmRemoveStudent = async () => {
     if (!removeStudentData) return;
     const studentId = removeStudentData.id;
@@ -171,7 +170,7 @@ export default function Groups({ activeBranch }) {
       const { error } = await supabase.from("students").update({ group_id: null }).eq("id", studentId);
       if (error) throw error;
       setStudents((prev) => prev.map((s) => (s.id === studentId ? { ...s, group_id: null } : s)));
-      setRemoveStudentData(null); // Modalni yopish
+      setRemoveStudentData(null); 
     } catch (err) {
       alert("O'quvchini guruhdan chiqarishda xatolik: " + err.message);
     } finally {
@@ -193,7 +192,6 @@ export default function Groups({ activeBranch }) {
     setModalOpen(true);
   };
 
-  // --- FILTERED DATA ---
   const filteredGroups = useMemo(() => {
     return groups.filter((g) => {
       const matchSearch = g.name.toLowerCase().includes(search.toLowerCase());
@@ -213,11 +211,9 @@ export default function Groups({ activeBranch }) {
     });
   }, [students, quickAddSearch, quickAddStudentGroup]);
 
-  // --- SUB-COMPONENTS FOR PORTAL ---
   const renderModals = () => {
     return createPortal(
       <>
-        {/* GROUP FORM MODAL */}
         {modalOpen && (
           <GroupFormModal 
             editId={editId} formValues={formValues} courses={courses} teachers={teachers} 
@@ -225,7 +221,6 @@ export default function Groups({ activeBranch }) {
           />
         )}
 
-        {/* QUICK ADD STUDENT MODAL */}
         {quickAddStudentGroup && (
           <QuickAddStudentModal 
             targetGroup={quickAddStudentGroup} searchVal={quickAddSearch} filteredStudents={quickAddFilteredStudents}
