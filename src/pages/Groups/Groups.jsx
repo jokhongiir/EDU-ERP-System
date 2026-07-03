@@ -230,7 +230,6 @@ export default function Groups({ activeBranch }) {
           />
         )}
 
-        {/* GROUP DETAIL MODAL */}
         {selectedGroup && (
           <GroupDetailModal 
             group={selectedGroup} students={students} removingId={removingStudentId}
@@ -239,12 +238,10 @@ export default function Groups({ activeBranch }) {
           />
         )}
 
-        {/* CONFIRM DELETE GROUP MODAL */}
         {deleteId && (
           <ConfirmDeleteModal onCancel={() => setDeleteId(null)} onConfirm={confirmDelete} />
         )}
 
-        {/* CONFIRM REMOVE STUDENT FROM GROUP MODAL */}
         {removeStudentData && (
           <ConfirmRemoveStudentModal 
             studentName={removeStudentData.name} 
