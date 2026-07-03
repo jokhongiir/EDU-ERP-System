@@ -253,23 +253,24 @@ export default function AddStudents({
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!form.first_name.trim() || !form.last_name.trim()) {
-      return showAlert(
-        "error",
-        "First name and last name are strictly required fields!",
-      );
+    // 1. Asosiy validatsiya
+    const cleanFirstName = form.first_name?.trim();
+    const cleanLastName = form.last_name?.trim();
+
+    if (!cleanFirstName || !cleanLastName) {
+      return showAlert("error", "Iltimos, Ism va Familiyani to'liq kiriting!");
     }
 
     setLoading(true);
 
     try {
-      // TELEFON RAQAMINI TEKSHIRADIGAN IF BLOKI BUTUNLAY OLIB TASHLANDI
-
+      // 2. Payload (ma'lumotlarni yuborish uchun tayyorlash)
       const payload = {
         branch_id: branchId,
-        first_name: form.first_name.trim(),
-        last_name: form.last_name.trim(),
-        phone: normalizePhone(form.phone), // Raqamni faqat formatlaymiz
+        // Ism va familiyani avtomatik UPPERCASE qilish
+        first_name: cleanFirstName.toUpperCase(),
+        last_name: cleanLastName.toUpperCase(),
+        phone: normalizePhone(form.phone),
         parent_phone: normalizePhone(form.parent_phone),
         course_id: form.course_id || null,
         teacher_id: form.teacher_id || null,
@@ -282,6 +283,7 @@ export default function AddStudents({
         paid: Boolean(form.paid),
       };
 
+      // 3. Supabase so'rovi
       const { error } = isEdit
         ? await supabase
             .from("students")
@@ -289,13 +291,14 @@ export default function AddStudents({
             .eq("id", editStudent.id)
         : await supabase.from("students").insert([payload]);
 
-      if (error) throw error;
+      if (error) throw error; // Xatolik bo'lsa catch ga o'tadi
 
+      // 4. Muvaffaqiyatli yakun
       showAlert(
         "success",
         isEdit
-          ? "Student profile updated successfully!"
-          : "New student has been successfully enrolled!",
+          ? "Talaba ma'lumotlari yangilandi!"
+          : "Yangi talaba muvaffaqiyatli qo'shildi!",
         () => {
           if (onFinish) {
             onFinish();
@@ -305,8 +308,18 @@ export default function AddStudents({
         },
       );
     } catch (err) {
-      console.error("Mutation error:", err);
-      showAlert("error", err.message || "An unexpected system error occurred.");
+      console.error("Xatolik yuz berdi:", err);
+
+      // 5. Xatolik xabarlarini tushunarli qilish
+      let errorMessage = "Tizimda xatolik yuz berdi, qayta urinib ko'ring.";
+
+      if (err.code === "23505") {
+        errorMessage = "Bu telefon raqami allaqachon ro'yxatdan o'tgan.";
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
+      showAlert("error", errorMessage);
     } finally {
       setLoading(false);
     }
