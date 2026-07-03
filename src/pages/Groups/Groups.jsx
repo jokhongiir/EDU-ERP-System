@@ -28,8 +28,8 @@ export default function Groups({ activeBranch }) {
   
   const [modalOpen, setModalOpen] = useState(false); 
   const [selectedGroup, setSelectedGroup] = useState(null); 
-  const [deleteId, setDeleteId] = useState(null); // Guruhni o'chirish uchun
-  const [removeStudentData, setRemoveStudentData] = useState(null); // { id, name } O'quvchini guruhdan chiqarish uchun modal
+  const [deleteId, setDeleteId] = useState(null);
+  const [removeStudentData, setRemoveStudentData] = useState(null);
   const [quickAddStudentGroup, setQuickAddStudentGroup] = useState(null); 
 
   const [quickAddSearch, setQuickAddSearch] = useState(""); 
@@ -44,7 +44,6 @@ export default function Groups({ activeBranch }) {
   const [removingStudentId, setRemovingStudentId] = useState(null); 
   const [formValues, setFormValues] = useState(INITIAL_FORM_VALUES);
 
-  // --- DATA FETCHING ---
   const fetchData = useCallback(async () => {
     if (!branchId) return;
     setLoading(true);
