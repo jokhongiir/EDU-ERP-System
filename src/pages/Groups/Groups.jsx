@@ -486,7 +486,6 @@ function GroupDetailModal({ group, students, removingId, getCourse, getTeacher, 
                         <span className="roster-index">{String(index + 1).padStart(2, "0")}</span>
                         <span>{studentName}</span>
                       </div>
-                      {/* ALERT O'RNIGA STATENI O'ZGARTIRIB MODALNI OCHADI */}
                       <button onClick={() => onRemoveStudentTrigger({ id: student.id, name: studentName })} disabled={removingId === student.id} className="remove-student-btn">
                         <FiTrash2 size={15} />
                       </button>
@@ -518,7 +517,6 @@ function ConfirmDeleteModal({ onCancel, onConfirm }) {
   );
 }
 
-// 🆕 YANGI QO'SHILGAN O'QUVCHINI GURUHIDAN CHIQARISH MODALI Komponenti
 function ConfirmRemoveStudentModal({ studentName, onCancel, onConfirm }) {
   return (
     <div className="app-modal-overlay" onClick={onCancel} style={{ zIndex: 1100 }}>
