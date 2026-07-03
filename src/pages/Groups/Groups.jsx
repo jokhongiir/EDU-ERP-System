@@ -272,11 +272,11 @@ export default function Groups({ activeBranch }) {
           <input className="filter-field-input" placeholder="Search group name..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <select className="filter-select-dropdown" value={filterCourse} onChange={(e) => setFilterCourse(e.target.value)}>
-          <option value="">All courses</option>
+          <option hidden value="">All courses</option>
           {courses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
         <select className="filter-select-dropdown" value={filterTeacher} onChange={(e) => setFilterTeacher(e.target.value)}>
-          <option value="">All teachers</option>
+          <option hidden value="">All teachers</option>
           {teachers.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
         </select>
       </div>
@@ -343,14 +343,14 @@ function GroupFormModal({ editId, formValues, courses, teachers, saving, onClose
             <div className="form-group-item">
               <label className="form-label">Course</label>
               <select className="form-control-select" name="course_id" onChange={onChange} value={formValues.course_id}>
-                <option value="">Select course</option>
+                <option hidden value="">Select course</option>
                 {courses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
             <div className="form-group-item">
               <label className="form-label">Teacher</label>
               <select className="form-control-select" name="teacher_id" onChange={onChange} value={formValues.teacher_id}>
-                <option value="">Select teacher</option>
+                <option hidden value="">Select teacher</option>
                 {teachers.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
               </select>
             </div>
