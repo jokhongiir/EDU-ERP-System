@@ -69,14 +69,12 @@ export default function Groups({ activeBranch }) {
     fetchData();
   }, [fetchData]);
 
-  // --- SCROLL LOCK EFFECT ---
   useEffect(() => {
     const isModalVisible = modalOpen || selectedGroup || deleteId || quickAddStudentGroup || removeStudentData;
     document.body.style.overflow = isModalVisible ? "hidden" : "unset";
     return () => { document.body.style.overflow = "unset"; };
   }, [modalOpen, selectedGroup, deleteId, quickAddStudentGroup, removeStudentData]);
 
-  // --- HELPERS (MEMOIZED) ---
   const teacherMap = useMemo(() => new Map(teachers.map(t => [t.id, t.name])), [teachers]);
   const courseMap = useMemo(() => new Map(courses.map(c => [c.id, c.name])), [courses]);
   
@@ -95,7 +93,6 @@ export default function Groups({ activeBranch }) {
     setModalOpen(false);
   };
 
-  // --- MUTATIONS ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formValues.name.trim()) return;
