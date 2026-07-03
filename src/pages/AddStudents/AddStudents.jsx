@@ -263,34 +263,14 @@ export default function AddStudents({
     setLoading(true);
 
     try {
-      const cleanStudentPhone = normalizePhone(form.phone);
-      const cleanParentPhone = normalizePhone(form.parent_phone);
-
-      if (cleanStudentPhone) {
-        const { data: existingStudent } = await supabase
-          .from("students")
-          .select("id")
-          .eq("phone", cleanStudentPhone)
-          .maybeSingle();
-
-        if (
-          existingStudent &&
-          (!isEdit || existingStudent.id !== editStudent?.id)
-        ) {
-          setLoading(false);
-          return showAlert(
-            "error",
-            "A student record with this phone number already exists.",
-          );
-        }
-      }
+      // TELEFON RAQAMINI TEKSHIRADIGAN IF BLOKI BUTUNLAY OLIB TASHLANDI
 
       const payload = {
         branch_id: branchId,
         first_name: form.first_name.trim(),
         last_name: form.last_name.trim(),
-        phone: cleanStudentPhone,
-        parent_phone: cleanParentPhone,
+        phone: normalizePhone(form.phone), // Raqamni faqat formatlaymiz
+        parent_phone: normalizePhone(form.parent_phone),
         course_id: form.course_id || null,
         teacher_id: form.teacher_id || null,
         group_id: form.group_id || null,
