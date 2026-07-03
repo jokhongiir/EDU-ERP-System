@@ -22,6 +22,8 @@ export default function Groups({ activeBranch }) {
   const [teachers, setTeachers] = useState([]);
   const [courses, setCourses] = useState([]);
   const [students, setStudents] = useState([]);
+  const [selectedStudents, setSelectedStudents] = useState([]); 
+  const [studentSearch, setStudentSearch] = useState(""); // State for student search inside modal
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
@@ -31,7 +33,6 @@ export default function Groups({ activeBranch }) {
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [editId, setEditId] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
-
   const [formValues, setFormValues] = useState({
     name: "",
     teacher_id: "",
@@ -109,6 +110,8 @@ export default function Groups({ activeBranch }) {
       schedule_type: "all",
     });
     setEditId(null);
+    setSelectedStudents([]); 
+    setStudentSearch(""); // Reset search string
     setModalOpen(false);
   };
 
@@ -116,6 +119,7 @@ export default function Groups({ activeBranch }) {
     e.preventDefault();
     if (!formValues.name.trim()) return;
     setSaving(true);
+
     const payload = {
       name: formValues.name,
       teacher_id: formValues.teacher_id || null,
@@ -126,16 +130,35 @@ export default function Groups({ activeBranch }) {
       schedule_type: formValues.schedule_type,
       branch_id: branchId,
     };
+
     try {
       let result;
       if (editId) {
-        result = await supabase.from("groups").update(payload).eq("id", editId);
+        result = await supabase.from("groups").update(payload).eq("id", editId).select();
       } else {
-        result = await supabase.from("groups").insert([payload]);
+        result = await supabase.from("groups").insert([payload]).select();
       }
-      if (result.error) {
-        throw result.error;
+
+      if (result.error) throw result.error;
+
+      const groupId = result.data[0]?.id || editId;
+
+      if (groupId) {
+        if (editId) {
+          await supabase
+            .from("students")
+            .update({ group_id: null })
+            .eq("group_id", editId);
+        }
+
+        if (selectedStudents.length > 0) {
+          await supabase
+            .from("students")
+            .update({ group_id: groupId })
+            .in("id", selectedStudents);
+        }
       }
+
       resetForm();
       fetchData();
     } catch (err) {
@@ -148,6 +171,11 @@ export default function Groups({ activeBranch }) {
   const confirmDelete = async () => {
     if (!deleteId) return;
     try {
+      await supabase
+        .from("students")
+        .update({ group_id: null })
+        .eq("group_id", deleteId);
+
       const { error } = await supabase
         .from("groups")
         .delete()
@@ -171,6 +199,12 @@ export default function Groups({ activeBranch }) {
       schedule_type: g.schedule_type || "all",
     });
     setEditId(g.id);
+
+    const currentGroupStudents = students
+      .filter((s) => s.group_id === g.id)
+      .map((s) => s.id);
+    setSelectedStudents(currentGroupStudents);
+
     setModalOpen(true);
   };
 
@@ -184,6 +218,15 @@ export default function Groups({ activeBranch }) {
       return matchSearch && matchCourse && matchTeacher;
     });
   }, [groups, search, filterCourse, filterTeacher]);
+
+  // Filter students for selection list based on search query
+  const filteredStudentsForSelection = useMemo(() => {
+    if (!studentSearch.trim()) return students;
+    return students.filter((s) => {
+      const fullName = `${s.name || ""} ${s.first_name || ""} ${s.last_name || ""}`.toLowerCase();
+      return fullName.includes(studentSearch.toLowerCase());
+    });
+  }, [students, studentSearch]);
 
   const renderModals = () => {
     return createPortal(
@@ -293,6 +336,71 @@ export default function Groups({ activeBranch }) {
                     />
                   </div>
                 </div>
+
+                {/* Student Selection with Search Input */}
+                <div className="form-group-item">
+                  <label className="form-label">Add Students</label>
+                  
+                  {/* Search input for selection list */}
+                  <div className="student-search-box" style={{ position: "relative", marginBottom: "6px" }}>
+                    <FiSearch style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "#8c8c8c" }} />
+                    <input
+                      type="text"
+                      className="form-control-input"
+                      placeholder="Search student name..."
+                      value={studentSearch}
+                      onChange={(e) => setStudentSearch(e.target.value)}
+                      style={{ paddingLeft: "32px", height: "34px", fontSize: "13px" }}
+                    />
+                  </div>
+
+                  <div
+                    className="student-selection-list"
+                    style={{
+                      maxHeight: "150px",
+                      overflowY: "auto",
+                      border: "1px solid #ccc",
+                      borderRadius: "6px",
+                      padding: "8px",
+                      backgroundColor: "#fff",
+                    }}
+                  >
+                    {filteredStudentsForSelection.length === 0 ? (
+                      <p style={{ color: "#8c8c8c", fontSize: "13px", fontStyle: "italic", textAlign: "center", margin: "10px 0" }}>
+                        No students found
+                      </p>
+                    ) : (
+                      filteredStudentsForSelection.map((s) => (
+                        <div
+                          key={s.id}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            padding: "4px 0",
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            id={`student-${s.id}`}
+                            checked={selectedStudents.includes(s.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedStudents([...selectedStudents, s.id]);
+                              } else {
+                                setSelectedStudents(selectedStudents.filter((id) => id !== s.id));
+                              }
+                            }}
+                          />
+                          <label htmlFor={`student-${s.id}`} style={{ cursor: "pointer", fontSize: "14px", userSelect: "none" }}>
+                            {s.name || `${s.first_name || ""} ${s.last_name || ""}`}
+                          </label>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
                 <button className="form-submit-button" disabled={saving}>
                   {saving
                     ? "Saving..."
@@ -304,7 +412,6 @@ export default function Groups({ activeBranch }) {
             </div>
           </div>
         )}
-
         {selectedGroup && (
           <div
             className="app-modal-overlay"
@@ -353,7 +460,6 @@ export default function Groups({ activeBranch }) {
                     {getStudentsCount(selectedGroup.id)} active
                   </p>
                 </div>
-
                 <div
                   className="students-list-section"
                   style={{ marginTop: "24px" }}
@@ -440,7 +546,6 @@ export default function Groups({ activeBranch }) {
             </div>
           </div>
         )}
-
         {deleteId && (
           <div className="app-modal-overlay" onClick={() => setDeleteId(null)}>
             <div
