@@ -8,7 +8,6 @@ import {
   FiUserPlus, FiCheck, FiUserMinus
 } from "react-icons/fi";
 
-// --- INITIAL STATE ---
 const INITIAL_FORM_VALUES = {
   name: "",
   teacher_id: "",
@@ -22,7 +21,6 @@ const INITIAL_FORM_VALUES = {
 export default function Groups({ activeBranch }) {
   const branchId = activeBranch?.id;
 
-  // --- STATE MANAGEMENT ---
   const [groups, setGroups] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [courses, setCourses] = useState([]);
