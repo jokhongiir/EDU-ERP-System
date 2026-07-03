@@ -301,10 +301,6 @@ export default function Groups({ activeBranch }) {
   );
 }
 
-// ==========================================
-// 📦 ISOLATED SUB-COMPONENTS
-// ==========================================
-
 function GroupCard({ group, getTeacher, getCourse, getStudentsCount, onEdit, onDelete, onOpenDetails, onQuickAdd }) {
   return (
     <div className="group-item-card" onClick={() => onOpenDetails(group)} style={{ cursor: "pointer" }}>
