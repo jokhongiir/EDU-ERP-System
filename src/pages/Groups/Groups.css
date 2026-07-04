@@ -133,20 +133,16 @@
   border-color: var(--primary);
 }
 
-/* ==========================================================================
-   Groups Grid & Cards (FAQAT SHU QISM SCROLL BO'LADI)
-   ========================================================================== */
 .groups-main-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
-  flex: 1;               /* Qolgan barcha bo'sh joyni egallaydi */
-  overflow-y: auto;      /* Faqat pastga qarab skrol bo'lishini yoqadi */
-  padding-right: 4px;    /* Skrol chizig'i kartalarga yopishib qolmasligi uchun */
-  padding-bottom: 24px;  /* Eng pastdagi kartaning tagida joy qolishi uchun */
+  flex: 1;
+  overflow-y: auto;  
+  padding-right: 4px;  
+  padding-bottom: 24px;  
 }
 
-/* Skrolbarni chiroyli va ingichka qilish (SaaS panel dizayni uchun) */
 .groups-main-grid::-webkit-scrollbar {
   width: 6px;
 }
@@ -270,9 +266,6 @@
   background-color: #e5e7eb;
 }
 
-/* ==========================================================================
-   Professional Modals System (createPortal)
-   ========================================================================== */
 .app-modal-overlay {
   position: fixed;
   top: 0;
@@ -349,7 +342,6 @@
   color: var(--text-main);
 }
 
-/* Forms Inside Modals */
 .group-entry-form {
   padding: 24px;
   display: flex;
@@ -415,9 +407,6 @@
   cursor: not-allowed;
 }
 
-/* ==========================================================================
-   Quick Add Students Layout Elements
-   ========================================================================== */
 .app-modal-box.d-quick-add {
   max-width: 550px;
 }
@@ -518,9 +507,6 @@
 .m-0 { margin: 0 !important; }
 .w-auto-pad { padding-left: 20px !important; padding-right: 20px !important; width: auto !important; }
 
-/* ==========================================================================
-   Group Detail Modal
-   ========================================================================== */
 .app-modal-box.detail-modal {
   max-width: 580px;
 }
