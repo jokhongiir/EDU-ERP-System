@@ -561,7 +561,6 @@
   color: var(--text-muted);
 }
 
-/* Roster / Students List Inside Detail */
 .students-list-section h4 {
   font-size: 15px;
   font-weight: 600;
@@ -636,9 +635,6 @@
   background-color: var(--danger-light);
 }
 
-/* ==========================================================================
-   Confirm Dialog Modals (Delete & Remove Action)
-   ========================================================================== */
 .app-modal-box.confirm-modal {
   max-width: 400px;
   padding: 24px;
@@ -711,9 +707,6 @@
   background-color: var(--danger-hover);
 }
 
-/* ==========================================================================
-   Global States (Empty, Skeleton Animations)
-   ========================================================================== */
 .empty-state {
   grid-column: 1 / -1;
   text-align: center;
