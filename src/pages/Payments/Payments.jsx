@@ -253,7 +253,7 @@ export default function Payments({ activeBranch }) {
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
           >
-            <option value="all">All Students</option>
+            <option hidden value="all">All Students</option>
             <option value="paid">Paid Only</option>
             <option value="unpaid">Unpaid/Due</option>
           </select>
