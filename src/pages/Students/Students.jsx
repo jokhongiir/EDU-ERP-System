@@ -526,7 +526,7 @@ export default function Students({ activeBranch }) {
                   value={editData.course_id || ""}
                   onChange={handleChange}
                 >
-                  <option value="">Select program...</option>
+                  <option hidden value="">Select program...</option>
                   {courses.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
