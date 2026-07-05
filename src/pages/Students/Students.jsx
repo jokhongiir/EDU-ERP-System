@@ -558,7 +558,7 @@ export default function Students({ activeBranch }) {
                   value={editData.group_id || ""}
                   onChange={handleChange}
                 >
-                  <option value="">Select group...</option>
+                  <option hidden value="">Select group...</option>
                   {groups.map((g) => (
                     <option key={g.id} value={g.id}>
                       {g.name}
