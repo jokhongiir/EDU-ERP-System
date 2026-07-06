@@ -272,7 +272,7 @@ export default function Groups({ activeBranch }) {
           <input className="filter-field-input" placeholder="Search group name..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <select className="filter-select-dropdown" value={filterCourse} onChange={(e) => setFilterCourse(e.target.value)}>
-          <option hidden value="">All courses</option>
+          <option hidden value="">All Courses</option>
           {courses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
         <select className="filter-select-dropdown" value={filterTeacher} onChange={(e) => setFilterTeacher(e.target.value)}>
