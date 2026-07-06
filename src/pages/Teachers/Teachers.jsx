@@ -418,7 +418,7 @@ export default function Teachers({ activeBranch }) {
                       value={form.course_id}
                       onChange={handleInputChange}
                     >
-                      <option value="">Select course</option>
+                      <option hidden value="">Select course</option>
                       {courses.map((c) => (
                         <option key={c.id} value={c.id}>
                           {c.name}
