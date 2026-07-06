@@ -271,7 +271,7 @@ export default function Students({ activeBranch }) {
               value={filterGroup}
               onChange={(e) => setFilterGroup(e.target.value)}
             >
-              <option value="">All Groups</option>
+              <option hidden value="">All Groups</option>
               {groups.map((g) => (
                 <option key={g.id} value={g.id}>
                   {g.name}
