@@ -276,7 +276,7 @@ export default function Groups({ activeBranch }) {
           {courses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
         <select className="filter-select-dropdown" value={filterTeacher} onChange={(e) => setFilterTeacher(e.target.value)}>
-          <option hidden value="">All teachers</option>
+          <option hidden value="">All Teachers</option>
           {teachers.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
         </select>
       </div>
