@@ -258,7 +258,7 @@ export default function Students({ activeBranch }) {
               value={filterTeacher}
               onChange={(e) => setFilterTeacher(e.target.value)}
             >
-              <option value="">All Teachers</option>
+              <option hidden value="">All Teachers</option>
               {teachers.map((t) => (
                 <option key={t.id} value={t.id}>
                   {t.name}
