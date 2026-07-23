@@ -16,6 +16,8 @@ import {
   FiX,
   FiEye,
   FiTrendingUp,
+  FiBookOpen,
+  FiUser,
 } from "react-icons/fi";
 import "./Attendance.css";
 
@@ -24,6 +26,8 @@ export default function Attendance({ activeBranch }) {
 
   const [state, setState] = useState({
     groups: [],
+    courses: [],
+    teachers: [],
     students: [],
     selectedGroup: null,
     attendanceMap: {},
@@ -35,10 +39,14 @@ export default function Attendance({ activeBranch }) {
     searchQuery: "",
     isModalOpen: false,
     mainSearch: "",
+    selectedCourse: "",
+    selectedTeacher: "",
   });
 
   const {
     groups,
+    courses,
+    teachers,
     students,
     selectedGroup,
     attendanceMap,
@@ -50,6 +58,8 @@ export default function Attendance({ activeBranch }) {
     searchQuery,
     isModalOpen,
     mainSearch,
+    selectedCourse,
+    selectedTeacher,
   } = state;
 
   const [toast, setToast] = useState({
@@ -75,23 +85,30 @@ export default function Attendance({ activeBranch }) {
     return () => clearTimeout(timer);
   }, []);
 
-  const fetchGroups = useCallback(async () => {
+  // Gurunlar, Fanlar va O'qituvchilarni bir vaqtda yuklab olish
+  const fetchData = useCallback(async () => {
     if (!branchId) return;
-    const { data, error } = await supabase
-      .from("groups")
-      .select("*")
-      .eq("branch_id", branchId);
-    
-    if (error) {
+
+    const [groupsRes, coursesRes, teachersRes] = await Promise.all([
+      supabase.from("groups").select("*").eq("branch_id", branchId),
+      supabase.from("courses").select("*").eq("branch_id", branchId),
+      supabase.from("teachers").select("*").eq("branch_id", branchId),
+    ]);
+
+    if (groupsRes.error) {
       showToast("Failed to fetch groups", "error");
-      return;
     }
-    updateState({ groups: data || [] });
+
+    updateState({
+      groups: groupsRes.data || [],
+      courses: coursesRes.data || [],
+      teachers: teachersRes.data || [],
+    });
   }, [branchId, showToast]);
 
   useEffect(() => {
-    fetchGroups();
-  }, [fetchGroups]);
+    fetchData();
+  }, [fetchData]);
 
   const fetchFullData = useCallback(async (groupId, month, year) => {
     updateState({ isLoading: true });
@@ -256,11 +273,16 @@ export default function Attendance({ activeBranch }) {
     });
   }, [selectedGroup, cycleKey, currentMonth, currentYear]);
 
+  // Guruhlarni qidiruv, fan va o'qituvchi bo'yicha filterlash
   const filteredGroups = useMemo(() => {
-    return groups.filter((g) =>
-      g.name.toLowerCase().includes(mainSearch.toLowerCase()),
-    );
-  }, [groups, mainSearch]);
+    return groups.filter((g) => {
+      const matchesSearch = g.name.toLowerCase().includes(mainSearch.toLowerCase());
+      const matchesCourse = selectedCourse ? g.course_id === selectedCourse : true;
+      const matchesTeacher = selectedTeacher ? g.teacher_id === selectedTeacher : true;
+
+      return matchesSearch && matchesCourse && matchesTeacher;
+    });
+  }, [groups, mainSearch, selectedCourse, selectedTeacher]);
 
   const filteredStudents = useMemo(() => {
     return students.filter((s) =>
@@ -289,6 +311,23 @@ export default function Attendance({ activeBranch }) {
         </div>
 
         <div className="header-actions">
+          {/* Fanlar bo'yicha filter select */}
+          <div className="filterr-select-box">
+            <FiBookOpen />
+            <select
+              value={selectedCourse}
+              onChange={(e) => updateState({ selectedCourse: e.target.value })}
+            >
+              <option value="">All Courses</option>
+              {courses.map((course) => (
+                <option key={course.id} value={course.id}>
+                  {course.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+
           <div className="search-box">
             <FiSearch />
             <input
@@ -333,7 +372,7 @@ export default function Attendance({ activeBranch }) {
               <div className="empty-state">
                 <FiLayers size={48} />
                 <h2>No Groups Found</h2>
-                <p>No groups match your search criteria.</p>
+                <p>No groups match your filter criteria.</p>
               </div>
             )}
           </div>
