@@ -311,7 +311,7 @@ export default function Attendance({ activeBranch }) {
         </div>
 
         <div className="header-actions">
-          {/* Fanlar bo'yicha filter select */}
+
           <div className="filterr-select-box">
             <FiBookOpen />
             <select
