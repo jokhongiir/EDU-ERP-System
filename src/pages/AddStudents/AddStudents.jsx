@@ -212,6 +212,11 @@ export default function AddStudents({
       if (name === "monthly_fee") val = formatMoney(value);
       if (name === "teacher_percent") val = formatPercent(value);
 
+      // ★ Ism va Familiyani darhol UPPERCASE qilish
+      if (name === "first_name" || name === "last_name") {
+        val = value.toUpperCase();
+      }
+
       setForm((prev) => {
         const next = { ...prev, [name]: val };
 
