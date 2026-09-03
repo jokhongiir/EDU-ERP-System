@@ -44,6 +44,48 @@ export default function Students({ activeBranch }) {
   const formatCurrency = (value = 0) =>
     new Intl.NumberFormat("en-US").format(value) + " UZS";
 
+  // Faqat raqamlarni olish
+  const getDigits = (value) => {
+    if (!value) return "";
+    let digits = value.replace(/\D/g, "");
+    // 998 bilan boshlansa olib tashlaymiz
+    if (digits.startsWith("998")) {
+      digits = digits.slice(3);
+    }
+    return digits.slice(0, 9); // maksimal 9 ta raqam
+  };
+
+  // +998 (90) 825-75-03 formatiga keltirish
+  const formatPhone = (value) => {
+    const digits = getDigits(value);
+
+    if (!digits) return "+998 ";
+
+    let result = "+998";
+
+    if (digits.length > 0) {
+      result += ` (${digits.slice(0, 2)}`;
+    }
+    if (digits.length >= 2) {
+      result += `) ${digits.slice(2, 5)}`;
+    }
+    if (digits.length >= 5) {
+      result += `-${digits.slice(5, 7)}`;
+    }
+    if (digits.length >= 7) {
+      result += `-${digits.slice(7, 9)}`;
+    }
+
+    return result;
+  };
+
+  // Bazaga saqlash uchun toza format
+  const cleanPhone = (value) => {
+    const digits = getDigits(value);
+    if (digits.length < 9) return null;
+    return "+998" + digits;
+  };
+
   const fetchData = useCallback(async () => {
     if (!branchId) return;
 
@@ -108,8 +150,8 @@ export default function Students({ activeBranch }) {
       id: student.id,
       first_name: student.first_name ?? "",
       last_name: student.last_name ?? "",
-      phone: student.phone ?? "",
-      parent_phone: student.parent_phone ?? "",
+      phone: formatPhone(student.phone),
+      parent_phone: formatPhone(student.parent_phone),
       course_id: student.course_id ?? "",
       teacher_id: student.teacher_id ?? "",
       group_id: student.group_id ?? "",
@@ -138,6 +180,11 @@ export default function Students({ activeBranch }) {
               : value,
       };
 
+      // Telefon maydonlari
+      if (name === "phone" || name === "parent_phone") {
+        updated[name] = formatPhone(value);
+      }
+
       if (name === "paid") {
         if (checked) {
           const today = getTodayStr();
@@ -156,6 +203,31 @@ export default function Students({ activeBranch }) {
     });
   };
 
+  // Backspace uchun maxsus ishlov (belgilarni ham o'chirish)
+  const handlePhoneKeyDown = (e) => {
+    if (e.key !== "Backspace") return;
+
+    const input = e.target;
+    const { name, value, selectionStart } = input;
+
+    // Agar kursor belgi ustida turgan bo'lsa ( ), -, bo'sh joy
+    const charBefore = value[selectionStart - 1];
+
+    if (["(", ")", "-", " "].includes(charBefore)) {
+      e.preventDefault();
+
+      // Oxirgi raqamni o'chiramiz
+      const digits = getDigits(value);
+      const newDigits = digits.slice(0, -1);
+      const formatted = formatPhone(newDigits);
+
+      setEditData((prev) => ({
+        ...prev,
+        [name]: formatted,
+      }));
+    }
+  };
+
   const handleSave = async () => {
     if (!editData?.id) return;
 
@@ -163,8 +235,8 @@ export default function Students({ activeBranch }) {
     const payload = {
       first_name: editData.first_name?.trim() || "",
       last_name: editData.last_name?.trim() || "",
-      phone: editData.phone?.trim() || null,
-      parent_phone: editData.parent_phone?.trim() || null,
+      phone: cleanPhone(editData.phone),
+      parent_phone: cleanPhone(editData.parent_phone),
       course_id: editData.course_id || null,
       teacher_id: editData.teacher_id || null,
       group_id: editData.group_id || null,
@@ -245,7 +317,9 @@ export default function Students({ activeBranch }) {
               value={filterCourse}
               onChange={(e) => setFilterCourse(e.target.value)}
             >
-              <option hidden value="">All Courses</option>
+              <option hidden value="">
+                All Courses
+              </option>
               {courses.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
@@ -258,7 +332,9 @@ export default function Students({ activeBranch }) {
               value={filterTeacher}
               onChange={(e) => setFilterTeacher(e.target.value)}
             >
-              <option hidden value="">All Teachers</option>
+              <option hidden value="">
+                All Teachers
+              </option>
               {teachers.map((t) => (
                 <option key={t.id} value={t.id}>
                   {t.name}
@@ -271,7 +347,9 @@ export default function Students({ activeBranch }) {
               value={filterGroup}
               onChange={(e) => setFilterGroup(e.target.value)}
             >
-              <option hidden value="">All Groups</option>
+              <option hidden value="">
+                All Groups
+              </option>
               {groups.map((g) => (
                 <option key={g.id} value={g.id}>
                   {g.name}
@@ -365,7 +443,9 @@ export default function Students({ activeBranch }) {
                   <td>{s.groups?.name || "—"}</td>
                   <td>
                     <span
-                      className={`status-pill-small ${s.paid ? "paid" : "unpaid"}`}
+                      className={`status-pill-small ${
+                        s.paid ? "paid" : "unpaid"
+                      }`}
                     >
                       {s.paid ? "COLLECTED" : "OVERDUE"}
                     </span>
@@ -395,6 +475,7 @@ export default function Students({ activeBranch }) {
         </table>
       </div>
 
+      {/* VIEW MODAL */}
       {viewOpen && viewData && (
         <div className="modal" onClick={() => setViewOpen(false)}>
           <div
@@ -481,7 +562,9 @@ export default function Students({ activeBranch }) {
                 <div className="view__field">
                   <label>Current Status</label>
                   <div
-                    className={`status-pill-small ${viewData.paid ? "paid" : "unpaid"}`}
+                    className={`status-pill-small ${
+                      viewData.paid ? "paid" : "unpaid"
+                    }`}
                     style={{ display: "inline-block" }}
                   >
                     {viewData.paid ? "PAID" : "UNPAID"}
@@ -493,6 +576,7 @@ export default function Students({ activeBranch }) {
         </div>
       )}
 
+      {/* EDIT MODAL */}
       {editOpen && editData && (
         <div className="modal" onClick={() => setEditOpen(false)}>
           <div className="modal__box" onClick={(e) => e.stopPropagation()}>
@@ -503,21 +587,51 @@ export default function Students({ activeBranch }) {
               </button>
             </div>
             <div className="modal__form">
-              {[
-                { label: "First Name *", name: "first_name" },
-                { label: "Last Name *", name: "last_name" },
-                { label: "Phone Connection", name: "phone" },
-                { label: "Parent Emergency Contact", name: "parent_phone" },
-              ].map((f) => (
-                <div className="form__group" key={f.name}>
-                  <label>{f.label}</label>
-                  <input
-                    name={f.name}
-                    value={editData[f.name] || ""}
-                    onChange={handleChange}
-                  />
-                </div>
-              ))}
+              <div className="form__group">
+                <label>First Name *</label>
+                <input
+                  name="first_name"
+                  value={editData.first_name || ""}
+                  onChange={handleChange}
+                  placeholder="Ism"
+                />
+              </div>
+
+              <div className="form__group">
+                <label>Last Name *</label>
+                <input
+                  name="last_name"
+                  value={editData.last_name || ""}
+                  onChange={handleChange}
+                  placeholder="Familiya"
+                />
+              </div>
+
+              {/* PHONE */}
+              <div className="form__group">
+                <label>Phone Connection</label>
+                <input
+                  name="phone"
+                  value={editData.phone || "+998 "}
+                  onChange={handleChange}
+                  onKeyDown={handlePhoneKeyDown}
+                  placeholder="+998 (90) 825-75-03"
+                  maxLength={19}
+                />
+              </div>
+
+              {/* PARENT PHONE */}
+              <div className="form__group">
+                <label>Parent Emergency Contact</label>
+                <input
+                  name="parent_phone"
+                  value={editData.parent_phone || "+998 "}
+                  onChange={handleChange}
+                  onKeyDown={handlePhoneKeyDown}
+                  placeholder="+998 (90) 825-75-03"
+                  maxLength={19}
+                />
+              </div>
 
               <div className="form__group">
                 <label>Program Specialization</label>
@@ -526,7 +640,9 @@ export default function Students({ activeBranch }) {
                   value={editData.course_id || ""}
                   onChange={handleChange}
                 >
-                  <option hidden value="">Select program...</option>
+                  <option hidden value="">
+                    Select program...
+                  </option>
                   {courses.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
@@ -542,7 +658,9 @@ export default function Students({ activeBranch }) {
                   value={editData.teacher_id || ""}
                   onChange={handleChange}
                 >
-                  <option hidden value="">Select teacher...</option>
+                  <option hidden value="">
+                    Select teacher...
+                  </option>
                   {teachers.map((t) => (
                     <option key={t.id} value={t.id}>
                       {t.name}
@@ -558,7 +676,9 @@ export default function Students({ activeBranch }) {
                   value={editData.group_id || ""}
                   onChange={handleChange}
                 >
-                  <option hidden value="">Select group...</option>
+                  <option hidden value="">
+                    Select group...
+                  </option>
                   {groups.map((g) => (
                     <option key={g.id} value={g.id}>
                       {g.name}
