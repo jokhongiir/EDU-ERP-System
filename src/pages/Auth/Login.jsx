@@ -1,10 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../../services/supabaseClient";
 import BranchModal from "../BranchModal/BranchModal";
 import logo2 from "../../assets/logo2.png";
-import "./Auth.css";
-
 import {
   FiMail,
   FiLock,
@@ -13,36 +11,59 @@ import {
   FiShield,
   FiArrowRight,
 } from "react-icons/fi";
+import "./Auth.css";
 
 export default function Login() {
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-  });
-
+  const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
   const [error, setError] = useState("");
-
   const [showPassword, setShowPassword] = useState(false);
-
-  const [rememberMe, setRememberMe] = useState(false);
-
   const [showBranchModal, setShowBranchModal] = useState(false);
-
   const [userId, setUserId] = useState(null);
 
+  // Sahifa ochilganda sessiya tekshiriladi
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        const session = data?.session;
+
+        if (!session?.user) {
+          setCheckingSession(false);
+          return;
+        }
+
+        const uid = session.user.id;
+        const { data: branches } = await supabase
+          .from("branches")
+          .select("id")
+          .eq("owner_uid", uid);
+
+        if (!branches || branches.length === 0) {
+          setUserId(uid);
+          setShowBranchModal(true);
+          setCheckingSession(false);
+        } else {
+          navigate(`/dashboard/${branches[0].id}`, { replace: true });
+        }
+      } catch (err) {
+        console.error(err);
+        setCheckingSession(false);
+      }
+    };
+
+    checkSession();
+  }, [navigate]);
+
   const handleChange = (e) => {
-    setForm((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
     if (loading) return;
 
     setError("");
@@ -59,13 +80,6 @@ export default function Login() {
       const user = data?.user;
       if (!user) throw new Error("Login failed");
 
-      if (!rememberMe) {
-        await supabase.auth.setSession({
-          access_token: data.session.access_token,
-          refresh_token: data.session.refresh_token,
-        });
-      }
-
       const { data: branches } = await supabase
         .from("branches")
         .select("id")
@@ -75,7 +89,7 @@ export default function Login() {
         setUserId(user.id);
         setShowBranchModal(true);
       } else {
-        navigate(`/dashboard/${branches[0].id}`);
+        navigate(`/dashboard/${branches[0].id}`, { replace: true });
       }
     } catch (err) {
       setError(err.message || "Something went wrong");
@@ -84,34 +98,34 @@ export default function Login() {
     }
   };
 
-  const handleReset = async (e) => {
-    e.preventDefault();
-
-    console.log("RESET CLICKED");
-
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: "http://localhost:5173/update-password",
-    });
-
-    console.log(error);
-  };
+  // Sessiya tekshirilayotgan paytda loader
+  if (checkingSession) {
+    return (
+      <div className="authWrapper">
+        <div className="authSessionLoader">
+          <span className="loader"></span>
+          <p>Checking session...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="authWrapper">
       <BranchModal
         open={showBranchModal}
         userId={userId}
-        onDone={(branch) => navigate(`/dashboard/${branch.id}`)}
+        onDone={(branch) =>
+          navigate(`/dashboard/${branch.id}`, { replace: true })
+        }
       />
 
       <div className="authCard">
-
+        {/* Chap taraf — branding */}
         <div className="authLeft">
           <div className="authLeftContent">
             <img src={logo2} alt="Education ERP" className="authImage" />
-
             <h1 className="authLogo">Education ERP System</h1>
-
             <p className="authText">
               Smart education management system for academies, schools and
               learning centers.
@@ -122,12 +136,10 @@ export default function Login() {
                 <h3>10K+</h3>
                 <span>Students</span>
               </div>
-
               <div className="statItem">
                 <h3>500+</h3>
                 <span>Teachers</span>
               </div>
-
               <div className="statItem">
                 <h3>120+</h3>
                 <span>Branches</span>
@@ -141,18 +153,18 @@ export default function Login() {
           </div>
         </div>
 
+        {/* O‘ng taraf — forma */}
         <div className="authRight">
           <div className="authHeader">
             <h2 className="authTitle">Welcome Back</h2>
-
-            <p className="authSubtitle">Sign in to access your ERP dashboard</p>
+            <p className="authSubtitle">
+              Sign in to access your ERP dashboard
+            </p>
           </div>
 
           <form className="authForm" onSubmit={handleLogin}>
-
             <div className="inputGroup">
               <FiMail className="inputIcon" />
-
               <input
                 type="email"
                 name="email"
@@ -161,12 +173,12 @@ export default function Login() {
                 value={form.email}
                 onChange={handleChange}
                 autoComplete="email"
+                required
               />
             </div>
 
             <div className="inputGroup">
               <FiLock className="inputIcon" />
-
               <input
                 type={showPassword ? "text" : "password"}
                 name="password"
@@ -175,12 +187,11 @@ export default function Login() {
                 value={form.password}
                 onChange={handleChange}
                 autoComplete="current-password"
+                required
               />
-
               <button
                 type="button"
                 className="eyeButton"
-                aria-label="Toggle password visibility"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? <FiEyeOff /> : <FiEye />}
@@ -188,16 +199,7 @@ export default function Login() {
             </div>
 
             <div className="authOptions">
-              <label className="rememberMe">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                />
-
-                <span>Remember me</span>
-              </label>
-
+              <span />
               <Link to="/forgot-password" className="forgotPassword">
                 Forgot password?
               </Link>

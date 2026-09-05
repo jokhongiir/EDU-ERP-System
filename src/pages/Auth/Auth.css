@@ -10,214 +10,133 @@ body {
   font-family: "Inter", sans-serif;
 }
 
+/* ===== Wrapper ===== */
 .authWrapper {
   min-height: 100vh;
   width: 100%;
-
   display: flex;
   justify-content: center;
   align-items: center;
-
   padding: 40px;
-
   overflow: hidden;
   position: relative;
-
   background:
-    radial-gradient(circle at top left,
-      rgba(55, 111, 255, 0.2),
-      transparent 35%),
-    radial-gradient(circle at bottom right,
-      rgba(96, 165, 250, 0.18),
-      transparent 40%),
-    linear-gradient(
-      135deg,
-      #020617 0%,
-      #071126 50%,
-      #020617 100%
-    );
+    radial-gradient(circle at top left, rgba(55, 111, 255, 0.2), transparent 35%),
+    radial-gradient(circle at bottom right, rgba(96, 165, 250, 0.18), transparent 40%),
+    linear-gradient(135deg, #020617 0%, #071126 50%, #020617 100%);
+}
+
+.authWrapper::before,
+.authWrapper::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(160px);
+  z-index: 0;
 }
 
 .authWrapper::before {
-  content: "";
-
-  position: absolute;
-
   width: 650px;
   height: 650px;
-
   background: #376fff;
-
   opacity: 0.12;
-
-  border-radius: 50%;
-
-  filter: blur(170px);
-
   left: -250px;
   top: -250px;
-
   animation: glowMove 12s ease-in-out infinite;
 }
 
 .authWrapper::after {
-  content: "";
-
-  position: absolute;
-
   width: 500px;
   height: 500px;
-
   background: #60a5fa;
-
   opacity: 0.1;
-
-  border-radius: 50%;
-
-  filter: blur(160px);
-
   right: -200px;
   bottom: -200px;
-
   animation: glowMove2 14s ease-in-out infinite;
 }
 
 @keyframes glowMove {
-  0% {
-    transform: translate(0, 0);
-  }
-
-  50% {
-    transform: translate(60px, -50px);
-  }
-
-  100% {
-    transform: translate(0, 0);
-  }
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(60px, -50px); }
 }
 
 @keyframes glowMove2 {
-  0% {
-    transform: translate(0, 0);
-  }
-
-  50% {
-    transform: translate(-60px, 40px);
-  }
-
-  100% {
-    transform: translate(0, 0);
-  }
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-60px, 40px); }
 }
 
+/* ===== Card ===== */
 .authCard {
   width: 100%;
   max-width: 1180px;
-
   min-height: 720px;
-
   display: flex;
-
   overflow: hidden;
-
   border-radius: 32px;
-
   background: rgba(255, 255, 255, 0.08);
-
   backdrop-filter: blur(30px);
   -webkit-backdrop-filter: blur(30px);
-
   border: 1px solid rgba(255, 255, 255, 0.08);
-
   box-shadow:
     0 50px 100px rgba(0, 0, 0, 0.5),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
-
   position: relative;
   z-index: 5;
 }
 
+/* ===== Left Side ===== */
 .authLeft {
   flex: 1;
-
-  background:
-    linear-gradient(
-      145deg,
-      #376fff,
-      #1d4ed8
-    );
-
+  background: linear-gradient(145deg, #376fff, #1d4ed8);
   position: relative;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   padding: 60px;
-
   overflow: hidden;
 }
 
-.authLeft::before {
+.authLeft::before,
+.authLeft::after {
   content: "";
-
   position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+}
 
+.authLeft::before {
   width: 500px;
   height: 500px;
-
-  border-radius: 50%;
-
-  background: rgba(255, 255, 255, 0.08);
-
   right: -200px;
   top: -200px;
 }
 
 .authLeft::after {
-  content: "";
-
-  position: absolute;
-
   width: 350px;
   height: 350px;
-
-  border-radius: 50%;
-
-  background: rgba(255, 255, 255, 0.05);
-
   left: -120px;
   bottom: -120px;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .authLeftContent {
   position: relative;
   z-index: 2;
-
   display: flex;
   flex-direction: column;
   align-items: center;
-
   text-align: center;
 }
 
 .authImage {
   width: 120px;
   height: 120px;
-
   object-fit: cover;
-
   border-radius: 24px;
-
   padding: 10px;
-
   background: rgba(255, 255, 255, 0.12);
-
   backdrop-filter: blur(10px);
-
-  box-shadow:
-    0 25px 60px rgba(0, 0, 0, 0.25);
-
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
   transition: 0.4s;
 }
 
@@ -227,47 +146,33 @@ body {
 
 .authLogo {
   margin-top: 25px;
-
   font-size: 2.5rem;
   font-weight: 900;
-
   color: white;
 }
 
 .authText {
   margin-top: 15px;
-
   max-width: 360px;
-
   line-height: 1.8;
-
   color: rgba(255, 255, 255, 0.85);
-
   font-size: 15px;
 }
 
 .statsBox {
   width: 100%;
-
   display: flex;
   gap: 15px;
-
   margin-top: 35px;
 }
 
 .statItem {
   flex: 1;
-
   padding: 18px;
-
   border-radius: 20px;
-
   background: rgba(255, 255, 255, 0.12);
-
   backdrop-filter: blur(15px);
-
   border: 1px solid rgba(255, 255, 255, 0.12);
-
   transition: 0.3s;
 }
 
@@ -283,36 +188,27 @@ body {
 
 .statItem span {
   color: rgba(255, 255, 255, 0.8);
-
   font-size: 13px;
 }
 
 .securityBadge {
   margin-top: 25px;
-
   display: flex;
   align-items: center;
   gap: 10px;
-
   padding: 14px 22px;
-
   border-radius: 999px;
-
-  background: rgba(255,255,255,0.12);
-
+  background: rgba(255, 255, 255, 0.12);
   color: white;
-
   font-size: 14px;
   font-weight: 600;
 }
 
+/* ===== Right Side ===== */
 .authRight {
   flex: 1;
-
-  background: rgba(255,255,255,0.96);
-
+  background: rgba(255, 255, 255, 0.96);
   padding: 70px;
-
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -320,23 +216,18 @@ body {
 
 .authTitle {
   font-size: 2.2rem;
-
   font-weight: 800;
-
   color: #0f172a;
 }
 
 .authSubtitle {
   margin-top: 8px;
-
   color: #64748b;
-
   font-size: 15px;
 }
 
 .authForm {
   margin-top: 30px;
-
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -348,65 +239,44 @@ body {
 
 .inputIcon {
   position: absolute;
-
   left: 18px;
   top: 50%;
-
   transform: translateY(-50%);
-
   color: #94a3b8;
-
   font-size: 18px;
 }
 
 .authInput {
   width: 100%;
-
   height: 60px;
-
   border-radius: 16px;
-
   border: 1px solid #e2e8f0;
-
   padding: 0 55px;
-
   font-size: 16px;
-
   background: white;
-
   transition: 0.3s;
 }
 
 .authInput:hover {
-  border-color: rgba(55,111,255,.4);
+  border-color: rgba(55, 111, 255, 0.4);
 }
 
 .authInput:focus {
   outline: none;
-
   border-color: #376fff;
-
-  box-shadow:
-    0 0 0 4px rgba(55,111,255,.12);
-
+  box-shadow: 0 0 0 4px rgba(55, 111, 255, 0.12);
   transform: translateY(-2px);
 }
 
 .eyeButton {
   position: absolute;
-
   right: 18px;
   top: 50%;
-
   transform: translateY(-50%);
-
   border: none;
   background: transparent;
-
   cursor: pointer;
-
   color: #64748b;
-
   font-size: 18px;
 }
 
@@ -416,75 +286,38 @@ body {
   align-items: center;
 }
 
-.rememberMe {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  color: #475569;
-
-  font-size: 14px;
-}
-
-.rememberMe input {
-  accent-color: #376fff;
-}
-
 .forgotPassword {
   text-decoration: none;
-
   color: #376fff;
-
   font-size: 14px;
   font-weight: 600;
 }
 
 .authError {
   padding: 14px;
-
   border-radius: 14px;
-
-  background: rgba(239,68,68,.1);
-
+  background: rgba(239, 68, 68, 0.1);
   color: #dc2626;
-
   font-size: 14px;
 }
 
 .authButton {
   height: 60px;
-
   border: none;
-
   border-radius: 16px;
-
-  background:
-    linear-gradient(
-      135deg,
-      #376fff,
-      #2457ff
-    );
-
+  background: linear-gradient(135deg, #376fff, #2457ff);
   color: white;
-
   font-weight: 700;
   font-size: 15px;
-
   cursor: pointer;
-
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-
   position: relative;
-
   overflow: hidden;
-
-  transition: .35s;
-
-  box-shadow:
-    0 20px 40px rgba(55,111,255,.35);
+  transition: 0.35s;
+  box-shadow: 0 20px 40px rgba(55, 111, 255, 0.35);
 }
 
 .authButton:hover {
@@ -493,20 +326,14 @@ body {
 
 .authButton::before {
   content: "";
-
   position: absolute;
-
   width: 120px;
   height: 300%;
-
-  background: rgba(255,255,255,.2);
-
+  background: rgba(255, 255, 255, 0.2);
   transform: rotate(25deg);
-
   left: -150px;
   top: -100%;
-
-  transition: .8s;
+  transition: 0.8s;
 }
 
 .authButton:hover::before {
@@ -516,21 +343,15 @@ body {
 .loader {
   width: 18px;
   height: 18px;
-
   border-radius: 50%;
-
-  border: 2px solid rgba(255,255,255,.3);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-top-color: white;
-
-  animation: spin .8s linear infinite;
+  animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
-
 
 .authFooter {
   margin-top: 30px;
@@ -542,16 +363,34 @@ body {
   font-size: 13px;
 }
 
+/* ===== Session Loader ===== */
+.authSessionLoader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: white;
+  font-weight: 600;
+  font-size: 15px;
+  z-index: 10;
+}
+
+.authSessionLoader .loader {
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(255, 255, 255, 0.25);
+  border-top-color: white;
+}
+
+/* ===== Responsive ===== */
 @media (max-width: 992px) {
   .authCard {
     max-width: 650px;
     min-height: auto;
   }
-
   .authLeft {
     display: none;
   }
-
   .authRight {
     width: 100%;
     flex: unset;
@@ -563,43 +402,27 @@ body {
   .authWrapper {
     padding: 20px;
   }
-
   .authCard {
-    width: 100%;
-    max-width: 100%;
     border-radius: 24px;
   }
-
   .authRight {
     padding: 35px 24px;
   }
-
   .authHeader {
     text-align: center;
   }
-
   .authTitle {
     font-size: 1.8rem;
   }
-
   .authSubtitle {
     font-size: 14px;
   }
-
   .authForm {
     gap: 14px;
   }
-
-  .authInput {
-    height: 55px;
-  }
-
+  .authInput,
   .authButton {
     height: 55px;
-  }
-
-  .authOptions {
-    gap: 12px;
   }
 }
 
@@ -607,38 +430,29 @@ body {
   .authWrapper {
     padding: 12px;
   }
-
   .authCard {
     border-radius: 20px;
   }
-
   .authRight {
     padding: 25px 18px;
   }
-
   .authTitle {
     font-size: 1.6rem;
   }
-
   .authSubtitle {
     font-size: 13px;
   }
-
   .authInput {
     height: 52px;
     padding: 0 48px;
-    font-size: 16px;
   }
-
   .authButton {
     height: 52px;
     font-size: 14px;
   }
-
   .authFooter {
     margin-top: 20px;
   }
-
   .authFooter p {
     font-size: 12px;
   }

@@ -12,7 +12,7 @@ import {
   User,
   LogOut,
   Target,
-  Archive, // ← yangi
+  Archive,
 } from "lucide-react";
 
 import { supabase } from "../../services/supabaseClient";
@@ -30,14 +30,14 @@ function Sidebar({ collapsed, mobileOpen, activeBranch, setMobileOpen }) {
     () => [
       { label: "Dashboard", icon: LayoutDashboard, path: "" },
       { label: "Students", icon: Users, path: "students" },
-      { label: "Archive", icon: Archive, path: "archive" }, // ← yangi
       { label: "Teachers", icon: UserCog, path: "teachers" },
       { label: "Courses", icon: BookOpen, path: "courses" },
       { label: "Groups", icon: Layers, path: "groups" },
+      { label: "Attendance", icon: CalendarCheck, path: "attendance" },
+      { label: "Payments", icon: Wallet, path: "payments" },
       { label: "Add Students", icon: UserPlus, path: "addstudents" },
       { label: "Leads", icon: Target, path: "leads" },
-      { label: "Payments", icon: Wallet, path: "payments" },
-      { label: "Attendance", icon: CalendarCheck, path: "attendance" },
+      { label: "Archive", icon: Archive, path: "archive" },
       { label: "Profile", icon: User, path: "profile" },
     ],
     [],
@@ -45,11 +45,19 @@ function Sidebar({ collapsed, mobileOpen, activeBranch, setMobileOpen }) {
 
   const handleLogout = useCallback(async () => {
     try {
-      await supabase.auth.signOut();
+      // Session + localStorage tozalash
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+
+      // Ixtiyoriy: qo‘shimcha tozalash
+      localStorage.removeItem("sb-" + "gurmyvqbkrpyvfnunepu" + "-auth-token");
+
       navigate("/login", { replace: true });
       setMobileOpen?.(false);
     } catch (err) {
       console.error("Logout error:", err.message);
+      // Xato bo‘lsa ham login sahifaga yuboramiz
+      navigate("/login", { replace: true });
     }
   }, [navigate, setMobileOpen]);
 
@@ -75,11 +83,13 @@ function Sidebar({ collapsed, mobileOpen, activeBranch, setMobileOpen }) {
           )}
         </div>
       </div>
+
       <nav className="erpSidebar__nav">
         {menu.map(({ label, icon: Icon, path }) => (
           <NavLink
-            key={path}
-            to={`${basePath}/${path}`}
+            key={path || "dashboard"}
+            to={path ? `${basePath}/${path}` : basePath}
+            end={path === ""}
             onClick={closeMobileMenu}
             className={({ isActive }) =>
               `erpSidebar__link ${isActive ? "isActive" : ""}`
@@ -90,6 +100,7 @@ function Sidebar({ collapsed, mobileOpen, activeBranch, setMobileOpen }) {
           </NavLink>
         ))}
       </nav>
+
       <div className="erpSidebar__footer">
         <button className="erpSidebar__logout" onClick={handleLogout}>
           <LogOut className="erpSidebar__icon" />
