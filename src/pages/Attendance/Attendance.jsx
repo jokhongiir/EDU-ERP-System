@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "../../services/supabaseClient";
 import {
   FiCalendar,
@@ -24,52 +25,28 @@ import "./Attendance.css";
 export default function Attendance({ activeBranch }) {
   const branchId = activeBranch?.id;
 
-  const [state, setState] = useState({
-    groups: [],
-    courses: [],
-    teachers: [],
-    students: [],
-    selectedGroup: null,
-    attendanceMap: {},
-    originalAttendanceMap: {},
-    isLoading: false,
-    isSaving: false,
-    currentMonth: new Date().getMonth(),
-    currentYear: new Date().getFullYear(),
-    searchQuery: "",
-    isModalOpen: false,
-    mainSearch: "",
-    selectedCourse: "",
-    selectedTeacher: "",
-  });
+  const [groups, setGroups] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [teachers, setTeachers] = useState([]);
+  const [students, setStudents] = useState([]);
 
-  const {
-    groups,
-    courses,
-    teachers,
-    students,
-    selectedGroup,
-    attendanceMap,
-    originalAttendanceMap,
-    isLoading,
-    isSaving,
-    currentMonth,
-    currentYear,
-    searchQuery,
-    isModalOpen,
-    mainSearch,
-    selectedCourse,
-    selectedTeacher,
-  } = state;
+  const [selectedGroup, setSelectedGroup] = useState(null);
+  const [attendanceMap, setAttendanceMap] = useState({});
+  const [originalMap, setOriginalMap] = useState({});
 
-  const [toast, setToast] = useState({
-    open: false,
-    message: "",
-    type: "success",
-  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const updateState = (payload) =>
-    setState((prev) => ({ ...prev, ...payload }));
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+
+  const [mainSearch, setMainSearch] = useState("");
+  const [selectedCourse, setSelectedCourse] = useState("");
+  const [selectedTeacher, setSelectedTeacher] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const [toast, setToast] = useState({ open: false, message: "", type: "success" });
 
   const cycleKey = useMemo(
     () => `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}`,
@@ -78,45 +55,46 @@ export default function Attendance({ activeBranch }) {
 
   const showToast = useCallback((message, type = "success") => {
     setToast({ open: true, message, type });
-    const timer = setTimeout(
-      () => setToast({ open: false, message: "", type: "success" }),
-      2500,
-    );
-    return () => clearTimeout(timer);
+    setTimeout(() => setToast({ open: false, message: "", type: "success" }), 2500);
   }, []);
 
-  // Gurunlar, Fanlar va O'qituvchilarni bir vaqtda yuklab olish
   const fetchData = useCallback(async () => {
     if (!branchId) return;
-
-    const [groupsRes, coursesRes, teachersRes] = await Promise.all([
-      supabase.from("groups").select("*").eq("branch_id", branchId),
-      supabase.from("courses").select("*").eq("branch_id", branchId),
-      supabase.from("teachers").select("*").eq("branch_id", branchId),
-    ]);
-
-    if (groupsRes.error) {
-      showToast("Failed to fetch groups", "error");
+    try {
+      const [g, c, t] = await Promise.all([
+        supabase.from("groups").select("*").eq("branch_id", branchId),
+        supabase.from("courses").select("*").eq("branch_id", branchId),
+        supabase.from("teachers").select("*").eq("branch_id", branchId),
+      ]);
+      setGroups(g.data || []);
+      setCourses(c.data || []);
+      setTeachers(t.data || []);
+    } catch {
+      showToast("Failed to load groups", "error");
     }
-
-    updateState({
-      groups: groupsRes.data || [],
-      courses: coursesRes.data || [],
-      teachers: teachersRes.data || [],
-    });
   }, [branchId, showToast]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  const fetchFullData = useCallback(async (groupId, month, year) => {
-    updateState({ isLoading: true });
-    const key = `${year}-${String(month + 1).padStart(2, "0")}`;
+  useEffect(() => {
+    document.body.style.overflow = isModalOpen ? "hidden" : "unset";
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isModalOpen]);
 
+  const fetchFullData = useCallback(async (groupId, month, year) => {
+    setIsLoading(true);
+    const key = `${year}-${String(month + 1).padStart(2, "0")}`;
     try {
       const [studentsRes, attendanceRes] = await Promise.all([
-        supabase.from("students").select("*").eq("group_id", groupId),
+        supabase
+          .from("students")
+          .select("*")
+          .eq("group_id", groupId)
+          .eq("is_archived", false),
         supabase
           .from("attendance")
           .select("*")
@@ -130,63 +108,63 @@ export default function Attendance({ activeBranch }) {
         map[row.student_id][row.lesson_key] = Boolean(row.present);
       });
 
-      updateState({
-        students: studentsRes.data || [],
-        attendanceMap: map,
-        originalAttendanceMap: JSON.parse(JSON.stringify(map)),
-        isLoading: false,
-      });
+      setStudents(studentsRes.data || []);
+      setAttendanceMap(map);
+      setOriginalMap(JSON.parse(JSON.stringify(map)));
     } catch (err) {
-      console.error("Error fetching data:", err);
-      updateState({ isLoading: false });
+      console.error(err);
+      showToast("Failed to load attendance", "error");
+    } finally {
+      setIsLoading(false);
     }
-  }, []);
+  }, [showToast]);
 
-  const handleOpenGroupModal = (group) => {
-    updateState({ selectedGroup: group, isModalOpen: true, searchQuery: "" });
+  const openGroup = (group) => {
+    setSelectedGroup(group);
+    setIsModalOpen(true);
+    setSearchQuery("");
     fetchFullData(group.id, currentMonth, currentYear);
   };
 
-  const handleCloseModal = () => {
-    updateState({ isModalOpen: false, selectedGroup: null });
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedGroup(null);
   };
 
-  const changeMonth = (direction) => {
-    let newMonth = currentMonth + direction;
-    let newYear = currentYear;
-    if (newMonth > 11) {
-      newMonth = 0;
-      newYear++;
+  const changeMonth = (dir) => {
+    let m = currentMonth + dir;
+    let y = currentYear;
+    if (m > 11) {
+      m = 0;
+      y++;
     }
-    if (newMonth < 0) {
-      newMonth = 11;
-      newYear--;
+    if (m < 0) {
+      m = 11;
+      y--;
     }
-
-    updateState({ currentMonth: newMonth, currentYear: newYear });
-    if (selectedGroup) fetchFullData(selectedGroup.id, newMonth, newYear);
+    setCurrentMonth(m);
+    setCurrentYear(y);
+    if (selectedGroup) fetchFullData(selectedGroup.id, m, y);
   };
 
   const toggleAttendance = (studentId, lessonKey) => {
-    const studentData = attendanceMap[studentId] || {};
-    const nextVal = !studentData[lessonKey];
-    
-    updateState({
-      attendanceMap: {
-        ...attendanceMap,
-        [studentId]: { ...studentData, [lessonKey]: nextVal },
-      },
+    setAttendanceMap((prev) => {
+      const studentData = prev[studentId] || {};
+      return {
+        ...prev,
+        [studentId]: { ...studentData, [lessonKey]: !studentData[lessonKey] },
+      };
     });
   };
 
   const saveAttendance = async () => {
     if (!selectedGroup) return;
-    updateState({ isSaving: true });
-    const rows = [];
+    setIsSaving(true);
 
+    const rows = [];
     Object.entries(attendanceMap).forEach(([sId, lessonsMap]) => {
       Object.entries(lessonsMap).forEach(([key, val]) => {
-        if (val !== originalAttendanceMap[sId]?.[key]) {
+        if (val !== originalMap[sId]?.[key]) {
           rows.push({
             student_id: sId,
             group_id: selectedGroup.id,
@@ -199,7 +177,7 @@ export default function Attendance({ activeBranch }) {
 
     if (!rows.length) {
       showToast("No changes detected", "info");
-      updateState({ isSaving: false });
+      setIsSaving(false);
       return;
     }
 
@@ -208,20 +186,16 @@ export default function Attendance({ activeBranch }) {
       .upsert(rows, { onConflict: "student_id,lesson_key" });
 
     if (error) {
-      console.error("Error saving attendance:", error);
       showToast("Error saving data!", "error");
     } else {
-      updateState({
-        originalAttendanceMap: JSON.parse(JSON.stringify(attendanceMap)),
-      });
+      setOriginalMap(JSON.parse(JSON.stringify(attendanceMap)));
       showToast("Attendance saved successfully!", "success");
     }
-    updateState({ isSaving: false });
+    setIsSaving(false);
   };
 
   const lessons = useMemo(() => {
     if (!selectedGroup) return [];
-
     const type = selectedGroup.schedule_type || "all";
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
     const daysList = [];
@@ -229,64 +203,58 @@ export default function Attendance({ activeBranch }) {
     for (let i = 1; i <= daysInMonth; i++) {
       const dateObj = new Date(currentYear, currentMonth, i);
       const dayOfWeek = dateObj.getDay();
-
       const isSunday = dayOfWeek === 0;
-      const isOddDay = dayOfWeek === 1 || dayOfWeek === 3 || dayOfWeek === 5;
-      const isEvenDay = dayOfWeek === 2 || dayOfWeek === 4 || dayOfWeek === 6;
+      const isOdd = dayOfWeek === 1 || dayOfWeek === 3 || dayOfWeek === 5;
+      const isEven = dayOfWeek === 2 || dayOfWeek === 4 || dayOfWeek === 6;
 
-      if (type === "all") {
-        daysList.push({ dayNum: i, dateObj, isSunday });
-      } else if (type === "odd" && isOddDay) {
+      if (type === "all") daysList.push({ dayNum: i, dateObj, isSunday });
+      else if (type === "odd" && isOdd)
         daysList.push({ dayNum: i, dateObj, isSunday: false });
-      } else if (type === "even" && isEvenDay) {
+      else if (type === "even" && isEven)
         daysList.push({ dayNum: i, dateObj, isSunday: false });
-      }
     }
 
-    const todayDate = new Date();
-    const isCurrentMonthYear =
-      todayDate.getMonth() === currentMonth &&
-      todayDate.getFullYear() === currentYear;
-    const currentDayNum = todayDate.getDate();
+    const today = new Date();
+    const isCurrent =
+      today.getMonth() === currentMonth && today.getFullYear() === currentYear;
+    const todayNum = today.getDate();
 
     return daysList.map((item, i) => {
       const { dayNum, dateObj, isSunday } = item;
-      const isToday = isCurrentMonthYear && dayNum === currentDayNum;
-
-      const formattedIsoDate = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}`;
-
-      const formattedDate = new Intl.DateTimeFormat("en-US", {
-        month: "short",
-        day: "numeric",
-        weekday: "short",
-      }).format(dateObj);
-
       return {
         key: `${cycleKey}-L${i + 1}`,
         index: i + 1,
         day: dayNum,
-        date: formattedIsoDate,
-        formattedDate,
+        date: `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}`,
+        formattedDate: new Intl.DateTimeFormat("en-US", {
+          month: "short",
+          day: "numeric",
+          weekday: "short",
+        }).format(dateObj),
         isSunday,
-        isToday,
+        isToday: isCurrent && dayNum === todayNum,
       };
     });
   }, [selectedGroup, cycleKey, currentMonth, currentYear]);
 
-  // Guruhlarni qidiruv, fan va o'qituvchi bo'yicha filterlash
   const filteredGroups = useMemo(() => {
     return groups.filter((g) => {
-      const matchesSearch = g.name.toLowerCase().includes(mainSearch.toLowerCase());
-      const matchesCourse = selectedCourse ? g.course_id === selectedCourse : true;
-      const matchesTeacher = selectedTeacher ? g.teacher_id === selectedTeacher : true;
-
-      return matchesSearch && matchesCourse && matchesTeacher;
+      const matchSearch = g.name
+        ?.toLowerCase()
+        .includes(mainSearch.toLowerCase());
+      const matchCourse = selectedCourse
+        ? String(g.course_id) === String(selectedCourse)
+        : true;
+      const matchTeacher = selectedTeacher
+        ? String(g.teacher_id) === String(selectedTeacher)
+        : true;
+      return matchSearch && matchCourse && matchTeacher;
     });
   }, [groups, mainSearch, selectedCourse, selectedTeacher]);
 
   const filteredStudents = useMemo(() => {
     return students.filter((s) =>
-      `${s.first_name} ${s.last_name}`
+      `${s.first_name || ""} ${s.last_name || ""}`
         .toLowerCase()
         .includes(searchQuery.toLowerCase()),
     );
@@ -294,243 +262,282 @@ export default function Attendance({ activeBranch }) {
 
   const getStats = (studentId) => {
     const data = attendanceMap[studentId] || {};
-    const totalLessons = lessons.length;
+    const total = lessons.length;
     const present = Object.values(data).filter(Boolean).length;
-    const percent = totalLessons > 0 ? Math.round((present / totalLessons) * 100) : 0;
-    return { present, percent, totalLessons };
+    const percent = total > 0 ? Math.round((present / total) * 100) : 0;
+    return { present, percent, total };
+  };
+
+  const scheduleLabel = (type) => {
+    if (type === "odd") return "Odd Days (Mon-Wed-Fri)";
+    if (type === "even") return "Even Days (Tue-Thu-Sat)";
+    return "All Days";
   };
 
   return (
-    <div className="attendance-pro-container">
-      <header className="attendance-header">
-        <div className="header-title">
-          <h1>Attendance System</h1>
-          <p>
-            <FiHome /> {activeBranch?.name || "Branch"} / Select a group to manage attendance
+    <div className="at-root">
+      {/* Header */}
+      <div className="at-header">
+        <div>
+          <h1 className="at-title">
+            {activeBranch?.name || "Branch"} • Attendance
+          </h1>
+          <p className="at-desc">
+            <FiHome /> Select a group to manage attendance
           </p>
         </div>
+      </div>
 
-        <div className="header-actions">
+      {/* Filters */}
+      <div className="at-filters">
+        <div className="at-search">
+          <FiSearch />
+          <input
+            placeholder="Search groups..."
+            value={mainSearch}
+            onChange={(e) => setMainSearch(e.target.value)}
+          />
+        </div>
+        <select
+          value={selectedCourse}
+          onChange={(e) => setSelectedCourse(e.target.value)}
+        >
+          <option value="">All Courses</option>
+          {courses.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+        <select
+          value={selectedTeacher}
+          onChange={(e) => setSelectedTeacher(e.target.value)}
+        >
+          <option value="">All Teachers</option>
+          {teachers.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.name}
+            </option>
+          ))}
+        </select>
+      </div>
 
-          <div className="filterr-select-box">
-            <FiBookOpen />
-            <select
-              value={selectedCourse}
-              onChange={(e) => updateState({ selectedCourse: e.target.value })}
+      {/* Groups grid */}
+      <h2 className="at-section-title">Available Groups</h2>
+
+      {filteredGroups.length === 0 ? (
+        <div className="at-empty">
+          <FiLayers size={44} />
+          <h3>No groups found</h3>
+          <p>No groups match your filter criteria</p>
+        </div>
+      ) : (
+        <div className="at-grid">
+          {filteredGroups.map((g) => (
+            <div
+              key={g.id}
+              className="at-card"
+              onClick={() => openGroup(g)}
             >
-              <option value="">All Courses</option>
-              {courses.map((course) => (
-                <option key={course.id} value={course.id}>
-                  {course.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-
-          <div className="search-box">
-            <FiSearch />
-            <input
-              type="text"
-              placeholder="Search groups..."
-              value={mainSearch}
-              onChange={(e) => updateState({ mainSearch: e.target.value })}
-            />
-          </div>
-        </div>
-      </header>
-
-      <main className="attendance-board">
-        <div className="groups-grid-section">
-          <h2>Available Groups</h2>
-          <div className="groups-grid">
-            {filteredGroups.length > 0 ? (
-              filteredGroups.map((group) => (
-                <div
-                  key={group.id}
-                  className="group-card-pro"
-                  onClick={() => handleOpenGroupModal(group)}
-                >
-                  <div className="group-card-header">
-                    <FiLayers className="group-icon" />
-                    <span className={`schedule-badge ${group.schedule_type || ""}`}>
-                      {group.schedule_type === "odd"
-                        ? "Odd Days (Mon-Wed-Fri)"
-                        : group.schedule_type === "even"
-                        ? "Even Days (Tue-Thu-Sat)"
-                        : "All Days"}
-                    </span>
+              <div className="at-card-top" />
+              <div className="at-card-body">
+                <div className="at-card-head">
+                  <div className="at-card-icon">
+                    <FiLayers />
                   </div>
-                  <h3>{group.name}</h3>
-                  <div className="group-card-footer">
-                    <span><FiClock /> Click to view attendance</span>
-                    <FiEye className="view-icon" />
-                  </div>
+                  <span className={`at-badge ${g.schedule_type || "all"}`}>
+                    {scheduleLabel(g.schedule_type)}
+                  </span>
                 </div>
-              ))
-            ) : (
-              <div className="empty-state">
-                <FiLayers size={48} />
-                <h2>No Groups Found</h2>
-                <p>No groups match your filter criteria.</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </main>
-
-      {isModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal-content-pro">
-            <div className="modal-header">
-              <div className="modal-title-wrap">
-                <h2>{selectedGroup?.name} - Attendance</h2>
-                <p>
-                  Schedule: <strong>{selectedGroup?.schedule_type === "odd" ? "Odd Days (Mon-Wed-Fri)" : selectedGroup?.schedule_type === "even" ? "Even Days (Tue-Thu-Sat)" : "All Days"}</strong> | Total Lessons: <strong>{lessons.length}</strong>
-                </p>
-              </div>
-              <button className="close-modal-btn" onClick={handleCloseModal}>
-                <FiX size={22} />
-              </button>
-            </div>
-
-            <div className="modal-toolbar">
-              <div className="month-picker">
-                <button onClick={() => changeMonth(-1)} title="Previous Month">
-                  <FiChevronLeft />
-                </button>
-                <h3>
-                  <FiCalendar />
-                  {new Intl.DateTimeFormat("en-US", {
-                    month: "long",
-                    year: "numeric",
-                  }).format(new Date(currentYear, currentMonth))}
-                </h3>
-                <button onClick={() => changeMonth(1)} title="Next Month">
-                  <FiChevronRight />
-                </button>
-              </div>
-
-              <div className="modal-right-actions">
-                <div className="search-box">
-                  <FiSearch />
-                  <input
-                    type="text"
-                    placeholder="Search student..."
-                    value={searchQuery}
-                    onChange={(e) => updateState({ searchQuery: e.target.value })}
-                  />
+                <h3>{g.name}</h3>
+                <div className="at-card-foot">
+                  <span>
+                    <FiClock /> Click to view
+                  </span>
+                  <FiEye className="at-eye" />
                 </div>
-                <button
-                  className={`save-btn ${isSaving ? "loading" : ""}`}
-                  onClick={saveAttendance}
-                  disabled={isSaving}
-                >
-                  {isSaving ? <FiLoader className="spin" /> : <FiDatabase />}
-                  <span>{isSaving ? "Saving..." : "Save Changes"}</span>
-                </button>
               </div>
             </div>
-
-            <div className="modal-body-table">
-              {isLoading ? (
-                <div className="loading-state">
-                  <FiLoader className="spin-lg" />
-                  <p>Fetching students and attendance...</p>
-                </div>
-              ) : (
-                <div className="table-responsive">
-                  <table className="attendance-table">
-                    <thead>
-                      <tr>
-                        <th className="sticky-col">Student Full Name</th>
-                        {lessons.map((l) => {
-                          let headClass = "lesson-head";
-                          if (l.isSunday) headClass += " sunday-head";
-                          if (l.isToday) headClass += " today-head";
-
-                          return (
-                            <th key={l.key} className={headClass} title={`Date: ${l.date}`}>
-                              <span className="l-idx">L{l.index}</span>
-                              <span className="l-date">{l.formattedDate}</span>
-                              {l.isSunday && <span className="badge-sunday">Sun</span>}
-                              {l.isToday && <span className="badge-today">Today</span>}
-                            </th>
-                          );
-                        })}
-                        <th className="stats-head">
-                          <FiTrendingUp />
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredStudents.length > 0 ? (
-                        filteredStudents.map((s) => {
-                          const stats = getStats(s.id);
-                          return (
-                            <tr key={s.id}>
-                              <td className="sticky-col">
-                                <div className="student-info">
-                                  <div className="avatar">{s.first_name?.[0] || "?"}</div>
-                                  <span>
-                                    {s.first_name} {s.last_name}
-                                  </span>
-                                </div>
-                              </td>
-                              {lessons.map((l) => {
-                                let cellClass = "check-cell";
-                                if (l.isSunday) cellClass += " sunday-cell";
-                                if (l.isToday) cellClass += " today-cell";
-
-                                const isChecked = Boolean(attendanceMap[s.id]?.[l.key]);
-
-                                return (
-                                  <td key={l.key} className={cellClass}>
-                                    <label className="custom-check">
-                                      <input
-                                        type="checkbox"
-                                        checked={isChecked}
-                                        onChange={() => toggleAttendance(s.id, l.key)}
-                                      />
-                                      <span className="checkmark"></span>
-                                    </label>
-                                  </td>
-                                );
-                              })}
-                              <td className="stats-cell">
-                                <div
-                                  className={`percent-circle ${
-                                    stats.percent > 70
-                                      ? "good"
-                                      : stats.percent > 40
-                                      ? "warning"
-                                      : "bad"
-                                  }`}
-                                >
-                                  {stats.percent}%
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })
-                      ) : (
-                        <tr>
-                          <td colSpan={lessons.length + 2} className="no-results">
-                            No students found matching your search.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </div>
+          ))}
         </div>
       )}
 
+      {/* Modal */}
+      {isModalOpen &&
+        createPortal(
+          <div className="at-overlay" onClick={closeModal}>
+            <div
+              className="at-modal"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal header */}
+              <div className="at-modal-header">
+                <div>
+                  <h2>{selectedGroup?.name} — Attendance</h2>
+                  <p>
+                    Schedule: <strong>{scheduleLabel(selectedGroup?.schedule_type)}</strong>
+                    {" · "}
+                    Lessons: <strong>{lessons.length}</strong>
+                  </p>
+                </div>
+                <button className="at-close" onClick={closeModal}>
+                  <FiX />
+                </button>
+              </div>
+
+              {/* Toolbar */}
+              <div className="at-toolbar">
+                <div className="at-month">
+                  <button onClick={() => changeMonth(-1)}>
+                    <FiChevronLeft />
+                  </button>
+                  <h3>
+                    <FiCalendar />
+                    {new Intl.DateTimeFormat("en-US", {
+                      month: "long",
+                      year: "numeric",
+                    }).format(new Date(currentYear, currentMonth))}
+                  </h3>
+                  <button onClick={() => changeMonth(1)}>
+                    <FiChevronRight />
+                  </button>
+                </div>
+
+                <div className="at-toolbar-right">
+                  <div className="at-search sm">
+                    <FiSearch />
+                    <input
+                      placeholder="Search student..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+                  <button
+                    className="at-save-btn"
+                    onClick={saveAttendance}
+                    disabled={isSaving}
+                  >
+                    {isSaving ? (
+                      <FiLoader className="at-spin" />
+                    ) : (
+                      <FiDatabase />
+                    )}
+                    {isSaving ? "Saving..." : "Save Changes"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Table */}
+              <div className="at-table-wrap">
+                {isLoading ? (
+                  <div className="at-loading">
+                    <FiLoader className="at-spin-lg" />
+                    <p>Loading attendance...</p>
+                  </div>
+                ) : (
+                  <div className="at-table-scroll">
+                    <table className="at-table">
+                      <thead>
+                        <tr>
+                          <th className="at-sticky">Student</th>
+                          {lessons.map((l) => (
+                            <th
+                              key={l.key}
+                              className={`at-lesson-head ${l.isSunday ? "sun" : ""} ${l.isToday ? "today" : ""}`}
+                              title={l.date}
+                            >
+                              <span className="at-l-idx">L{l.index}</span>
+                              <span className="at-l-date">{l.formattedDate}</span>
+                              {l.isSunday && (
+                                <span className="at-chip sun">Sun</span>
+                              )}
+                              {l.isToday && (
+                                <span className="at-chip today">Today</span>
+                              )}
+                            </th>
+                          ))}
+                          <th className="at-stats-head">
+                            <FiTrendingUp />
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredStudents.length === 0 ? (
+                          <tr>
+                            <td
+                              colSpan={lessons.length + 2}
+                              className="at-no-data"
+                            >
+                              No students found
+                            </td>
+                          </tr>
+                        ) : (
+                          filteredStudents.map((s) => {
+                            const stats = getStats(s.id);
+                            return (
+                              <tr key={s.id}>
+                                <td className="at-sticky">
+                                  <div className="at-student">
+                                    <div className="at-avatar">
+                                      {s.first_name?.[0] || "?"}
+                                    </div>
+                                    <span>
+                                      {s.first_name} {s.last_name}
+                                    </span>
+                                  </div>
+                                </td>
+                                {lessons.map((l) => {
+                                  const checked = Boolean(
+                                    attendanceMap[s.id]?.[l.key],
+                                  );
+                                  return (
+                                    <td
+                                      key={l.key}
+                                      className={`at-cell ${l.isSunday ? "sun" : ""} ${l.isToday ? "today" : ""}`}
+                                    >
+                                      <label className="at-check">
+                                        <input
+                                          type="checkbox"
+                                          checked={checked}
+                                          onChange={() =>
+                                            toggleAttendance(s.id, l.key)
+                                          }
+                                        />
+                                        <span className="at-checkmark" />
+                                      </label>
+                                    </td>
+                                  );
+                                })}
+                                <td className="at-stats-cell">
+                                  <span
+                                    className={`at-percent ${
+                                      stats.percent > 70
+                                        ? "good"
+                                        : stats.percent > 40
+                                          ? "warn"
+                                          : "bad"
+                                    }`}
+                                  >
+                                    {stats.percent}%
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
+
+      {/* Toast */}
       {toast.open && (
-        <div className={`toast-message ${toast.type} active`}>
+        <div className={`at-toast ${toast.type}`}>
           {toast.type === "success" && <FiCheckCircle />}
           {toast.type === "error" && <FiXCircle />}
           {toast.type === "info" && <FiInfo />}
