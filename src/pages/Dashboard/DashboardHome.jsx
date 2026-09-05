@@ -10,7 +10,9 @@ import {
   FiTrendingUp,
   FiBarChart2,
   FiHome,
-  FiCalendar,
+  FiGift,
+  FiDollarSign,
+  FiArchive,
 } from "react-icons/fi";
 
 import {
@@ -21,6 +23,9 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
 
 import "./DashboardHome.css";
@@ -32,7 +37,10 @@ export default function DashboardHome({ activeBranch }) {
   const [refreshing, setRefreshing] = useState(false);
 
   const [dashboardData, setDashboardData] = useState({
-    students: 0,
+    totalStudents: 0,
+    paidStudents: 0,
+    freeStudents: 0,
+    archivedStudents: 0,
     teachers: 0,
     courses: 0,
     groups: 0,
@@ -47,39 +55,94 @@ export default function DashboardHome({ activeBranch }) {
     try {
       setLoading(true);
 
-      const [studentsRes, teachersRes, coursesRes, groupsRes] =
-        await Promise.all([
-          supabase
-            .from("students")
-            .select("*", { count: "exact" })
-            .eq("branch_id", branchId),
-          supabase
-            .from("teachers")
-            .select("*", { count: "exact" })
-            .eq("branch_id", branchId)
-            .order("created_at", { ascending: false }),
-          supabase
-            .from("courses")
-            .select("*", { count: "exact" })
-            .eq("branch_id", branchId)
-            .order("created_at", { ascending: false }),
-          supabase
-            .from("groups")
-            .select("*", { count: "exact" })
-            .eq("branch_id", branchId),
-        ]);
+      const [
+        allStudentsRes,
+        paidStudentsRes,
+        freeStudentsRes,
+        archivedRes,
+        teachersRes,
+        coursesRes,
+        groupsRes,
+      ] = await Promise.all([
+        // Umumiy talabalar (arxivsiz)
+        supabase
+          .from("students")
+          .select("*", { count: "exact", head: true })
+          .eq("branch_id", branchId)
+          .eq("is_archived", false),
 
-      const students = studentsRes.data || [];
+        // Pullik talabalar
+        supabase
+          .from("students")
+          .select("*", { count: "exact", head: true })
+          .eq("branch_id", branchId)
+          .eq("is_archived", false)
+          .eq("is_free", false),
+
+        // Free talabalar
+        supabase
+          .from("students")
+          .select("*", { count: "exact", head: true })
+          .eq("branch_id", branchId)
+          .eq("is_archived", false)
+          .eq("is_free", true),
+
+        // Arxivlanganlar
+        supabase
+          .from("students")
+          .select("*", { count: "exact", head: true })
+          .eq("branch_id", branchId)
+          .eq("is_archived", true),
+
+        // O'qituvchilar
+        supabase
+          .from("teachers")
+          .select("*", { count: "exact" })
+          .eq("branch_id", branchId)
+          .order("created_at", { ascending: false }),
+
+        // Kurslar
+        supabase
+          .from("courses")
+          .select("*", { count: "exact" })
+          .eq("branch_id", branchId)
+          .order("created_at", { ascending: false }),
+
+        // Guruhlar
+        supabase
+          .from("groups")
+          .select("*", { count: "exact", head: true })
+          .eq("branch_id", branchId),
+      ]);
+
+      // Chart uchun to'liq student + course ma'lumotlari
+      const { data: studentsData } = await supabase
+        .from("students")
+        .select("id, course_id, is_free")
+        .eq("branch_id", branchId)
+        .eq("is_archived", false);
+
       const teachers = teachersRes.data || [];
       const courses = coursesRes.data || [];
+      const students = studentsData || [];
 
-      const chartData = courses.map((course) => ({
-        name: course.name,
-        students: students.filter((s) => s.course_id === course.id).length,
-      }));
+      const chartData = courses.map((course) => {
+        const courseStudents = students.filter(
+          (s) => s.course_id === course.id,
+        );
+        return {
+          name: course.name,
+          students: courseStudents.length,
+          paid: courseStudents.filter((s) => !s.is_free).length,
+          free: courseStudents.filter((s) => s.is_free).length,
+        };
+      });
 
       setDashboardData({
-        students: studentsRes.count || 0,
+        totalStudents: allStudentsRes.count || 0,
+        paidStudents: paidStudentsRes.count || 0,
+        freeStudents: freeStudentsRes.count || 0,
+        archivedStudents: archivedRes.count || 0,
         teachers: teachersRes.count || 0,
         courses: coursesRes.count || 0,
         groups: groupsRes.count || 0,
@@ -98,40 +161,83 @@ export default function DashboardHome({ activeBranch }) {
   useEffect(() => {
     fetchDashboardData();
   }, [fetchDashboardData]);
+
   const handleRefresh = async () => {
     if (refreshing || loading) return;
     setRefreshing(true);
     await fetchDashboardData();
   };
-  const cards = useMemo(
+
+  // Asosiy kartochkalar
+  const mainCards = useMemo(
     () => [
       {
         title: "Total Students",
-        value: dashboardData.students,
+        value: dashboardData.totalStudents,
         icon: <FiUsers />,
         color: "#3b82f6",
+        subtitle: "All active students",
+      },
+      {
+        title: "Paid Students",
+        value: dashboardData.paidStudents,
+        icon: <FiDollarSign />,
+        color: "#10b981",
+        subtitle: "Pullik o'quvchilar",
+      },
+      {
+        title: "Free Students",
+        value: dashboardData.freeStudents,
+        icon: <FiGift />,
+        color: "#8b5cf6",
+        subtitle: "Tekin / Trial o'quvchilar",
       },
       {
         title: "Active Teachers",
         value: dashboardData.teachers,
         icon: <FiUserCheck />,
-        color: "#10b981",
-      },
-      {
-        title: "Available Courses",
-        value: dashboardData.courses,
-        icon: <FiBookOpen />,
         color: "#f59e0b",
-      },
-      {
-        title: "Active Groups",
-        value: dashboardData.groups,
-        icon: <FiLayers />,
-        color: "#ef4444",
+        subtitle: "O'qituvchilar",
       },
     ],
     [dashboardData],
   );
+
+  // Ikkinchi qator kartochkalar
+  const secondaryCards = useMemo(
+    () => [
+      {
+        title: "Courses",
+        value: dashboardData.courses,
+        icon: <FiBookOpen />,
+        color: "#06b6d4",
+      },
+      {
+        title: "Groups",
+        value: dashboardData.groups,
+        icon: <FiLayers />,
+        color: "#ef4444",
+      },
+      {
+        title: "Archived",
+        value: dashboardData.archivedStudents,
+        icon: <FiArchive />,
+        color: "#64748b",
+      },
+    ],
+    [dashboardData],
+  );
+
+  // Pie chart ma'lumoti (Paid vs Free)
+  const pieData = useMemo(() => {
+    const paid = dashboardData.paidStudents;
+    const free = dashboardData.freeStudents;
+    if (paid === 0 && free === 0) return [];
+    return [
+      { name: "Paid", value: paid, color: "#10b981" },
+      { name: "Free", value: free, color: "#8b5cf6" },
+    ];
+  }, [dashboardData.paidStudents, dashboardData.freeStudents]);
 
   if (!branchId) {
     return (
@@ -152,6 +258,7 @@ export default function DashboardHome({ activeBranch }) {
 
   return (
     <div className="dashboard-home">
+      {/* Header */}
       <div className="dashboard-header">
         <div className="header-title-box">
           <h1>{activeBranch?.name} • Dashboard</h1>
@@ -168,8 +275,9 @@ export default function DashboardHome({ activeBranch }) {
         </button>
       </div>
 
+      {/* Asosiy 4 ta karta */}
       <div className="dashboard-stats-grid">
-        {cards.map((card, i) => (
+        {mainCards.map((card, i) => (
           <div
             key={i}
             className="dashboard-stat-card"
@@ -179,7 +287,7 @@ export default function DashboardHome({ activeBranch }) {
               <div
                 className="dashboard-stat-icon-wrapper"
                 style={{
-                  background: `${card.color}12`,
+                  background: `${card.color}15`,
                   color: card.color,
                 }}
               >
@@ -198,98 +306,189 @@ export default function DashboardHome({ activeBranch }) {
               ) : (
                 <h2>{card.value.toLocaleString()}</h2>
               )}
+              <p className="stat-subtitle">{card.subtitle}</p>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="dashboard-chart-card">
-        <div className="dashboard-chart-header">
-          <div>
-            <h3>Students Distribution</h3>
-            <p>Visual representation of student enrollment per course</p>
+      {/* Ikkinchi qator (Courses, Groups, Archived) */}
+      <div className="dashboard-secondary-grid">
+        {secondaryCards.map((card, i) => (
+          <div key={i} className="dashboard-secondary-card">
+            <div
+              className="secondary-icon"
+              style={{ background: `${card.color}15`, color: card.color }}
+            >
+              {card.icon}
+            </div>
+            <div>
+              <h4>{card.title}</h4>
+              {loading ? (
+                <div className="shimmer sk-secondary-value"></div>
+              ) : (
+                <h3>{card.value.toLocaleString()}</h3>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Chart + Pie */}
+      <div className="dashboard-charts-row">
+        {/* Area Chart */}
+        <div className="dashboard-chart-card">
+          <div className="dashboard-chart-header">
+            <div>
+              <h3>Students by Course</h3>
+              <p>Enrollment distribution across all programs</p>
+            </div>
+          </div>
+
+          <div className="dashboard-chart-wrapper">
+            {loading ? (
+              <div className="chart-skeleton-container">
+                <div className="shimmer sk-chart-line"></div>
+                <div className="shimmer sk-chart-bar"></div>
+              </div>
+            ) : dashboardData.chartData.length === 0 ? (
+              <div className="dashboard-empty-text-mid">
+                No course statistics available yet.
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={320}>
+                <AreaChart
+                  data={dashboardData.chartData}
+                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient
+                      id="studentGradient"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.25} />
+                      <stop
+                        offset="95%"
+                        stopColor="#3b82f6"
+                        stopOpacity={0.01}
+                      />
+                    </linearGradient>
+                  </defs>
+
+                  <CartesianGrid
+                    strokeDasharray="4 4"
+                    vertical={false}
+                    stroke="#f1f5f9"
+                  />
+                  <XAxis
+                    dataKey="name"
+                    tickLine={false}
+                    axisLine={false}
+                    tick={{ fill: "#64748b", fontSize: 12, fontWeight: 600 }}
+                  />
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    tick={{ fill: "#64748b", fontSize: 12, fontWeight: 600 }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#0f172a",
+                      borderRadius: "12px",
+                      border: "none",
+                      boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)",
+                      padding: "10px 14px",
+                    }}
+                    itemStyle={{
+                      color: "#fff",
+                      fontSize: "13px",
+                      fontWeight: "600",
+                    }}
+                    labelStyle={{
+                      color: "#94a3b8",
+                      fontSize: "11px",
+                      fontWeight: "700",
+                      marginBottom: "4px",
+                      textTransform: "uppercase",
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="students"
+                    stroke="#3b82f6"
+                    strokeWidth={3}
+                    fill="url(#studentGradient)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
-        <div className="dashboard-chart-wrapper">
-          {loading ? (
-            <div className="chart-skeleton-container">
-              <div className="shimmer sk-chart-line"></div>
-              <div className="shimmer sk-chart-bar"></div>
+        {/* Pie Chart - Paid vs Free */}
+        <div className="dashboard-pie-card">
+          <div className="dashboard-chart-header">
+            <div>
+              <h3>Paid vs Free</h3>
+              <p>Student type breakdown</p>
             </div>
-          ) : dashboardData.chartData.length === 0 ? (
-            <div className="dashboard-empty-text-mid">
-              No statistics available for this branch's courses.
-            </div>
-          ) : (
-            <ResponsiveContainer width="100%" height={350}>
-              <AreaChart
-                data={dashboardData.chartData}
-                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-              >
-                <defs>
-                  <linearGradient
-                    id="studentGradient"
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.25} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.01} />
-                  </linearGradient>
-                </defs>
+          </div>
 
-                <CartesianGrid
-                  strokeDasharray="4 4"
-                  vertical={false}
-                  stroke="#f1f5f9"
-                />
-                <XAxis
-                  dataKey="name"
-                  tickLine={false}
-                  axisLine={false}
-                  tick={{ fill: "#64748b", fontSize: 12, fontWeight: 600 }}
-                />
-                <YAxis
-                  tickLine={false}
-                  axisLine={false}
-                  tick={{ fill: "#64748b", fontSize: 12, fontWeight: 600 }}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#0f172a",
-                    borderRadius: "12px",
-                    border: "none",
-                    boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)",
-                    padding: "10px 14px",
-                  }}
-                  itemStyle={{
-                    color: "#fff",
-                    fontSize: "13px",
-                    fontWeight: "600",
-                  }}
-                  labelStyle={{
-                    color: "#94a3b8",
-                    fontSize: "11px",
-                    fontWeight: "700",
-                    marginBottom: "4px",
-                    textTransform: "uppercase",
-                  }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="students"
-                  stroke="#3b82f6"
-                  strokeWidth={3}
-                  fill="url(#studentGradient)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          )}
+          <div className="pie-wrapper">
+            {loading ? (
+              <div className="shimmer sk-pie"></div>
+            ) : pieData.length === 0 ? (
+              <div className="dashboard-empty-text-mid">No data</div>
+            ) : (
+              <>
+                <ResponsiveContainer width="100%" height={220}>
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={90}
+                      paddingAngle={4}
+                      dataKey="value"
+                    >
+                      {pieData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "#0f172a",
+                        borderRadius: "10px",
+                        border: "none",
+                        color: "#fff",
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+
+                <div className="pie-legend">
+                  {pieData.map((item) => (
+                    <div key={item.name} className="pie-legend-item">
+                      <span
+                        className="pie-dot"
+                        style={{ background: item.color }}
+                      ></span>
+                      <span className="pie-label">{item.name}</span>
+                      <span className="pie-value">{item.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
+      {/* Latest Teachers & Courses */}
       <div className="dashboard-bottom-grid">
         <div className="dashboard-list-card">
           <div className="dashboard-list-header">
@@ -297,7 +496,7 @@ export default function DashboardHome({ activeBranch }) {
               <FiUserCheck />
             </div>
             <div>
-              <h3>Latest Recruited Teachers</h3>
+              <h3>Latest Teachers</h3>
               <p>Recently onboarded instructors</p>
             </div>
           </div>
@@ -327,7 +526,7 @@ export default function DashboardHome({ activeBranch }) {
                   </div>
                   <div className="list-item-meta">
                     <h4>{teacher.name}</h4>
-                    <p>Professional Faculty Member</p>
+                    <p>Faculty Member</p>
                   </div>
                 </div>
               ))
@@ -341,8 +540,8 @@ export default function DashboardHome({ activeBranch }) {
               <FiBookOpen />
             </div>
             <div>
-              <h3>Newly Launched Courses</h3>
-              <p>Latest academic programs added</p>
+              <h3>Latest Courses</h3>
+              <p>Recently added programs</p>
             </div>
           </div>
 
@@ -370,8 +569,7 @@ export default function DashboardHome({ activeBranch }) {
                   <div className="list-item-meta">
                     <h4>{course.name}</h4>
                     <p>
-                      <FiHome className="meta-icon" /> {activeBranch?.name}{" "}
-                      Branch
+                      <FiHome className="meta-icon" /> {activeBranch?.name}
                     </p>
                   </div>
                 </div>

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../../services/supabaseClient";
 
 import {
@@ -18,6 +18,7 @@ import {
   FiTrendingUp,
   FiCreditCard,
   FiAlertCircle,
+  FiGift,
 } from "react-icons/fi";
 
 import "./AddStudents.css";
@@ -67,6 +68,7 @@ export default function AddStudents({
   onFinish,
 }) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const branchId = activeBranch?.id;
   const isEdit = !!editStudent;
 
@@ -100,6 +102,7 @@ export default function AddStudents({
     monthly_fee: "",
     teacher_percent: "",
     paid: false,
+    is_free: false,
   });
 
   const getTodayStr = () => new Date().toISOString().slice(0, 10);
@@ -119,6 +122,20 @@ export default function AddStudents({
     if (callback) callback();
   };
 
+  // URL orqali ?type=free kelganda avtomatik Free qilish
+  useEffect(() => {
+    if (searchParams.get("type") === "free" && !editStudent) {
+      setForm((prev) => ({
+        ...prev,
+        is_free: true,
+        monthly_fee: "0",
+        paid: true,
+        payment_date: getTodayStr(),
+        next_payment_date: "",
+      }));
+    }
+  }, [searchParams, editStudent]);
+
   useEffect(() => {
     if (editStudent) {
       setForm({
@@ -136,6 +153,7 @@ export default function AddStudents({
         payment_date: editStudent.payment_date || "",
         next_payment_date: editStudent.next_payment_date || "",
         paid: !!editStudent.paid,
+        is_free: !!editStudent.is_free,
       });
     }
   }, [editStudent]);
@@ -212,7 +230,7 @@ export default function AddStudents({
       if (name === "monthly_fee") val = formatMoney(value);
       if (name === "teacher_percent") val = formatPercent(value);
 
-      // ★ Ism va Familiyani darhol UPPERCASE qilish
+      // Ism va Familiyani darhol UPPERCASE qilish
       if (name === "first_name" || name === "last_name") {
         val = value.toUpperCase();
       }
@@ -220,13 +238,37 @@ export default function AddStudents({
       setForm((prev) => {
         const next = { ...prev, [name]: val };
 
+        // Student Type o'zgarganda
+        if (name === "is_free") {
+          const isFree = value === "true" || value === true;
+          next.is_free = isFree;
+
+          if (isFree) {
+            next.monthly_fee = "0";
+            next.paid = true;
+            next.payment_date = getTodayStr();
+            next.next_payment_date = "";
+          } else {
+            // Paid ga o'tganda kurs narxini qayta yuklash
+            const selectedCourse = dbData.courses.find(
+              (c) => String(c.id) === String(prev.course_id),
+            );
+            if (selectedCourse?.price) {
+              next.monthly_fee = formatMoney(selectedCourse.price);
+            }
+            next.paid = false;
+            next.payment_date = "";
+            next.next_payment_date = "";
+          }
+        }
+
         if (name === "course_id") {
           next.teacher_id = "";
           next.group_id = "";
           const selectedCourse = dbData.courses.find(
             (c) => String(c.id) === String(value),
           );
-          if (selectedCourse?.price) {
+          if (selectedCourse?.price && !prev.is_free) {
             next.monthly_fee = formatMoney(selectedCourse.price);
           }
         }
@@ -258,7 +300,6 @@ export default function AddStudents({
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // 1. Asosiy validatsiya
     const cleanFirstName = form.first_name?.trim();
     const cleanLastName = form.last_name?.trim();
 
@@ -269,10 +310,8 @@ export default function AddStudents({
     setLoading(true);
 
     try {
-      // 2. Payload (ma'lumotlarni yuborish uchun tayyorlash)
       const payload = {
         branch_id: branchId,
-        // Ism va familiyani avtomatik UPPERCASE qilish
         first_name: cleanFirstName.toUpperCase(),
         last_name: cleanLastName.toUpperCase(),
         phone: normalizePhone(form.phone),
@@ -283,12 +322,14 @@ export default function AddStudents({
         start_date: form.start_date || null,
         payment_date: form.payment_date || null,
         next_payment_date: form.next_payment_date || null,
-        monthly_fee: Number(onlyDigits(form.monthly_fee)) || 0,
+        monthly_fee: form.is_free
+          ? 0
+          : Number(onlyDigits(form.monthly_fee)) || 0,
         teacher_percent: Number(onlyDigits(form.teacher_percent)) || 0,
-        paid: Boolean(form.paid),
+        paid: form.is_free ? true : Boolean(form.paid),
+        is_free: Boolean(form.is_free),
       };
 
-      // 3. Supabase so'rovi
       const { error } = isEdit
         ? await supabase
             .from("students")
@@ -296,26 +337,28 @@ export default function AddStudents({
             .eq("id", editStudent.id)
         : await supabase.from("students").insert([payload]);
 
-      if (error) throw error; // Xatolik bo'lsa catch ga o'tadi
+      if (error) throw error;
 
-      // 4. Muvaffaqiyatli yakun
-      showAlert(
-        "success",
-        isEdit
+      const successMessage = form.is_free
+        ? isEdit
+          ? "Free talaba ma'lumotlari yangilandi!"
+          : "Yangi Free talaba muvaffaqiyatli qo'shildi!"
+        : isEdit
           ? "Talaba ma'lumotlari yangilandi!"
-          : "Yangi talaba muvaffaqiyatli qo'shildi!",
-        () => {
-          if (onFinish) {
-            onFinish();
-          } else {
-            navigate(`/dashboard/${branchId}/students`);
-          }
-        },
-      );
+          : "Yangi talaba muvaffaqiyatli qo'shildi!";
+
+      showAlert("success", successMessage, () => {
+        if (onFinish) {
+          onFinish();
+        } else {
+          // Free bo'lsa FreeStudents sahifasiga, aks holda Students ga
+          const target = form.is_free ? "freestudents" : "students";
+          navigate(`/dashboard/${branchId}/${target}`);
+        }
+      });
     } catch (err) {
       console.error("Xatolik yuz berdi:", err);
 
-      // 5. Xatolik xabarlarini tushunarli qilish
       let errorMessage = "Tizimda xatolik yuz berdi, qayta urinib ko'ring.";
 
       if (err.code === "23505") {
@@ -349,8 +392,14 @@ export default function AddStudents({
       </div>
 
       <h2>
-        <FiUserCheck />
-        {isEdit ? " Edit Student Profile" : " Student Enrollment Form"}
+        {form.is_free ? <FiGift /> : <FiUserCheck />}
+        {isEdit
+          ? form.is_free
+            ? " Edit Free Student"
+            : " Edit Student Profile"
+          : form.is_free
+            ? " Free Student Enrollment"
+            : " Student Enrollment Form"}
       </h2>
 
       {fetching && (
@@ -358,6 +407,7 @@ export default function AddStudents({
       )}
 
       <form onSubmit={handleSubmit} className="form">
+        {/* ========== PERSONAL INFORMATION ========== */}
         <div className="section">
           <h4>
             <FiUser /> Personal Information
@@ -373,6 +423,7 @@ export default function AddStudents({
                 required
               />
             </Field>
+
             <Field label="Last Name *">
               <Input
                 icon={<FiUser />}
@@ -383,6 +434,7 @@ export default function AddStudents({
                 required
               />
             </Field>
+
             <Field label="Student Phone">
               <Input
                 icon={<FiPhone />}
@@ -392,6 +444,7 @@ export default function AddStudents({
                 maxLength={19}
               />
             </Field>
+
             <Field label="Parent / Guardian Phone">
               <Input
                 icon={<FiPhone />}
@@ -401,9 +454,26 @@ export default function AddStudents({
                 maxLength={19}
               />
             </Field>
+
+            {/* ★ STUDENT TYPE SELECT */}
+            <Field label="Student Type *">
+              <div className="input-group-container">
+                <FiGift />
+                <select
+                  name="is_free"
+                  value={form.is_free ? "true" : "false"}
+                  onChange={handleChange}
+                  className="type-select"
+                >
+                  <option value="false">Paid (Pullik)</option>
+                  <option value="true">Free (Bepul)</option>
+                </select>
+              </div>
+            </Field>
           </div>
         </div>
 
+        {/* ========== ACADEMIC ALLOCATION ========== */}
         <div className="section">
           <h4>
             <FiBookOpen /> Academic Allocation
@@ -419,6 +489,7 @@ export default function AddStudents({
                 placeholder="Select core course"
               />
             </Field>
+
             <Field label="Assigned Teacher">
               <Select
                 icon={<FiUsers />}
@@ -432,6 +503,7 @@ export default function AddStudents({
                 }
               />
             </Field>
+
             <Field label="Classroom Group">
               <Select
                 icon={<FiClipboard />}
@@ -449,6 +521,7 @@ export default function AddStudents({
                 }
               />
             </Field>
+
             <Field label="Commencement Date (Start)">
               <DateInput
                 name="start_date"
@@ -459,34 +532,57 @@ export default function AddStudents({
           </div>
         </div>
 
+        {/* ========== FINANCIAL ========== */}
         <div className="section">
           <h4>
             <FiCreditCard /> Financial Ledger Configuration
+            {form.is_free && (
+              <span
+                style={{
+                  marginLeft: 12,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "#059669",
+                  background: "#ecfdf5",
+                  padding: "4px 10px",
+                  borderRadius: 6,
+                }}
+              >
+                FREE STUDENT
+              </span>
+            )}
           </h4>
+
           <div className="grid">
             <Field label="Payment Settlement Date">
               <DateInput
                 name="payment_date"
                 value={form.payment_date}
                 onChange={handleChange}
+                disabled={form.is_free}
               />
             </Field>
+
             <Field label="Next Invoice Maturity Date">
               <DateInput
                 name="next_payment_date"
                 value={form.next_payment_date}
                 onChange={handleChange}
+                disabled={form.is_free}
               />
             </Field>
+
             <Field label="Monthly Premium Fee (UZS)">
               <Input
                 icon={<FiTrendingUp />}
                 name="monthly_fee"
-                value={form.monthly_fee}
+                value={form.is_free ? "0" : form.monthly_fee}
                 onChange={handleChange}
                 placeholder="0"
+                disabled={form.is_free}
               />
             </Field>
+
             <Field label="Teacher Payout Yield (%)">
               <Input
                 icon={<FiDollarSign />}
@@ -498,24 +594,51 @@ export default function AddStudents({
             </Field>
           </div>
 
-          <label className="checkbox-wrapper-label">
-            <input
-              type="checkbox"
-              name="paid"
-              id="paid-status-checkbox"
-              checked={form.paid}
-              onChange={handleChange}
-              className="hidden-checkbox-input"
-            />
-            <div className={`custom-checkbox-ui ${form.paid ? "checked" : ""}`}>
-              <FiCheckCircle />
+          {!form.is_free && (
+            <label className="checkbox-wrapper-label">
+              <input
+                type="checkbox"
+                name="paid"
+                id="paid-status-checkbox"
+                checked={form.paid}
+                onChange={handleChange}
+                className="hidden-checkbox-input"
+              />
+              <div
+                className={`custom-checkbox-ui ${form.paid ? "checked" : ""}`}
+              >
+                <FiCheckCircle />
+              </div>
+              <span>
+                Approve immediate payment allocation for current tracking period
+              </span>
+            </label>
+          )}
+
+          {form.is_free && (
+            <div
+              style={{
+                marginTop: 16,
+                padding: "14px 18px",
+                background: "#ecfdf5",
+                border: "1px solid #a7f3d0",
+                borderRadius: 10,
+                color: "#065f46",
+                fontSize: 14,
+                fontWeight: 500,
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+              }}
+            >
+              <FiGift size={18} />
+              Bu talaba <strong>Free</strong> sifatida saqlanadi. To‘lov
+              talab qilinmaydi.
             </div>
-            <span>
-              Approve immediate payment allocation for current tracking period
-            </span>
-          </label>
+          )}
         </div>
 
+        {/* ========== ACTIONS ========== */}
         <div className="actions">
           <button type="submit" className="submit-btn" disabled={loading}>
             <FiSave />
@@ -523,7 +646,9 @@ export default function AddStudents({
               ? "Processing..."
               : isEdit
                 ? "Update Master Record"
-                : "Finalize Enrollment"}
+                : form.is_free
+                  ? "Add Free Student"
+                  : "Finalize Enrollment"}
           </button>
           <button
             type="button"
@@ -571,6 +696,8 @@ export default function AddStudents({
   );
 }
 
+/* ==================== HELPER COMPONENTS ==================== */
+
 const Field = ({ label, children }) => (
   <div className="field">
     <label>{label}</label>
@@ -578,17 +705,23 @@ const Field = ({ label, children }) => (
   </div>
 );
 
-const Input = ({ icon, ...props }) => (
-  <div className="input-group-container">
+const Input = ({ icon, disabled, ...props }) => (
+  <div className={`input-group-container ${disabled ? "disabled" : ""}`}>
     {icon}
-    <input {...props} autoComplete="new-password" />
+    <input {...props} disabled={disabled} autoComplete="new-password" />
   </div>
 );
 
-const Select = ({ icon, options, placeholder = "Select option", ...props }) => (
-  <div className="input-group-container">
+const Select = ({
+  icon,
+  options,
+  placeholder = "Select option",
+  disabled,
+  ...props
+}) => (
+  <div className={`input-group-container ${disabled ? "disabled" : ""}`}>
     {icon}
-    <select {...props}>
+    <select {...props} disabled={disabled}>
       <option value="">{placeholder}</option>
       {options.map((o) => (
         <option key={o.id} value={o.id}>
@@ -599,9 +732,9 @@ const Select = ({ icon, options, placeholder = "Select option", ...props }) => (
   </div>
 );
 
-const DateInput = (props) => (
-  <div className="input-group-container">
+const DateInput = ({ disabled, ...props }) => (
+  <div className={`input-group-container ${disabled ? "disabled" : ""}`}>
     <FiCalendar />
-    <input type="date" {...props} />
+    <input type="date" {...props} disabled={disabled} />
   </div>
 );

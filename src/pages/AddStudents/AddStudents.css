@@ -489,3 +489,27 @@
     height: 50px;
   }
 }
+
+/* Student Type select uchun */
+.type-select {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 550;
+  color: var(--text, #0f172a);
+  outline: none;
+  cursor: pointer;
+}
+
+.input-group-container.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+  background: #f1f5f9;
+}
+
+.input-group-container.disabled input,
+.input-group-container.disabled select {
+  cursor: not-allowed;
+}

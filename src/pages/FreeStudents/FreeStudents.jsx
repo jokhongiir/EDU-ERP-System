@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
 import { supabase } from "../../services/supabaseClient";
-import "./Students.css";
+import "./FreeStudents.css";
 
 import {
   FiEdit,
@@ -14,9 +14,10 @@ import {
   FiCalendar,
   FiArchive,
   FiAlertTriangle,
+  FiGift,
 } from "react-icons/fi";
 
-export default function Students({ activeBranch }) {
+export default function FreeStudents({ activeBranch }) {
   const navigate = useNavigate();
   const branchId = activeBranch?.id;
 
@@ -86,7 +87,7 @@ export default function Students({ activeBranch }) {
           .select("*, courses(name), teachers(name), groups(name)")
           .eq("branch_id", branchId)
           .eq("is_archived", false)
-          .eq("is_free", false) // ★ FAQAT PULLIK TALABALAR
+          .eq("is_free", true) // FAQAT FREE STUDENTS
           .order("created_at", { ascending: false }),
 
         supabase.from("courses").select("*").eq("branch_id", branchId),
@@ -99,7 +100,7 @@ export default function Students({ activeBranch }) {
       setTeachers(t.data || []);
       setGroups(g.data || []);
     } catch (err) {
-      console.error("Error loading students data:", err.message);
+      console.error("Error loading free students:", err.message);
     } finally {
       setLoading(false);
     }
@@ -117,7 +118,6 @@ export default function Students({ activeBranch }) {
     };
   }, [viewOpen, editOpen, confirmModal]);
 
-  // ========== Confirm actions ==========
   const openArchiveConfirm = (student) => {
     setConfirmModal({
       type: "archive",
@@ -191,6 +191,7 @@ export default function Students({ activeBranch }) {
       monthly_fee: student.monthly_fee ?? 0,
       teacher_percent: student.teacher_percent ?? 0,
       paid: student.paid ?? false,
+      is_free: true,
     });
 
     setEditOpen(true);
@@ -265,7 +266,7 @@ export default function Students({ activeBranch }) {
       monthly_fee: Number(editData.monthly_fee) || 0,
       teacher_percent: Number(editData.teacher_percent) || 0,
       paid: Boolean(editData.paid),
-      is_free: false, // pullik talaba sifatida saqlanadi
+      is_free: true,
     };
 
     try {
@@ -304,7 +305,6 @@ export default function Students({ activeBranch }) {
     });
   }, [students, search, filterCourse, filterTeacher, filterGroup]);
 
-  // ========== Confirm Modal ==========
   const renderConfirmModal = () => {
     if (!confirmModal) return null;
 
@@ -333,8 +333,8 @@ export default function Students({ activeBranch }) {
             {isError
               ? "Error"
               : isArchive
-                ? "Archive Student"
-                : "Delete Student"}
+                ? "Archive Free Student"
+                : "Delete Free Student"}
           </h3>
 
           <p>
@@ -395,24 +395,25 @@ export default function Students({ activeBranch }) {
   };
 
   return (
-    <div className="students">
+    <div className="students free-students">
       <div className="Column-Table-Students">
         <div className="students__header">
           <div className="title-area">
             <h1 className="page-main-title">
-              {activeBranch?.name || "Management"} • Students
+              {activeBranch?.name || "Management"} • Free Students
             </h1>
             <p className="page-description">
-              Manage and monitor paid student enrollments, details and invoices
+              Manage free / trial students who study without payment
             </p>
           </div>
 
           <button
-            className="primary-btn"
-            onClick={() => navigate(`/dashboard/${branchId}/addstudents`)}
+            className="primary-btn free-btn"
+            onClick={() => navigate(`/dashboard/${branchId}/addstudents?type=free`)}
             disabled={!branchId}
           >
-            + Add Student
+            <FiGift style={{ marginRight: 8 }} />
+            + Add Free Student
           </button>
         </div>
 
@@ -420,7 +421,7 @@ export default function Students({ activeBranch }) {
           <div className="students__search">
             <FiSearch />
             <input
-              placeholder="Search student profiles by name..."
+              placeholder="Search free student by name..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -477,7 +478,7 @@ export default function Students({ activeBranch }) {
               <th>Enrolled Course</th>
               <th>Assigned Teacher</th>
               <th>Group Class</th>
-              <th>Billing Status</th>
+              <th>Status</th>
               <th align="center">Actions</th>
             </tr>
           </thead>
@@ -526,11 +527,11 @@ export default function Students({ activeBranch }) {
               <tr>
                 <td colSpan="8">
                   <div className="students__empty">
-                    <FiUser
+                    <FiGift
                       size={40}
                       style={{ marginBottom: "12px", opacity: 0.4 }}
                     />
-                    <p>No active paid students matching the selected parameters</p>
+                    <p>No free students found matching the selected filters</p>
                   </div>
                 </td>
               </tr>
@@ -550,12 +551,8 @@ export default function Students({ activeBranch }) {
                   <td>{s.teachers?.name || "—"}</td>
                   <td>{s.groups?.name || "—"}</td>
                   <td>
-                    <span
-                      className={`status-pill-small ${
-                        s.paid ? "paid" : "unpaid"
-                      }`}
-                    >
-                      {s.paid ? "COLLECTED" : "OVERDUE"}
+                    <span className="status-pill-small free">
+                      FREE
                     </span>
                   </td>
                   <td onClick={(e) => e.stopPropagation()} align="center">
@@ -598,7 +595,10 @@ export default function Students({ activeBranch }) {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="modal__header">
-              <h3>Student Master Record</h3>
+              <h3>
+                <FiGift style={{ marginRight: 8 }} />
+                Free Student Record
+              </h3>
               <button onClick={() => setViewOpen(false)}>
                 <FiX />
               </button>
@@ -651,38 +651,21 @@ export default function Students({ activeBranch }) {
                   </div>
                 </div>
                 <div className="view__field">
-                  <label>Latest Settlement Date</label>
+                  <label>Status</label>
                   <div className="view__value">
-                    {viewData.payment_date || "—"}
+                    <span className="status-pill-small free">FREE STUDENT</span>
                   </div>
                 </div>
                 <div className="view__field">
-                  <label>Next Invoicing Cycle</label>
-                  <div className="view__value">
-                    {viewData.next_payment_date || "—"}
-                  </div>
-                </div>
-                <div className="view__field">
-                  <label>Standard Monthly Fee</label>
+                  <label>Monthly Fee</label>
                   <div className="view__value income-highlight">
-                    {formatCurrency(viewData.monthly_fee)}
+                    {formatCurrency(viewData.monthly_fee || 0)}
                   </div>
                 </div>
                 <div className="view__field">
-                  <label>Teacher Share Yield</label>
+                  <label>Teacher Share</label>
                   <div className="view__value">
                     {viewData.teacher_percent || 0}%
-                  </div>
-                </div>
-                <div className="view__field">
-                  <label>Current Status</label>
-                  <div
-                    className={`status-pill-small ${
-                      viewData.paid ? "paid" : "unpaid"
-                    }`}
-                    style={{ display: "inline-block" }}
-                  >
-                    {viewData.paid ? "PAID" : "UNPAID"}
                   </div>
                 </div>
               </div>
@@ -696,7 +679,7 @@ export default function Students({ activeBranch }) {
         <div className="modal" onClick={() => setEditOpen(false)}>
           <div className="modal__box" onClick={(e) => e.stopPropagation()}>
             <div className="modal__header">
-              <h3>Update Student Parameters</h3>
+              <h3>Update Free Student</h3>
               <button onClick={() => setEditOpen(false)}>
                 <FiX />
               </button>
@@ -723,7 +706,7 @@ export default function Students({ activeBranch }) {
               </div>
 
               <div className="form__group">
-                <label>Phone Connection</label>
+                <label>Phone</label>
                 <input
                   name="phone"
                   value={editData.phone || "+998 "}
@@ -735,7 +718,7 @@ export default function Students({ activeBranch }) {
               </div>
 
               <div className="form__group">
-                <label>Parent Emergency Contact</label>
+                <label>Parent Phone</label>
                 <input
                   name="parent_phone"
                   value={editData.parent_phone || "+998 "}
@@ -747,7 +730,7 @@ export default function Students({ activeBranch }) {
               </div>
 
               <div className="form__group">
-                <label>Program Specialization</label>
+                <label>Course</label>
                 <select
                   name="course_id"
                   value={editData.course_id || ""}
@@ -763,7 +746,7 @@ export default function Students({ activeBranch }) {
               </div>
 
               <div className="form__group">
-                <label>Assigned Instructor</label>
+                <label>Teacher</label>
                 <select
                   name="teacher_id"
                   value={editData.teacher_id || ""}
@@ -779,7 +762,7 @@ export default function Students({ activeBranch }) {
               </div>
 
               <div className="form__group">
-                <label>Classroom Group</label>
+                <label>Group</label>
                 <select
                   name="group_id"
                   value={editData.group_id || ""}
@@ -794,24 +777,18 @@ export default function Students({ activeBranch }) {
                 </select>
               </div>
 
-              {[
-                { label: "Start Date", field: "start_date" },
-                { label: "Payment Date", field: "payment_date" },
-                { label: "Next Payment Date", field: "next_payment_date" },
-              ].map((d) => (
-                <div className="form__group" key={d.field}>
-                  <label>{d.label}</label>
-                  <input
-                    type="date"
-                    name={d.field}
-                    value={editData[d.field] || ""}
-                    onChange={handleChange}
-                  />
-                </div>
-              ))}
+              <div className="form__group">
+                <label>Start Date</label>
+                <input
+                  type="date"
+                  name="start_date"
+                  value={editData.start_date || ""}
+                  onChange={handleChange}
+                />
+              </div>
 
               <div className="form__group">
-                <label>Monthly Assessment Fee (UZS)</label>
+                <label>Monthly Fee (UZS)</label>
                 <input
                   type="number"
                   name="monthly_fee"
@@ -821,25 +798,13 @@ export default function Students({ activeBranch }) {
               </div>
 
               <div className="form__group">
-                <label>Instructor Percent Share (%)</label>
+                <label>Teacher Percent (%)</label>
                 <input
                   type="number"
                   name="teacher_percent"
                   value={editData.teacher_percent || ""}
                   onChange={handleChange}
                 />
-              </div>
-
-              <div className="form__group full">
-                <label className="checkbox">
-                  <input
-                    type="checkbox"
-                    name="paid"
-                    checked={editData.paid || false}
-                    onChange={handleChange}
-                  />
-                  Mark student active and paid for current tracking month
-                </label>
               </div>
             </div>
             <div className="modal__actions">
@@ -848,7 +813,7 @@ export default function Students({ activeBranch }) {
                 onClick={handleSave}
                 disabled={saving}
               >
-                <FiSave /> {saving ? "Saving Changes..." : "Commit Changes"}
+                <FiSave /> {saving ? "Saving..." : "Save Changes"}
               </button>
             </div>
           </div>

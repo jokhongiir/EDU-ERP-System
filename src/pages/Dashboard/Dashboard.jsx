@@ -4,6 +4,7 @@ import { useParams, useNavigate, Routes, Route } from "react-router-dom";
 import DashboardLayout from "../../components/DashboardLayout/DashboardLayout";
 
 import Students from "../Students/Students";
+import FreeStudents from "../FreeStudents/FreeStudents"; // ← YANGI
 import AddStudentPage from "../AddStudents/AddStudents";
 
 import TeachersPage from "../Teachers/Teachers";
@@ -17,7 +18,7 @@ import Login from "../Auth/Login";
 import Register from "../Auth/Register";
 import ForgotPassword from "../Auth/ForgotPassword";
 import UpdatePassword from "../Auth/UpdatePassword";
-import Leads from "../Leads/Leads"; // ← yangi
+import Leads from "../Leads/Leads";
 import Archive from "../Archive/Archive";
 import { supabase } from "../../services/supabaseClient";
 
@@ -82,6 +83,12 @@ export default function Dashboard({ centerName, setCenterName }) {
         <Route
           path="students"
           element={<Students activeBranch={activeBranch} />}
+        />
+
+        {/* ★ FREE STUDENTS ROUTE */}
+        <Route
+          path="freestudents"
+          element={<FreeStudents activeBranch={activeBranch} />}
         />
 
         <Route

@@ -13,6 +13,7 @@ import {
   LogOut,
   Target,
   Archive,
+  Gift, // ← yangi icon
 } from "lucide-react";
 
 import { supabase } from "../../services/supabaseClient";
@@ -30,6 +31,7 @@ function Sidebar({ collapsed, mobileOpen, activeBranch, setMobileOpen }) {
     () => [
       { label: "Dashboard", icon: LayoutDashboard, path: "" },
       { label: "Students", icon: Users, path: "students" },
+      { label: "Free Students", icon: Gift, path: "freestudents" }, // ← YANGI
       { label: "Teachers", icon: UserCog, path: "teachers" },
       { label: "Courses", icon: BookOpen, path: "courses" },
       { label: "Groups", icon: Layers, path: "groups" },
@@ -45,18 +47,15 @@ function Sidebar({ collapsed, mobileOpen, activeBranch, setMobileOpen }) {
 
   const handleLogout = useCallback(async () => {
     try {
-      // Session + localStorage tozalash
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
 
-      // Ixtiyoriy: qo‘shimcha tozalash
       localStorage.removeItem("sb-" + "gurmyvqbkrpyvfnunepu" + "-auth-token");
 
       navigate("/login", { replace: true });
       setMobileOpen?.(false);
     } catch (err) {
       console.error("Logout error:", err.message);
-      // Xato bo‘lsa ham login sahifaga yuboramiz
       navigate("/login", { replace: true });
     }
   }, [navigate, setMobileOpen]);

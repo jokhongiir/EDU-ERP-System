@@ -519,3 +519,147 @@
   height: 10px;
   border-radius: 4px;
 }
+/* ========== Secondary Cards ========== */
+.dashboard-secondary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .dashboard-secondary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dashboard-secondary-card {
+  background: var(--card);
+  border-radius: var(--radius-md);
+  padding: 20px 24px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.25s ease;
+}
+
+.dashboard-secondary-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.secondary-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.dashboard-secondary-card h4 {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-soft);
+  margin-bottom: 4px;
+}
+
+.dashboard-secondary-card h3 {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+.stat-subtitle {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+/* ========== Charts Row ========== */
+.dashboard-charts-row {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 1100px) {
+  .dashboard-charts-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dashboard-pie-card {
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+}
+
+.pie-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.pie-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.pie-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--soft-gray);
+  border-radius: 10px;
+}
+
+.pie-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pie-label {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.pie-value {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.sk-secondary-value {
+  width: 50px;
+  height: 24px;
+  border-radius: 6px;
+}
+
+.sk-pie {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  margin: 20px auto;
+}
