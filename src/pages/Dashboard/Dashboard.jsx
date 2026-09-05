@@ -17,6 +17,8 @@ import Login from "../Auth/Login";
 import Register from "../Auth/Register";
 import ForgotPassword from "../Auth/ForgotPassword";
 import UpdatePassword from "../Auth/UpdatePassword";
+import Leads from "../Leads/Leads"; // ← yangi
+import Archive from "../Archive/Archive";
 import { supabase } from "../../services/supabaseClient";
 
 export default function Dashboard({ centerName, setCenterName }) {
@@ -25,6 +27,7 @@ export default function Dashboard({ centerName, setCenterName }) {
 
   const [branches, setBranches] = useState([]);
   const [activeBranch, setActiveBranch] = useState(null);
+
   useEffect(() => {
     const init = async () => {
       const { data, error } = await supabase.auth.getUser();
@@ -99,6 +102,16 @@ export default function Dashboard({ centerName, setCenterName }) {
         <Route
           path="groups"
           element={<GroupsPage activeBranch={activeBranch} />}
+        />
+
+        <Route
+          path="leads"
+          element={<Leads activeBranch={activeBranch} />}
+        />
+
+        <Route
+          path="archive"
+          element={<Archive activeBranch={activeBranch} />}
         />
 
         <Route

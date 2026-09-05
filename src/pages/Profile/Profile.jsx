@@ -18,19 +18,24 @@ import {
   FiCreditCard,
   FiAlertCircle,
   FiPieChart,
+  FiArchive,
 } from "react-icons/fi";
 import "./Profile.css";
 
-export default function Profile() {
+export default function Profile({ activeBranch }) {
+  const branchId = activeBranch?.id;
+
   const [loading, setLoading] = useState(true);
   const [profileData, setProfileData] = useState({
     centerName: "",
     email: "",
     totalStudents: 0,
+    archivedStudents: 0,
     totalTeachers: 0,
     totalCourses: 0,
     totalGroups: 0,
-    totalBranches: 0,
+    totalLeads: 0,
+    leadsToday: 0,
     totalIncome: 0,
     totalExpense: 0,
     totalProfit: 0,
@@ -39,7 +44,6 @@ export default function Profile() {
     monthlyIncome: 0,
     monthlyExpense: 0,
     monthlyProfit: 0,
-    branches: [],
     recentPayments: [],
   });
 
@@ -56,39 +60,80 @@ export default function Profile() {
   };
 
   const fetchProfileData = useCallback(async () => {
+    if (!branchId) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       const { data: authData } = await supabase.auth.getUser();
       const user = authData?.user;
       if (!user) return;
 
-      const { data: branches } = await supabase
-        .from("branches")
-        .select("*")
-        .eq("owner_uid", user.id);
-      const branchIds = branches?.map((b) => b.id) || [];
+      const today = new Date().toISOString().slice(0, 10);
 
-      const [studentsRes, teachersRes, coursesRes, groupsRes] =
-        await Promise.all([
-          supabase.from("students").select("*").in("branch_id", branchIds),
-          supabase.from("teachers").select("*").in("branch_id", branchIds),
-          supabase.from("courses").select("*").in("branch_id", branchIds),
-          supabase.from("groups").select("*").in("branch_id", branchIds),
-        ]);
+      const [
+        studentsRes,
+        archivedRes,
+        teachersRes,
+        coursesRes,
+        groupsRes,
+        leadsRes,
+        leadsTodayRes,
+      ] = await Promise.all([
+        supabase
+          .from("students")
+          .select("*")
+          .eq("branch_id", branchId)
+          .eq("is_archived", false),
+
+        supabase
+          .from("students")
+          .select("id", { count: "exact", head: true })
+          .eq("branch_id", branchId)
+          .eq("is_archived", true),
+
+        supabase.from("teachers").select("*").eq("branch_id", branchId),
+
+        supabase
+          .from("courses")
+          .select("id", { count: "exact", head: true })
+          .eq("branch_id", branchId),
+
+        supabase
+          .from("groups")
+          .select("id", { count: "exact", head: true })
+          .eq("branch_id", branchId),
+
+        supabase
+          .from("leads")
+          .select("id", { count: "exact", head: true })
+          .eq("branch_id", branchId),
+
+        supabase
+          .from("leads")
+          .select("id", { count: "exact", head: true })
+          .eq("branch_id", branchId)
+          .gte("created_at", today),
+      ]);
 
       const students = studentsRes.data || [];
       const teachers = teachersRes.data || [];
       const paidStudents = students.filter((s) => s.paid);
       const unpaidStudents = students.filter((s) => !s.paid);
 
-      const totalIncome =
-        paidStudents.reduce((sum, s) => sum + (s.monthly_fee || 0), 0) || 0;
-      const totalExpense =
-        students.reduce((sum, s) => {
-          const fee = Number(s.monthly_fee) || 0;
-          const percent = Number(s.teacher_percent) || 0;
-          return sum + (fee * percent) / 100;
-        }, 0) || 0;
+      const totalIncome = paidStudents.reduce(
+        (sum, s) => sum + (Number(s.monthly_fee) || 0),
+        0,
+      );
+
+      const totalExpense = students.reduce((sum, s) => {
+        const fee = Number(s.monthly_fee) || 0;
+        const percent = Number(s.teacher_percent) || 0;
+        return sum + (fee * percent) / 100;
+      }, 0);
+
       const totalProfit = totalIncome - totalExpense;
 
       const { month, year } = getCurrentMonth();
@@ -99,48 +144,35 @@ export default function Profile() {
       });
 
       const monthlyIncome = monthlyStudents.reduce(
-        (sum, s) => sum + (s.monthly_fee || 0),
+        (sum, s) => sum + (Number(s.monthly_fee) || 0),
         0,
       );
+
       const monthlyExpense = monthlyStudents.reduce((sum, s) => {
         const fee = Number(s.monthly_fee) || 0;
         const percent = Number(s.teacher_percent) || 0;
         return sum + (fee * percent) / 100;
       }, 0);
+
       const monthlyProfit = monthlyIncome - monthlyExpense;
 
-      const branchStats =
-        branches?.map((branch) => {
-          const branchStudents = students.filter(
-            (s) => s.branch_id === branch.id,
-          );
-          const branchTeachers = teachers.filter(
-            (t) => t.branch_id === branch.id,
-          );
-          const branchIncome = branchStudents
-            .filter((s) => s.paid)
-            .reduce((sum, s) => sum + (s.monthly_fee || 0), 0);
-          return {
-            ...branch,
-            students: branchStudents.length,
-            teachers: branchTeachers.length,
-            income: branchIncome,
-          };
-        }) || [];
-
       const recentPayments = students
-        .filter((s) => s.paid)
-        .sort((a, b) => new Date(b.payment_date) - new Date(a.payment_date))
+        .filter((s) => s.paid && s.payment_date)
+        .sort(
+          (a, b) => new Date(b.payment_date) - new Date(a.payment_date),
+        )
         .slice(0, 5);
 
       setProfileData({
         centerName: user.user_metadata?.centerName || "Education ERP",
         email: user.email || "",
         totalStudents: students.length,
+        archivedStudents: archivedRes.count || 0,
         totalTeachers: teachers.length,
-        totalCourses: coursesRes.data?.length || 0,
-        totalGroups: groupsRes.data?.length || 0,
-        totalBranches: branches?.length || 0,
+        totalCourses: coursesRes.count || 0,
+        totalGroups: groupsRes.count || 0,
+        totalLeads: leadsRes.count || 0,
+        leadsToday: leadsTodayRes.count || 0,
         totalIncome,
         totalExpense,
         totalProfit,
@@ -149,7 +181,6 @@ export default function Profile() {
         monthlyProfit,
         paidStudents: paidStudents.length,
         unpaidStudents: unpaidStudents.length,
-        branches: branchStats,
         recentPayments,
       });
     } catch (err) {
@@ -157,7 +188,7 @@ export default function Profile() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [branchId]);
 
   useEffect(() => {
     fetchProfileData();
@@ -166,6 +197,14 @@ export default function Profile() {
   const profitStatus = useMemo(() => {
     return profileData.totalProfit >= 0 ? "profit" : "loss";
   }, [profileData.totalProfit]);
+
+  if (!branchId) {
+    return (
+      <div className="erp-profile-page">
+        <div className="no-data-msg">Please select a branch to view profile.</div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -190,20 +229,24 @@ export default function Profile() {
 
   return (
     <div className="erp-profile-page">
+      {/* Top */}
       <div className="erp-profile-top">
         <div className="profile-main-left">
-          <div className="erp-avatar">{profileData.centerName?.charAt(0)}</div>
+          <div className="erp-avatar">
+            {activeBranch?.name?.charAt(0) ||
+              profileData.centerName?.charAt(0)}
+          </div>
           <div className="profile-header-info">
-            <h1>{profileData.centerName}</h1>
-            <p className="subheading">Advanced Financial ERP Dashboard</p>
+            <h1>{activeBranch?.name || profileData.centerName}</h1>
+            <p className="subheading">{profileData.centerName} • Branch Profile</p>
             <div className="erp-contact-row">
               <div className="contact-pill">
                 <FiMail />
                 <span>{profileData.email}</span>
               </div>
               <div className="contact-pill">
-                <FiMapPin />
-                <span>Tashkent, Uzbekistan</span>
+                <FiHome />
+                <span>{activeBranch?.name}</span>
               </div>
             </div>
           </div>
@@ -215,11 +258,12 @@ export default function Profile() {
           </div>
           <div className="profit-value-stack">
             <h2>{formatMoney(profileData.totalProfit)} UZS</h2>
-            <p>Net Total Profit</p>
+            <p>Net Branch Profit</p>
           </div>
         </div>
       </div>
 
+      {/* Main stats */}
       <div className="erp-global-grid">
         <div className="erp-stat-box">
           <div className="stat-icon-box">
@@ -227,36 +271,60 @@ export default function Profile() {
           </div>
           <div className="stat-meta">
             <h2>{profileData.totalStudents}</h2>
-            <p>Total Students</p>
+            <p>Active Students</p>
           </div>
         </div>
+
+        <div className="erp-stat-box">
+          <div className="stat-icon-box">
+            <FiArchive />
+          </div>
+          <div className="stat-meta">
+            <h2>{profileData.archivedStudents}</h2>
+            <p>Archived</p>
+          </div>
+        </div>
+
         <div className="erp-stat-box">
           <div className="stat-icon-box">
             <FiAward />
           </div>
           <div className="stat-meta">
             <h2>{profileData.totalTeachers}</h2>
-            <p>Total Teachers</p>
+            <p>Teachers</p>
           </div>
         </div>
+
         <div className="erp-stat-box">
           <div className="stat-icon-box">
             <FiBookOpen />
           </div>
           <div className="stat-meta">
             <h2>{profileData.totalCourses}</h2>
-            <p>Total Courses</p>
+            <p>Courses</p>
           </div>
         </div>
+
         <div className="erp-stat-box">
           <div className="stat-icon-box">
             <FiLayers />
           </div>
           <div className="stat-meta">
             <h2>{profileData.totalGroups}</h2>
-            <p>Total Groups</p>
+            <p>Groups</p>
           </div>
         </div>
+
+        <div className="erp-stat-box">
+          <div className="stat-icon-box">
+            <FiTarget />
+          </div>
+          <div className="stat-meta">
+            <h2>{profileData.totalLeads}</h2>
+            <p>Total Leads</p>
+          </div>
+        </div>
+
         <div className="erp-stat-box income">
           <div className="stat-icon-box">
             <FiTrendingUp />
@@ -266,6 +334,7 @@ export default function Profile() {
             <p>Total Income</p>
           </div>
         </div>
+
         <div className="erp-stat-box expense">
           <div className="stat-icon-box">
             <FiTrendingDown />
@@ -277,9 +346,11 @@ export default function Profile() {
         </div>
       </div>
 
+      {/* Monthly */}
       <div className="section-block-title">
-        <FiPieChart /> <h2>Monthly Analytics (Current Period)</h2>
+        <FiPieChart /> <h2>Monthly Analytics (This Branch)</h2>
       </div>
+
       <div className="analytics-grid">
         <div className="analytics-card">
           <div className="analytics-top">
@@ -291,6 +362,7 @@ export default function Profile() {
             <span className="currency">UZS</span>
           </h2>
         </div>
+
         <div className="analytics-card expense-variant">
           <div className="analytics-top">
             <FiCreditCard />
@@ -301,6 +373,7 @@ export default function Profile() {
             <span className="currency">UZS</span>
           </h2>
         </div>
+
         <div className="analytics-card success-variant">
           <div className="analytics-top">
             <FiTarget />
@@ -311,8 +384,20 @@ export default function Profile() {
             <span className="currency">UZS</span>
           </h2>
         </div>
+
+        <div className="analytics-card">
+          <div className="analytics-top">
+            <FiTarget />
+            <span>Today's Leads</span>
+          </div>
+          <h2>
+            {profileData.leadsToday}{" "}
+            <span className="currency">leads</span>
+          </h2>
+        </div>
       </div>
 
+      {/* Paid / Unpaid */}
       <div className="payment-status-grid">
         <div className="payment-box paid">
           <div className="p-icon">
@@ -334,56 +419,23 @@ export default function Profile() {
         </div>
       </div>
 
-      <div className="erp-section-box">
-        <div className="section-title">
-          <div className="title-left">
-            <FiHome />
-            <h2>Branch Financial Overview</h2>
-          </div>
-        </div>
-        {profileData.branches.length === 0 ? (
-          <p className="no-data-msg">No branches available for this account.</p>
-        ) : (
-          <div className="branches-grid">
-            {profileData.branches.map((branch) => (
-              <div key={branch.id} className="branch-card">
-                <div className="branch-top">
-                  <h3>{branch.name}</h3>
-                  <span className="active-badge">Active</span>
-                </div>
-                <div className="branch-info-stack">
-                  <div className="branch-stat-line">
-                    <FiUsers />
-                    <span>{branch.students} Students</span>
-                  </div>
-                  <div className="branch-stat-line">
-                    <FiAward />
-                    <span>{branch.teachers} Teachers</span>
-                  </div>
-                  <div className="branch-stat-line income-text">
-                    <FiDollarSign />
-                    <strong>{formatMoney(branch.income)} UZS</strong>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
+      {/* Recent payments */}
       <div className="erp-section-box">
         <div className="section-title">
           <div className="title-left">
             <FiActivity />
-            <h2>Recent Payments</h2>
+            <h2>Recent Payments — {activeBranch?.name}</h2>
           </div>
         </div>
+
         {profileData.recentPayments.length === 0 ? (
-          <p className="no-data-msg">No recent successful payments found.</p>
+          <p className="no-data-msg">
+            No recent successful payments found for this branch.
+          </p>
         ) : (
           <div className="recent-payments-list">
-            {profileData.recentPayments.map((student, idx) => (
-              <div key={idx} className="payment-row">
+            {profileData.recentPayments.map((student) => (
+              <div key={student.id} className="payment-row">
                 <div className="payment-user">
                   <div className="mini-avatar">
                     {student.first_name?.charAt(0) || "S"}

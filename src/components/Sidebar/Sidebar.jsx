@@ -11,6 +11,8 @@ import {
   CalendarCheck,
   User,
   LogOut,
+  Target,
+  Archive, // ← yangi
 } from "lucide-react";
 
 import { supabase } from "../../services/supabaseClient";
@@ -28,10 +30,12 @@ function Sidebar({ collapsed, mobileOpen, activeBranch, setMobileOpen }) {
     () => [
       { label: "Dashboard", icon: LayoutDashboard, path: "" },
       { label: "Students", icon: Users, path: "students" },
+      { label: "Archive", icon: Archive, path: "archive" }, // ← yangi
       { label: "Teachers", icon: UserCog, path: "teachers" },
       { label: "Courses", icon: BookOpen, path: "courses" },
       { label: "Groups", icon: Layers, path: "groups" },
       { label: "Add Students", icon: UserPlus, path: "addstudents" },
+      { label: "Leads", icon: Target, path: "leads" },
       { label: "Payments", icon: Wallet, path: "payments" },
       { label: "Attendance", icon: CalendarCheck, path: "attendance" },
       { label: "Profile", icon: User, path: "profile" },

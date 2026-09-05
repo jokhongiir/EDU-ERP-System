@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { createPortal } from "react-dom";
 import { supabase } from "../../services/supabaseClient";
 import "./Students.css";
 
@@ -8,11 +9,11 @@ import {
   FiTrash2,
   FiSearch,
   FiX,
-  FiCheckCircle,
   FiSave,
   FiUser,
   FiCalendar,
-  FiFilter,
+  FiArchive,
+  FiAlertTriangle,
 } from "react-icons/fi";
 
 export default function Students({ activeBranch }) {
@@ -34,6 +35,11 @@ export default function Students({ activeBranch }) {
   const [editData, setEditData] = useState(null);
 
   const [saving, setSaving] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  // Confirm modal state
+  const [confirmModal, setConfirmModal] = useState(null);
+  // { type: "archive" | "delete", id, name }
 
   const [filterCourse, setFilterCourse] = useState("");
   const [filterTeacher, setFilterTeacher] = useState("");
@@ -44,42 +50,27 @@ export default function Students({ activeBranch }) {
   const formatCurrency = (value = 0) =>
     new Intl.NumberFormat("en-US").format(value) + " UZS";
 
-  // Faqat raqamlarni olish
   const getDigits = (value) => {
     if (!value) return "";
     let digits = value.replace(/\D/g, "");
-    // 998 bilan boshlansa olib tashlaymiz
     if (digits.startsWith("998")) {
       digits = digits.slice(3);
     }
-    return digits.slice(0, 9); // maksimal 9 ta raqam
+    return digits.slice(0, 9);
   };
 
-  // +998 (90) 825-75-03 formatiga keltirish
   const formatPhone = (value) => {
     const digits = getDigits(value);
-
     if (!digits) return "+998 ";
 
     let result = "+998";
-
-    if (digits.length > 0) {
-      result += ` (${digits.slice(0, 2)}`;
-    }
-    if (digits.length >= 2) {
-      result += `) ${digits.slice(2, 5)}`;
-    }
-    if (digits.length >= 5) {
-      result += `-${digits.slice(5, 7)}`;
-    }
-    if (digits.length >= 7) {
-      result += `-${digits.slice(7, 9)}`;
-    }
-
+    if (digits.length > 0) result += ` (${digits.slice(0, 2)}`;
+    if (digits.length >= 2) result += `) ${digits.slice(2, 5)}`;
+    if (digits.length >= 5) result += `-${digits.slice(5, 7)}`;
+    if (digits.length >= 7) result += `-${digits.slice(7, 9)}`;
     return result;
   };
 
-  // Bazaga saqlash uchun toza format
   const cleanPhone = (value) => {
     const digits = getDigits(value);
     if (digits.length < 9) return null;
@@ -96,6 +87,7 @@ export default function Students({ activeBranch }) {
           .from("students")
           .select("*, courses(name), teachers(name), groups(name)")
           .eq("branch_id", branchId)
+          .eq("is_archived", false)
           .order("created_at", { ascending: false }),
 
         supabase.from("courses").select("*").eq("branch_id", branchId),
@@ -119,22 +111,61 @@ export default function Students({ activeBranch }) {
   }, [fetchData]);
 
   useEffect(() => {
-    document.body.style.overflow = viewOpen || editOpen ? "hidden" : "unset";
+    const anyOpen = viewOpen || editOpen || confirmModal;
+    document.body.style.overflow = anyOpen ? "hidden" : "unset";
     return () => {
       document.body.style.overflow = "unset";
     };
-  }, [viewOpen, editOpen]);
+  }, [viewOpen, editOpen, confirmModal]);
 
-  const handleDelete = async (id) => {
-    if (!confirm("Are you sure you want to delete this student profile?"))
-      return;
+  // ========== Confirm actions ==========
+  const openArchiveConfirm = (student) => {
+    setConfirmModal({
+      type: "archive",
+      id: student.id,
+      name: `${student.first_name} ${student.last_name}`,
+    });
+  };
+
+  const openDeleteConfirm = (student) => {
+    setConfirmModal({
+      type: "delete",
+      id: student.id,
+      name: `${student.first_name} ${student.last_name}`,
+    });
+  };
+
+  const handleConfirmAction = async () => {
+    if (!confirmModal) return;
+    setActionLoading(true);
 
     try {
-      const { error } = await supabase.from("students").delete().eq("id", id);
-      if (error) throw error;
-      setStudents((prev) => prev.filter((s) => s.id !== id));
+      if (confirmModal.type === "archive") {
+        const { error } = await supabase
+          .from("students")
+          .update({ is_archived: true })
+          .eq("id", confirmModal.id);
+        if (error) throw error;
+        setStudents((prev) => prev.filter((s) => s.id !== confirmModal.id));
+      }
+
+      if (confirmModal.type === "delete") {
+        const { error } = await supabase
+          .from("students")
+          .delete()
+          .eq("id", confirmModal.id);
+        if (error) throw error;
+        setStudents((prev) => prev.filter((s) => s.id !== confirmModal.id));
+      }
+
+      setConfirmModal(null);
     } catch (err) {
-      alert("Delete failed: " + err.message);
+      setConfirmModal({
+        type: "error",
+        message: err.message || "Something went wrong",
+      });
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -180,7 +211,6 @@ export default function Students({ activeBranch }) {
               : value,
       };
 
-      // Telefon maydonlari
       if (name === "phone" || name === "parent_phone") {
         updated[name] = formatPhone(value);
       }
@@ -190,7 +220,6 @@ export default function Students({ activeBranch }) {
           const today = getTodayStr();
           const d = new Date();
           d.setMonth(d.getMonth() + 1);
-
           updated.payment_date = today;
           updated.next_payment_date = d.toISOString().slice(0, 10);
         } else {
@@ -203,28 +232,19 @@ export default function Students({ activeBranch }) {
     });
   };
 
-  // Backspace uchun maxsus ishlov (belgilarni ham o'chirish)
   const handlePhoneKeyDown = (e) => {
     if (e.key !== "Backspace") return;
 
     const input = e.target;
     const { name, value, selectionStart } = input;
-
-    // Agar kursor belgi ustida turgan bo'lsa ( ), -, bo'sh joy
     const charBefore = value[selectionStart - 1];
 
     if (["(", ")", "-", " "].includes(charBefore)) {
       e.preventDefault();
-
-      // Oxirgi raqamni o'chiramiz
       const digits = getDigits(value);
       const newDigits = digits.slice(0, -1);
       const formatted = formatPhone(newDigits);
-
-      setEditData((prev) => ({
-        ...prev,
-        [name]: formatted,
-      }));
+      setEditData((prev) => ({ ...prev, [name]: formatted }));
     }
   };
 
@@ -259,7 +279,10 @@ export default function Students({ activeBranch }) {
       await fetchData();
       setEditOpen(false);
     } catch (err) {
-      alert(err.message);
+      setConfirmModal({
+        type: "error",
+        message: err.message || "Failed to save changes",
+      });
     } finally {
       setSaving(false);
     }
@@ -280,6 +303,96 @@ export default function Students({ activeBranch }) {
       return fullName && courseMatch && teacherMatch && groupMatch;
     });
   }, [students, search, filterCourse, filterTeacher, filterGroup]);
+
+  // ========== Confirm Modal ==========
+  const renderConfirmModal = () => {
+    if (!confirmModal) return null;
+
+    const isError = confirmModal.type === "error";
+    const isArchive = confirmModal.type === "archive";
+    const isDelete = confirmModal.type === "delete";
+
+    return createPortal(
+      <div
+        className="modal"
+        onClick={() => !actionLoading && setConfirmModal(null)}
+      >
+        <div
+          className="modal__box confirm-modal-box"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div
+            className={`confirm-icon-wrap ${
+              isError ? "error" : isDelete ? "danger" : "warning"
+            }`}
+          >
+            <FiAlertTriangle />
+          </div>
+
+          <h3>
+            {isError
+              ? "Error"
+              : isArchive
+                ? "Archive Student"
+                : "Delete Student"}
+          </h3>
+
+          <p>
+            {isError ? (
+              confirmModal.message
+            ) : isArchive ? (
+              <>
+                Are you sure you want to archive{" "}
+                <strong>{confirmModal.name}</strong>? They will be moved to
+                Archive and can be restored later.
+              </>
+            ) : (
+              <>
+                Are you sure you want to permanently delete{" "}
+                <strong>{confirmModal.name}</strong>? This action cannot be
+                undone.
+              </>
+            )}
+          </p>
+
+          <div className="confirm-btns">
+            {isError ? (
+              <button
+                className="confirm-btn primary"
+                onClick={() => setConfirmModal(null)}
+              >
+                OK
+              </button>
+            ) : (
+              <>
+                <button
+                  className="confirm-btn cancel"
+                  onClick={() => setConfirmModal(null)}
+                  disabled={actionLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  className={`confirm-btn ${isDelete ? "danger" : "warning"}`}
+                  onClick={handleConfirmAction}
+                  disabled={actionLoading}
+                >
+                  {actionLoading
+                    ? isArchive
+                      ? "Archiving..."
+                      : "Deleting..."
+                    : isArchive
+                      ? "Archive"
+                      : "Delete"}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>,
+      document.body,
+    );
+  };
 
   return (
     <div className="students">
@@ -317,9 +430,7 @@ export default function Students({ activeBranch }) {
               value={filterCourse}
               onChange={(e) => setFilterCourse(e.target.value)}
             >
-              <option hidden value="">
-                All Courses
-              </option>
+              <option value="">All Courses</option>
               {courses.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
@@ -332,9 +443,7 @@ export default function Students({ activeBranch }) {
               value={filterTeacher}
               onChange={(e) => setFilterTeacher(e.target.value)}
             >
-              <option hidden value="">
-                All Teachers
-              </option>
+              <option value="">All Teachers</option>
               {teachers.map((t) => (
                 <option key={t.id} value={t.id}>
                   {t.name}
@@ -347,9 +456,7 @@ export default function Students({ activeBranch }) {
               value={filterGroup}
               onChange={(e) => setFilterGroup(e.target.value)}
             >
-              <option hidden value="">
-                All Groups
-              </option>
+              <option value="">All Groups</option>
               {groups.map((g) => (
                 <option key={g.id} value={g.id}>
                   {g.name}
@@ -410,6 +517,7 @@ export default function Students({ activeBranch }) {
                     <div className="student-actions-loading">
                       <div className="skeleton skeleton-btn"></div>
                       <div className="skeleton skeleton-btn"></div>
+                      <div className="skeleton skeleton-btn"></div>
                     </div>
                   </td>
                 </tr>
@@ -455,14 +563,21 @@ export default function Students({ activeBranch }) {
                       <button
                         className="row-btn edit"
                         onClick={() => openEdit(s)}
-                        title="Edit Configuration"
+                        title="Edit"
                       >
                         <FiEdit />
                       </button>
                       <button
+                        className="row-btn archive"
+                        onClick={() => openArchiveConfirm(s)}
+                        title="Archive Student"
+                      >
+                        <FiArchive />
+                      </button>
+                      <button
                         className="row-btn delete"
-                        onClick={() => handleDelete(s.id)}
-                        title="Delete Profile"
+                        onClick={() => openDeleteConfirm(s)}
+                        title="Delete Permanently"
                       >
                         <FiTrash2 />
                       </button>
@@ -607,7 +722,6 @@ export default function Students({ activeBranch }) {
                 />
               </div>
 
-              {/* PHONE */}
               <div className="form__group">
                 <label>Phone Connection</label>
                 <input
@@ -620,7 +734,6 @@ export default function Students({ activeBranch }) {
                 />
               </div>
 
-              {/* PARENT PHONE */}
               <div className="form__group">
                 <label>Parent Emergency Contact</label>
                 <input
@@ -640,9 +753,7 @@ export default function Students({ activeBranch }) {
                   value={editData.course_id || ""}
                   onChange={handleChange}
                 >
-                  <option hidden value="">
-                    Select program...
-                  </option>
+                  <option value="">Select program...</option>
                   {courses.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
@@ -658,9 +769,7 @@ export default function Students({ activeBranch }) {
                   value={editData.teacher_id || ""}
                   onChange={handleChange}
                 >
-                  <option hidden value="">
-                    Select teacher...
-                  </option>
+                  <option value="">Select teacher...</option>
                   {teachers.map((t) => (
                     <option key={t.id} value={t.id}>
                       {t.name}
@@ -676,9 +785,7 @@ export default function Students({ activeBranch }) {
                   value={editData.group_id || ""}
                   onChange={handleChange}
                 >
-                  <option hidden value="">
-                    Select group...
-                  </option>
+                  <option value="">Select group...</option>
                   {groups.map((g) => (
                     <option key={g.id} value={g.id}>
                       {g.name}
@@ -747,6 +854,8 @@ export default function Students({ activeBranch }) {
           </div>
         </div>
       )}
+
+      {renderConfirmModal()}
     </div>
   );
 }
