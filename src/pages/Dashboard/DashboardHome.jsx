@@ -64,14 +64,14 @@ export default function DashboardHome({ activeBranch }) {
         coursesRes,
         groupsRes,
       ] = await Promise.all([
-        // Umumiy talabalar (arxivsiz)
+        // Total active students
         supabase
           .from("students")
           .select("*", { count: "exact", head: true })
           .eq("branch_id", branchId)
           .eq("is_archived", false),
 
-        // Pullik talabalar
+        // Paid students
         supabase
           .from("students")
           .select("*", { count: "exact", head: true })
@@ -79,7 +79,7 @@ export default function DashboardHome({ activeBranch }) {
           .eq("is_archived", false)
           .eq("is_free", false),
 
-        // Free talabalar
+        // Free students
         supabase
           .from("students")
           .select("*", { count: "exact", head: true })
@@ -87,35 +87,35 @@ export default function DashboardHome({ activeBranch }) {
           .eq("is_archived", false)
           .eq("is_free", true),
 
-        // Arxivlanganlar
+        // Archived students
         supabase
           .from("students")
           .select("*", { count: "exact", head: true })
           .eq("branch_id", branchId)
           .eq("is_archived", true),
 
-        // O'qituvchilar
+        // Teachers
         supabase
           .from("teachers")
           .select("*", { count: "exact" })
           .eq("branch_id", branchId)
           .order("created_at", { ascending: false }),
 
-        // Kurslar
+        // Courses
         supabase
           .from("courses")
           .select("*", { count: "exact" })
           .eq("branch_id", branchId)
           .order("created_at", { ascending: false }),
 
-        // Guruhlar
+        // Groups
         supabase
           .from("groups")
           .select("*", { count: "exact", head: true })
           .eq("branch_id", branchId),
       ]);
 
-      // Chart uchun to'liq student + course ma'lumotlari
+      // Fetch students for chart data
       const { data: studentsData } = await supabase
         .from("students")
         .select("id, course_id, is_free")
@@ -168,7 +168,7 @@ export default function DashboardHome({ activeBranch }) {
     await fetchDashboardData();
   };
 
-  // Asosiy kartochkalar
+  // Primary stat cards
   const mainCards = useMemo(
     () => [
       {
@@ -183,27 +183,27 @@ export default function DashboardHome({ activeBranch }) {
         value: dashboardData.paidStudents,
         icon: <FiDollarSign />,
         color: "#10b981",
-        subtitle: "Pullik o'quvchilar",
+        subtitle: "Paying students",
       },
       {
         title: "Free Students",
         value: dashboardData.freeStudents,
         icon: <FiGift />,
         color: "#8b5cf6",
-        subtitle: "Tekin / Trial o'quvchilar",
+        subtitle: "Free / Trial students",
       },
       {
         title: "Active Teachers",
         value: dashboardData.teachers,
         icon: <FiUserCheck />,
         color: "#f59e0b",
-        subtitle: "O'qituvchilar",
+        subtitle: "Teaching staff",
       },
     ],
     [dashboardData],
   );
 
-  // Ikkinchi qator kartochkalar
+  // Secondary stat cards
   const secondaryCards = useMemo(
     () => [
       {
@@ -228,7 +228,7 @@ export default function DashboardHome({ activeBranch }) {
     [dashboardData],
   );
 
-  // Pie chart ma'lumoti (Paid vs Free)
+  // Pie chart data (Paid vs Free)
   const pieData = useMemo(() => {
     const paid = dashboardData.paidStudents;
     const free = dashboardData.freeStudents;
@@ -275,7 +275,7 @@ export default function DashboardHome({ activeBranch }) {
         </button>
       </div>
 
-      {/* Asosiy 4 ta karta */}
+      {/* Primary Stats */}
       <div className="dashboard-stats-grid">
         {mainCards.map((card, i) => (
           <div
@@ -312,7 +312,7 @@ export default function DashboardHome({ activeBranch }) {
         ))}
       </div>
 
-      {/* Ikkinchi qator (Courses, Groups, Archived) */}
+      {/* Secondary Stats */}
       <div className="dashboard-secondary-grid">
         {secondaryCards.map((card, i) => (
           <div key={i} className="dashboard-secondary-card">
@@ -334,7 +334,7 @@ export default function DashboardHome({ activeBranch }) {
         ))}
       </div>
 
-      {/* Chart + Pie */}
+      {/* Charts Row */}
       <div className="dashboard-charts-row">
         {/* Area Chart */}
         <div className="dashboard-chart-card">
@@ -441,7 +441,7 @@ export default function DashboardHome({ activeBranch }) {
             {loading ? (
               <div className="shimmer sk-pie"></div>
             ) : pieData.length === 0 ? (
-              <div className="dashboard-empty-text-mid">No data</div>
+              <div className="dashboard-empty-text-mid">No data available</div>
             ) : (
               <>
                 <ResponsiveContainer width="100%" height={220}>
