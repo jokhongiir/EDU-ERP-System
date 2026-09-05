@@ -122,7 +122,7 @@ export default function AddStudents({
     if (callback) callback();
   };
 
-  // URL orqali ?type=free kelganda avtomatik Free qilish
+  // Auto-set Free mode when URL has ?type=free
   useEffect(() => {
     if (searchParams.get("type") === "free" && !editStudent) {
       setForm((prev) => ({
@@ -230,7 +230,7 @@ export default function AddStudents({
       if (name === "monthly_fee") val = formatMoney(value);
       if (name === "teacher_percent") val = formatPercent(value);
 
-      // Ism va Familiyani darhol UPPERCASE qilish
+      // Force uppercase for first and last name
       if (name === "first_name" || name === "last_name") {
         val = value.toUpperCase();
       }
@@ -238,7 +238,7 @@ export default function AddStudents({
       setForm((prev) => {
         const next = { ...prev, [name]: val };
 
-        // Student Type o'zgarganda
+        // Handle Student Type change
         if (name === "is_free") {
           const isFree = value === "true" || value === true;
           next.is_free = isFree;
@@ -249,7 +249,7 @@ export default function AddStudents({
             next.payment_date = getTodayStr();
             next.next_payment_date = "";
           } else {
-            // Paid ga o'tganda kurs narxini qayta yuklash
+            // When switching to Paid, restore course price if available
             const selectedCourse = dbData.courses.find(
               (c) => String(c.id) === String(prev.course_id),
             );
@@ -304,7 +304,7 @@ export default function AddStudents({
     const cleanLastName = form.last_name?.trim();
 
     if (!cleanFirstName || !cleanLastName) {
-      return showAlert("error", "Iltimos, Ism va Familiyani to'liq kiriting!");
+      return showAlert("error", "Please enter both First Name and Last Name.");
     }
 
     setLoading(true);
@@ -341,28 +341,27 @@ export default function AddStudents({
 
       const successMessage = form.is_free
         ? isEdit
-          ? "Free talaba ma'lumotlari yangilandi!"
-          : "Yangi Free talaba muvaffaqiyatli qo'shildi!"
+          ? "Free student record updated successfully!"
+          : "New free student enrolled successfully!"
         : isEdit
-          ? "Talaba ma'lumotlari yangilandi!"
-          : "Yangi talaba muvaffaqiyatli qo'shildi!";
+          ? "Student record updated successfully!"
+          : "New student enrolled successfully!";
 
       showAlert("success", successMessage, () => {
         if (onFinish) {
           onFinish();
         } else {
-          // Free bo'lsa FreeStudents sahifasiga, aks holda Students ga
           const target = form.is_free ? "freestudents" : "students";
           navigate(`/dashboard/${branchId}/${target}`);
         }
       });
     } catch (err) {
-      console.error("Xatolik yuz berdi:", err);
+      console.error("Submission error:", err);
 
-      let errorMessage = "Tizimda xatolik yuz berdi, qayta urinib ko'ring.";
+      let errorMessage = "Something went wrong. Please try again.";
 
       if (err.code === "23505") {
-        errorMessage = "Bu telefon raqami allaqachon ro'yxatdan o'tgan.";
+        errorMessage = "This phone number is already registered.";
       } else if (err.message) {
         errorMessage = err.message;
       }
@@ -455,7 +454,7 @@ export default function AddStudents({
               />
             </Field>
 
-            {/* ★ STUDENT TYPE SELECT */}
+            {/* Student Type Select */}
             <Field label="Student Type *">
               <div className="input-group-container">
                 <FiGift />
@@ -465,8 +464,8 @@ export default function AddStudents({
                   onChange={handleChange}
                   className="type-select"
                 >
-                  <option value="false">Paid (Pullik)</option>
-                  <option value="true">Free (Bepul)</option>
+                  <option value="false">Paid</option>
+                  <option value="true">Free</option>
                 </select>
               </div>
             </Field>
@@ -516,7 +515,7 @@ export default function AddStudents({
                   !form.course_id
                     ? "Choose a course first"
                     : filteredGroups.length === 0
-                      ? "No groups setup for this filter"
+                      ? "No groups available for this filter"
                       : "Select group class"
                 }
               />
@@ -632,8 +631,8 @@ export default function AddStudents({
               }}
             >
               <FiGift size={18} />
-              Bu talaba <strong>Free</strong> sifatida saqlanadi. To‘lov
-              talab qilinmaydi.
+              This student will be saved as <strong>Free</strong>. No payment is
+              required.
             </div>
           )}
         </div>
