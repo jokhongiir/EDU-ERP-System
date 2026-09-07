@@ -10,7 +10,6 @@ body {
   font-family: "Inter", sans-serif;
 }
 
-/* ===== Wrapper ===== */
 .authWrapper {
   min-height: 100vh;
   width: 100%;
@@ -65,7 +64,6 @@ body {
   50% { transform: translate(-60px, 40px); }
 }
 
-/* ===== Card ===== */
 .authCard {
   width: 100%;
   max-width: 1180px;
@@ -84,7 +82,7 @@ body {
   z-index: 5;
 }
 
-/* ===== Left Side ===== */
+
 .authLeft {
   flex: 1;
   background: linear-gradient(145deg, #376fff, #1d4ed8);
@@ -204,7 +202,6 @@ body {
   font-weight: 600;
 }
 
-/* ===== Right Side ===== */
 .authRight {
   flex: 1;
   background: rgba(255, 255, 255, 0.96);
@@ -363,7 +360,6 @@ body {
   font-size: 13px;
 }
 
-/* ===== Session Loader ===== */
 .authSessionLoader {
   display: flex;
   flex-direction: column;
@@ -382,7 +378,6 @@ body {
   border-top-color: white;
 }
 
-/* ===== Responsive ===== */
 @media (max-width: 992px) {
   .authCard {
     max-width: 650px;

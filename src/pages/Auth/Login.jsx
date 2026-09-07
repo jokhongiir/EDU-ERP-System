@@ -24,7 +24,6 @@ export default function Login() {
   const [showBranchModal, setShowBranchModal] = useState(false);
   const [userId, setUserId] = useState(null);
 
-  // Sahifa ochilganda sessiya tekshiriladi
   useEffect(() => {
     const checkSession = async () => {
       try {
@@ -98,7 +97,6 @@ export default function Login() {
     }
   };
 
-  // Sessiya tekshirilayotgan paytda loader
   if (checkingSession) {
     return (
       <div className="authWrapper">
@@ -121,7 +119,6 @@ export default function Login() {
       />
 
       <div className="authCard">
-        {/* Chap taraf — branding */}
         <div className="authLeft">
           <div className="authLeftContent">
             <img src={logo2} alt="Education ERP" className="authImage" />
@@ -153,7 +150,6 @@ export default function Login() {
           </div>
         </div>
 
-        {/* O‘ng taraf — forma */}
         <div className="authRight">
           <div className="authHeader">
             <h2 className="authTitle">Welcome Back</h2>
