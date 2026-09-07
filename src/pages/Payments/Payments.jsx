@@ -41,6 +41,7 @@ export default function Payments({ activeBranch }) {
           .from("students")
           .select(`*, courses(name), teachers(name), groups(name)`)
           .eq("branch_id", branchId)
+          .eq("is_free", false) // faqat pullik studentlar
           .order("created_at", { ascending: false });
 
         if (error) throw error;
@@ -253,9 +254,9 @@ export default function Payments({ activeBranch }) {
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
           >
-            <option hidden value="all">All Students</option>
+            <option value="all">All Students</option>
             <option value="paid">Paid Only</option>
-            <option value="unpaid">Unpaid/Due</option>
+            <option value="unpaid">Unpaid / Due</option>
           </select>
         </div>
       </div>
@@ -280,63 +281,71 @@ export default function Payments({ activeBranch }) {
               </tr>
             </thead>
             <tbody>
-              {processedStudents.map((s) => (
-                <tr key={s.id} className={!s.paid ? "row-unpaid" : ""}>
-                  <td>
-                    <div className="user-cell">
-                      <div className="avatar">
-                        {s.first_name?.[0] || ""}
-                        {s.last_name?.[0] || ""}
-                      </div>
-                      <div>
-                        <div className="full-name">
-                          {s.first_name} {s.last_name}
-                        </div>
-                        <div className="sub-text">
-                          {s.groups?.name || "No Group"}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="course-tag">
-                      {s.courses?.name || "N/A"}
-                    </span>
-                  </td>
-                  <td className="fee-cell">{formatCurrency(s.monthly_fee)}</td>
-                  <td>
-                    <span
-                      className={`badge ${s.paid ? "bg-success" : "bg-danger"}`}
-                    >
-                      {s.paid ? "COLLECTED" : "OVERDUE"}
-                    </span>
-                  </td>
-                  <td>
-                    <div className={`due-date ${!s.paid ? "text-danger" : ""}`}>
-                      <FiCalendar /> {s.next_payment_date || "Set Date"}
-                    </div>
-                  </td>
-                  <td align="right">
-                    <div className="action-btns">
-                      <button
-                        className="icon-btn edit"
-                        onClick={() => {
-                          setEditData(s);
-                          setEditOpen(true);
-                        }}
-                      >
-                        <FiEdit2 />
-                      </button>
-                      <button
-                        className={`action-pill ${s.paid ? "is-paid" : "is-unpaid"}`}
-                        onClick={() => togglePayment(s)}
-                      >
-                        <FiCreditCard /> {s.paid ? "Refund" : "Collect"}
-                      </button>
-                    </div>
+              {processedStudents.length === 0 ? (
+                <tr>
+                  <td colSpan="6" style={{ textAlign: "center", padding: "40px" }}>
+                    No students found
                   </td>
                 </tr>
-              ))}
+              ) : (
+                processedStudents.map((s) => (
+                  <tr key={s.id} className={!s.paid ? "row-unpaid" : ""}>
+                    <td>
+                      <div className="user-cell">
+                        <div className="avatar">
+                          {s.first_name?.[0] || ""}
+                          {s.last_name?.[0] || ""}
+                        </div>
+                        <div>
+                          <div className="full-name">
+                            {s.first_name} {s.last_name}
+                          </div>
+                          <div className="sub-text">
+                            {s.groups?.name || "No Group"}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span className="course-tag">
+                        {s.courses?.name || "N/A"}
+                      </span>
+                    </td>
+                    <td className="fee-cell">{formatCurrency(s.monthly_fee)}</td>
+                    <td>
+                      <span
+                        className={`badge ${s.paid ? "bg-success" : "bg-danger"}`}
+                      >
+                        {s.paid ? "COLLECTED" : "OVERDUE"}
+                      </span>
+                    </td>
+                    <td>
+                      <div className={`due-date ${!s.paid ? "text-danger" : ""}`}>
+                        <FiCalendar /> {s.next_payment_date || "Set Date"}
+                      </div>
+                    </td>
+                    <td align="right">
+                      <div className="action-btns">
+                        <button
+                          className="icon-btn edit"
+                          onClick={() => {
+                            setEditData(s);
+                            setEditOpen(true);
+                          }}
+                        >
+                          <FiEdit2 />
+                        </button>
+                        <button
+                          className={`action-pill ${s.paid ? "is-paid" : "is-unpaid"}`}
+                          onClick={() => togglePayment(s)}
+                        >
+                          <FiCreditCard /> {s.paid ? "Refund" : "Collect"}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         )}

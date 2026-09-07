@@ -21,6 +21,7 @@ import UpdatePassword from "../Auth/UpdatePassword";
 import Leads from "../Leads/Leads";
 import Archive from "../Archive/Archive";
 import { supabase } from "../../services/supabaseClient";
+import Store from "../Store/Store";
 
 export default function Dashboard({ centerName, setCenterName }) {
   const { id } = useParams();
@@ -134,6 +135,10 @@ export default function Dashboard({ centerName, setCenterName }) {
         <Route
           path="profile"
           element={<Profile activeBranch={activeBranch} />}
+        />
+        <Route
+          path="store"
+          element={<Store activeBranch={activeBranch} />}
         />
 
         <Route path="*" element={<div>Page not found</div>} />

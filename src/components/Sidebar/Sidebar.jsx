@@ -13,7 +13,8 @@ import {
   LogOut,
   Target,
   Archive,
-  Gift, // ← yangi icon
+  Gift,
+  ShoppingCart, // ← yangi icon (do‘kon uchun)
 } from "lucide-react";
 
 import { supabase } from "../../services/supabaseClient";
@@ -31,12 +32,13 @@ function Sidebar({ collapsed, mobileOpen, activeBranch, setMobileOpen }) {
     () => [
       { label: "Dashboard", icon: LayoutDashboard, path: "" },
       { label: "Students", icon: Users, path: "students" },
-      { label: "Free Students", icon: Gift, path: "freestudents" }, // ← YANGI
+      { label: "Free Students", icon: Gift, path: "freestudents" },
       { label: "Teachers", icon: UserCog, path: "teachers" },
       { label: "Courses", icon: BookOpen, path: "courses" },
       { label: "Groups", icon: Layers, path: "groups" },
       { label: "Attendance", icon: CalendarCheck, path: "attendance" },
       { label: "Payments", icon: Wallet, path: "payments" },
+      { label: "Store", icon: ShoppingCart, path: "store" }, // ← YANGI MODUL
       { label: "Add Students", icon: UserPlus, path: "addstudents" },
       { label: "Leads", icon: Target, path: "leads" },
       { label: "Archive", icon: Archive, path: "archive" },
