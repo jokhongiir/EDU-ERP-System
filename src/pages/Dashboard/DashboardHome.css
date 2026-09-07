@@ -519,7 +519,7 @@
   height: 10px;
   border-radius: 4px;
 }
-/* ========== Secondary Cards ========== */
+
 .dashboard-secondary-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -583,7 +583,6 @@
   margin-top: 6px;
 }
 
-/* ========== Charts Row ========== */
 .dashboard-charts-row {
   display: grid;
   grid-template-columns: 1.6fr 1fr;
