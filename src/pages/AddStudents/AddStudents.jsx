@@ -122,7 +122,6 @@ export default function AddStudents({
     if (callback) callback();
   };
 
-  // Auto-set Free mode when URL has ?type=free
   useEffect(() => {
     if (searchParams.get("type") === "free" && !editStudent) {
       setForm((prev) => ({
@@ -230,7 +229,6 @@ export default function AddStudents({
       if (name === "monthly_fee") val = formatMoney(value);
       if (name === "teacher_percent") val = formatPercent(value);
 
-      // Force uppercase for first and last name
       if (name === "first_name" || name === "last_name") {
         val = value.toUpperCase();
       }
@@ -238,7 +236,6 @@ export default function AddStudents({
       setForm((prev) => {
         const next = { ...prev, [name]: val };
 
-        // Handle Student Type change
         if (name === "is_free") {
           const isFree = value === "true" || value === true;
           next.is_free = isFree;
@@ -249,7 +246,6 @@ export default function AddStudents({
             next.payment_date = getTodayStr();
             next.next_payment_date = "";
           } else {
-            // When switching to Paid, restore course price if available
             const selectedCourse = dbData.courses.find(
               (c) => String(c.id) === String(prev.course_id),
             );
@@ -406,7 +402,6 @@ export default function AddStudents({
       )}
 
       <form onSubmit={handleSubmit} className="form">
-        {/* ========== PERSONAL INFORMATION ========== */}
         <div className="section">
           <h4>
             <FiUser /> Personal Information
@@ -454,7 +449,6 @@ export default function AddStudents({
               />
             </Field>
 
-            {/* Student Type Select */}
             <Field label="Student Type *">
               <div className="input-group-container">
                 <FiGift />
@@ -472,7 +466,6 @@ export default function AddStudents({
           </div>
         </div>
 
-        {/* ========== ACADEMIC ALLOCATION ========== */}
         <div className="section">
           <h4>
             <FiBookOpen /> Academic Allocation
@@ -531,7 +524,6 @@ export default function AddStudents({
           </div>
         </div>
 
-        {/* ========== FINANCIAL ========== */}
         <div className="section">
           <h4>
             <FiCreditCard /> Financial Ledger Configuration
@@ -637,7 +629,6 @@ export default function AddStudents({
           )}
         </div>
 
-        {/* ========== ACTIONS ========== */}
         <div className="actions">
           <button type="submit" className="submit-btn" disabled={loading}>
             <FiSave />
@@ -695,8 +686,6 @@ export default function AddStudents({
   );
 }
 
-/* ==================== HELPER COMPONENTS ==================== */
-
 const Field = ({ label, children }) => (
   <div className="field">
     <label>{label}</label>
@@ -721,7 +710,7 @@ const Select = ({
   <div className={`input-group-container ${disabled ? "disabled" : ""}`}>
     {icon}
     <select {...props} disabled={disabled}>
-      <option value="">{placeholder}</option>
+      <option hidden value="">{placeholder}</option>
       {options.map((o) => (
         <option key={o.id} value={o.id}>
           {o.name || o.group_name || o.title}
