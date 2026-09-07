@@ -14,7 +14,7 @@ import {
   Target,
   Archive,
   Gift,
-  ShoppingCart, // ← yangi icon (do‘kon uchun)
+  ShoppingCart,
 } from "lucide-react";
 
 import { supabase } from "../../services/supabaseClient";
@@ -38,7 +38,7 @@ function Sidebar({ collapsed, mobileOpen, activeBranch, setMobileOpen }) {
       { label: "Groups", icon: Layers, path: "groups" },
       { label: "Attendance", icon: CalendarCheck, path: "attendance" },
       { label: "Payments", icon: Wallet, path: "payments" },
-      { label: "Store", icon: ShoppingCart, path: "store" }, // ← YANGI MODUL
+      { label: "Store", icon: ShoppingCart, path: "store" },
       { label: "Add Students", icon: UserPlus, path: "addstudents" },
       { label: "Leads", icon: Target, path: "leads" },
       { label: "Archive", icon: Archive, path: "archive" },

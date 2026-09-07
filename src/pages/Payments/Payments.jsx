@@ -408,6 +408,7 @@ export default function Payments({ activeBranch }) {
             </div>
           </div>
         </div>
+
       )}
     </div>
   );
