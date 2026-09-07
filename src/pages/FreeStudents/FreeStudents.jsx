@@ -87,7 +87,7 @@ export default function FreeStudents({ activeBranch }) {
           .select("*, courses(name), teachers(name), groups(name)")
           .eq("branch_id", branchId)
           .eq("is_archived", false)
-          .eq("is_free", true) // FAQAT FREE STUDENTS
+          .eq("is_free", true)
           .order("created_at", { ascending: false }),
 
         supabase.from("courses").select("*").eq("branch_id", branchId),
@@ -674,7 +674,6 @@ export default function FreeStudents({ activeBranch }) {
         </div>
       )}
 
-      {/* EDIT MODAL */}
       {editOpen && editData && (
         <div className="modal" onClick={() => setEditOpen(false)}>
           <div className="modal__box" onClick={(e) => e.stopPropagation()}>
