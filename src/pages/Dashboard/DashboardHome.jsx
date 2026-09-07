@@ -64,14 +64,12 @@ export default function DashboardHome({ activeBranch }) {
         coursesRes,
         groupsRes,
       ] = await Promise.all([
-        // Total active students
         supabase
           .from("students")
           .select("*", { count: "exact", head: true })
           .eq("branch_id", branchId)
           .eq("is_archived", false),
 
-        // Paid students
         supabase
           .from("students")
           .select("*", { count: "exact", head: true })
@@ -79,7 +77,6 @@ export default function DashboardHome({ activeBranch }) {
           .eq("is_archived", false)
           .eq("is_free", false),
 
-        // Free students
         supabase
           .from("students")
           .select("*", { count: "exact", head: true })
@@ -87,35 +84,30 @@ export default function DashboardHome({ activeBranch }) {
           .eq("is_archived", false)
           .eq("is_free", true),
 
-        // Archived students
         supabase
           .from("students")
           .select("*", { count: "exact", head: true })
           .eq("branch_id", branchId)
           .eq("is_archived", true),
 
-        // Teachers
         supabase
           .from("teachers")
           .select("*", { count: "exact" })
           .eq("branch_id", branchId)
           .order("created_at", { ascending: false }),
 
-        // Courses
         supabase
           .from("courses")
           .select("*", { count: "exact" })
           .eq("branch_id", branchId)
           .order("created_at", { ascending: false }),
 
-        // Groups
         supabase
           .from("groups")
           .select("*", { count: "exact", head: true })
           .eq("branch_id", branchId),
       ]);
 
-      // Fetch students for chart data
       const { data: studentsData } = await supabase
         .from("students")
         .select("id, course_id, is_free")
@@ -168,7 +160,6 @@ export default function DashboardHome({ activeBranch }) {
     await fetchDashboardData();
   };
 
-  // Primary stat cards
   const mainCards = useMemo(
     () => [
       {
@@ -203,7 +194,6 @@ export default function DashboardHome({ activeBranch }) {
     [dashboardData],
   );
 
-  // Secondary stat cards
   const secondaryCards = useMemo(
     () => [
       {
@@ -228,7 +218,6 @@ export default function DashboardHome({ activeBranch }) {
     [dashboardData],
   );
 
-  // Pie chart data (Paid vs Free)
   const pieData = useMemo(() => {
     const paid = dashboardData.paidStudents;
     const free = dashboardData.freeStudents;
@@ -258,7 +247,6 @@ export default function DashboardHome({ activeBranch }) {
 
   return (
     <div className="dashboard-home">
-      {/* Header */}
       <div className="dashboard-header">
         <div className="header-title-box">
           <h1>{activeBranch?.name} • Dashboard</h1>
@@ -275,7 +263,6 @@ export default function DashboardHome({ activeBranch }) {
         </button>
       </div>
 
-      {/* Primary Stats */}
       <div className="dashboard-stats-grid">
         {mainCards.map((card, i) => (
           <div
@@ -312,7 +299,6 @@ export default function DashboardHome({ activeBranch }) {
         ))}
       </div>
 
-      {/* Secondary Stats */}
       <div className="dashboard-secondary-grid">
         {secondaryCards.map((card, i) => (
           <div key={i} className="dashboard-secondary-card">
@@ -334,9 +320,7 @@ export default function DashboardHome({ activeBranch }) {
         ))}
       </div>
 
-      {/* Charts Row */}
       <div className="dashboard-charts-row">
-        {/* Area Chart */}
         <div className="dashboard-chart-card">
           <div className="dashboard-chart-header">
             <div>
@@ -428,7 +412,6 @@ export default function DashboardHome({ activeBranch }) {
           </div>
         </div>
 
-        {/* Pie Chart - Paid vs Free */}
         <div className="dashboard-pie-card">
           <div className="dashboard-chart-header">
             <div>
@@ -488,7 +471,6 @@ export default function DashboardHome({ activeBranch }) {
         </div>
       </div>
 
-      {/* Latest Teachers & Courses */}
       <div className="dashboard-bottom-grid">
         <div className="dashboard-list-card">
           <div className="dashboard-list-header">
