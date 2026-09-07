@@ -31,7 +31,6 @@
   animation: arReveal 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Header */
 .ar-header-section {
   flex-shrink: 0;
   margin-bottom: 20px;
@@ -52,7 +51,6 @@
   font-weight: 500;
 }
 
-/* Search */
 .ar-search-wrapper {
   margin-bottom: 24px;
   flex-shrink: 0;
@@ -103,7 +101,6 @@
   color: var(--primary);
 }
 
-/* Table */
 .ar-table-wrapper {
   background: var(--card);
   border-radius: 16px;
@@ -176,7 +173,6 @@
   font-weight: 600;
 }
 
-/* Actions */
 .ar-actions {
   display: flex;
   align-items: center;
@@ -209,7 +205,6 @@
   color: var(--danger);
 }
 
-/* Empty */
 .ar-empty {
   padding: 64px 24px;
   text-align: center;
@@ -235,7 +230,6 @@
   color: var(--text-soft);
 }
 
-/* Skeleton */
 .ar-skeleton {
   background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
   background-size: 200% 100%;
@@ -280,7 +274,6 @@
   justify-content: center;
 }
 
-/* Confirm Modal */
 .ar-modal-overlay {
   position: fixed;
   inset: 0;
@@ -413,7 +406,6 @@
   box-shadow: none;
 }
 
-/* Animations */
 @keyframes arReveal {
   from {
     opacity: 0;
@@ -445,7 +437,6 @@
   }
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .ar-search {
     max-width: 100%;

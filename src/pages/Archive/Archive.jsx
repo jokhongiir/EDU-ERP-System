@@ -18,7 +18,6 @@ export default function Archive({ activeBranch }) {
   const [search, setSearch] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
 
-  // Confirm modal: { type: "restore" | "delete" | "error", id?, name?, message? }
   const [confirmModal, setConfirmModal] = useState(null);
 
   const fetchData = useCallback(async () => {
