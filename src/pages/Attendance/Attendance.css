@@ -14,9 +14,10 @@
   --at-danger-light: #fef2f2;
   --at-warning: #d97706;
   --at-warning-light: #fef3c7;
-  --at-shadow-sm: 0 4px 6px -1px rgba(15, 23, 42, 0.03),
-    0 2px 4px -1px rgba(15, 23, 42, 0.02);
-  --at-shadow-md: 0 12px 24px -4px rgba(15, 23, 42, 0.06),
+  --at-shadow-sm:
+    0 4px 6px -1px rgba(15, 23, 42, 0.03), 0 2px 4px -1px rgba(15, 23, 42, 0.02);
+  --at-shadow-md:
+    0 12px 24px -4px rgba(15, 23, 42, 0.06),
     0 4px 12px -2px rgba(15, 23, 42, 0.04);
   --at-shadow-lg: 0 24px 48px -12px rgba(15, 23, 42, 0.12);
   --at-t: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -27,7 +28,6 @@
   animation: atIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Header */
 .at-header {
   margin-bottom: 24px;
 }
@@ -50,7 +50,6 @@
   gap: 6px;
 }
 
-/* Filters */
 .at-filters {
   display: flex;
   gap: 12px;
@@ -121,7 +120,6 @@
   margin: 0 0 16px;
 }
 
-/* Grid */
 .at-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
@@ -224,7 +222,6 @@
   transform: translateX(3px);
 }
 
-/* Empty */
 .at-empty {
   text-align: center;
   padding: 60px 24px;
@@ -246,7 +243,6 @@
   font-size: 14px;
 }
 
-/* ===== MODAL ===== */
 .at-overlay {
   position: fixed;
   inset: 0;
@@ -319,7 +315,6 @@
   border-color: transparent;
 }
 
-/* Toolbar */
 .at-toolbar {
   display: flex;
   justify-content: space-between;
@@ -406,7 +401,6 @@
   cursor: not-allowed;
 }
 
-/* Table — faqat vertikal scroll */
 .at-table-wrap {
   flex: 1;
   overflow: hidden;
@@ -530,7 +524,11 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--at-primary), var(--at-primary-dark));
+  background: linear-gradient(
+    135deg,
+    var(--at-primary),
+    var(--at-primary-dark)
+  );
   color: white;
   display: flex;
   align-items: center;
@@ -561,7 +559,6 @@
   background: #f4fdf8 !important;
 }
 
-/* Checkbox — swipe yo'q */
 .at-check {
   display: inline-flex;
   cursor: pointer;
@@ -646,7 +643,6 @@
   color: var(--at-text-soft);
 }
 
-/* Toast */
 .at-toast {
   position: fixed;
   bottom: 28px;

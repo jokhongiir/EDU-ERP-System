@@ -46,7 +46,11 @@ export default function Attendance({ activeBranch }) {
   const [selectedTeacher, setSelectedTeacher] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const [toast, setToast] = useState({ open: false, message: "", type: "success" });
+  const [toast, setToast] = useState({
+    open: false,
+    message: "",
+    type: "success",
+  });
 
   const cycleKey = useMemo(
     () => `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}`,
@@ -55,7 +59,10 @@ export default function Attendance({ activeBranch }) {
 
   const showToast = useCallback((message, type = "success") => {
     setToast({ open: true, message, type });
-    setTimeout(() => setToast({ open: false, message: "", type: "success" }), 2500);
+    setTimeout(
+      () => setToast({ open: false, message: "", type: "success" }),
+      2500,
+    );
   }, []);
 
   const fetchData = useCallback(async () => {
@@ -85,39 +92,42 @@ export default function Attendance({ activeBranch }) {
     };
   }, [isModalOpen]);
 
-  const fetchFullData = useCallback(async (groupId, month, year) => {
-    setIsLoading(true);
-    const key = `${year}-${String(month + 1).padStart(2, "0")}`;
-    try {
-      const [studentsRes, attendanceRes] = await Promise.all([
-        supabase
-          .from("students")
-          .select("*")
-          .eq("group_id", groupId)
-          .eq("is_archived", false),
-        supabase
-          .from("attendance")
-          .select("*")
-          .eq("group_id", groupId)
-          .like("lesson_key", `${key}%`),
-      ]);
+  const fetchFullData = useCallback(
+    async (groupId, month, year) => {
+      setIsLoading(true);
+      const key = `${year}-${String(month + 1).padStart(2, "0")}`;
+      try {
+        const [studentsRes, attendanceRes] = await Promise.all([
+          supabase
+            .from("students")
+            .select("*")
+            .eq("group_id", groupId)
+            .eq("is_archived", false),
+          supabase
+            .from("attendance")
+            .select("*")
+            .eq("group_id", groupId)
+            .like("lesson_key", `${key}%`),
+        ]);
 
-      const map = {};
-      attendanceRes.data?.forEach((row) => {
-        if (!map[row.student_id]) map[row.student_id] = {};
-        map[row.student_id][row.lesson_key] = Boolean(row.present);
-      });
+        const map = {};
+        attendanceRes.data?.forEach((row) => {
+          if (!map[row.student_id]) map[row.student_id] = {};
+          map[row.student_id][row.lesson_key] = Boolean(row.present);
+        });
 
-      setStudents(studentsRes.data || []);
-      setAttendanceMap(map);
-      setOriginalMap(JSON.parse(JSON.stringify(map)));
-    } catch (err) {
-      console.error(err);
-      showToast("Failed to load attendance", "error");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [showToast]);
+        setStudents(studentsRes.data || []);
+        setAttendanceMap(map);
+        setOriginalMap(JSON.parse(JSON.stringify(map)));
+      } catch (err) {
+        console.error(err);
+        showToast("Failed to load attendance", "error");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [showToast],
+  );
 
   const openGroup = (group) => {
     setSelectedGroup(group);
@@ -276,7 +286,6 @@ export default function Attendance({ activeBranch }) {
 
   return (
     <div className="at-root">
-      {/* Header */}
       <div className="at-header">
         <div>
           <h1 className="at-title">
@@ -288,7 +297,6 @@ export default function Attendance({ activeBranch }) {
         </div>
       </div>
 
-      {/* Filters */}
       <div className="at-filters">
         <div className="at-search">
           <FiSearch />
@@ -322,7 +330,6 @@ export default function Attendance({ activeBranch }) {
         </select>
       </div>
 
-      {/* Groups grid */}
       <h2 className="at-section-title">Available Groups</h2>
 
       {filteredGroups.length === 0 ? (
@@ -334,11 +341,7 @@ export default function Attendance({ activeBranch }) {
       ) : (
         <div className="at-grid">
           {filteredGroups.map((g) => (
-            <div
-              key={g.id}
-              className="at-card"
-              onClick={() => openGroup(g)}
-            >
+            <div key={g.id} className="at-card" onClick={() => openGroup(g)}>
               <div className="at-card-top" />
               <div className="at-card-body">
                 <div className="at-card-head">
@@ -362,20 +365,18 @@ export default function Attendance({ activeBranch }) {
         </div>
       )}
 
-      {/* Modal */}
       {isModalOpen &&
         createPortal(
           <div className="at-overlay" onClick={closeModal}>
-            <div
-              className="at-modal"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Modal header */}
+            <div className="at-modal" onClick={(e) => e.stopPropagation()}>
               <div className="at-modal-header">
                 <div>
                   <h2>{selectedGroup?.name} — Attendance</h2>
                   <p>
-                    Schedule: <strong>{scheduleLabel(selectedGroup?.schedule_type)}</strong>
+                    Schedule:{" "}
+                    <strong>
+                      {scheduleLabel(selectedGroup?.schedule_type)}
+                    </strong>
                     {" · "}
                     Lessons: <strong>{lessons.length}</strong>
                   </p>
@@ -385,7 +386,6 @@ export default function Attendance({ activeBranch }) {
                 </button>
               </div>
 
-              {/* Toolbar */}
               <div className="at-toolbar">
                 <div className="at-month">
                   <button onClick={() => changeMonth(-1)}>
@@ -427,7 +427,6 @@ export default function Attendance({ activeBranch }) {
                 </div>
               </div>
 
-              {/* Table */}
               <div className="at-table-wrap">
                 {isLoading ? (
                   <div className="at-loading">
@@ -447,7 +446,9 @@ export default function Attendance({ activeBranch }) {
                               title={l.date}
                             >
                               <span className="at-l-idx">L{l.index}</span>
-                              <span className="at-l-date">{l.formattedDate}</span>
+                              <span className="at-l-date">
+                                {l.formattedDate}
+                              </span>
                               {l.isSunday && (
                                 <span className="at-chip sun">Sun</span>
                               )}
@@ -535,7 +536,6 @@ export default function Attendance({ activeBranch }) {
           document.body,
         )}
 
-      {/* Toast */}
       {toast.open && (
         <div className={`at-toast ${toast.type}`}>
           {toast.type === "success" && <FiCheckCircle />}
