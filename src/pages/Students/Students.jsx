@@ -484,7 +484,7 @@ export default function Students({ activeBranch }) {
 
           <tbody>
             {loading ? (
-              Array.from({ length: 6 }).map((_, i) => (
+              Array.from({ length: 15 }).map((_, i) => (
                 <tr key={i}>
                   <td>
                     <div className="skeleton skeleton-id"></div>
