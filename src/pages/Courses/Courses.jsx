@@ -288,7 +288,7 @@ export default function Courses({ activeBranch }) {
       )}
       {loading && !error ? (
         <div className="cr-grid-layout">
-          {[...Array(6)].map((_, index) => (
+          {[...Array(9)].map((_, index) => (
             <div key={index} className="cr-course-card cr-skeleton-card">
               <div className="cr-skeleton-top-line skeleton shimmer"></div>
               <div className="cr-card-body">
