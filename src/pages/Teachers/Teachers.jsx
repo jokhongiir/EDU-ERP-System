@@ -582,7 +582,7 @@ export default function Teachers({ activeBranch }) {
           </thead>
           <tbody>
             {loading ? (
-              Array.from({ length: 5 }).map((_, idx) => (
+              Array.from({ length: 15 }).map((_, idx) => (
                 <tr key={idx}>
                   <td>
                     <div className="teacher-skeleton sk-id"></div>
