@@ -1,11 +1,11 @@
-import { useEffect, useState, useRef } from "react";
-import { Search, ChevronDown, Menu, Plus, Edit, Trash2 } from "lucide-react";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { ChevronDown, Menu, Plus, Edit, Trash2, X } from "lucide-react";
 import { supabase } from "../../services/supabaseClient";
 import "./Navbar.css";
 
 export default function Navbar({
   activeBranch,
-  branches,
+  branches = [],
   setActiveBranch,
   centerName,
   toggleSidebar,
@@ -18,8 +18,13 @@ export default function Navbar({
   const [form, setForm] = useState({ name: "" });
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState(null);
-  const dropdownRef = useRef();
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState("");
 
+  const dropdownRef = useRef(null);
+
+  // Userni yuklash
   useEffect(() => {
     const loadUser = async () => {
       const { data } = await supabase.auth.getUser();
@@ -28,59 +33,98 @@ export default function Navbar({
     loadUser();
   }, []);
 
+  // Tashqariga bosilganda dropdown yopish
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (!dropdownRef.current?.contains(e.target)) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setDropdownOpen(false);
       }
     };
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSave = async () => {
-    if (!form.name.trim()) return;
-    try {
-      if (editingBranch) {
-        await supabase
-          .from("branches")
-          .update({ name: form.name })
-          .eq("id", editingBranch.id);
-      } else {
-        await supabase.from("branches").insert([
-          {
-            name: form.name,
-            owner_uid: user?.id,
-          },
-        ]);
+  // Escape tugmasi bilan modallarni yopish
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setModalOpen(false);
+        setDeleteModalOpen(false);
+        setDropdownOpen(false);
       }
-      setModalOpen(false);
-      setEditingBranch(null);
-      setForm({ name: "" });
-      await refreshBranches?.();
-      window.location.reload();
-    } catch (err) {
-      console.error("Save error:", err);
-    }
-  };
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
-  const handleEdit = (e, branch) => {
+  const openCreateModal = useCallback(() => {
+    setEditingBranch(null);
+    setForm({ name: "" });
+    setError("");
+    setModalOpen(true);
+    setDropdownOpen(false);
+  }, []);
+
+  const handleEdit = useCallback((e, branch) => {
     e.stopPropagation();
     setEditingBranch(branch);
     setForm({ name: branch.name });
+    setError("");
     setModalOpen(true);
     setDropdownOpen(false);
-  };
+  }, []);
 
-  const handleDeleteClick = (e, branch) => {
+  const handleDeleteClick = useCallback((e, branch) => {
     e.stopPropagation();
     setSelectedBranch(branch);
     setDeleteModalOpen(true);
     setDropdownOpen(false);
+  }, []);
+
+  const handleSave = async () => {
+    if (!form.name.trim()) {
+      setError("Branch name is required");
+      return;
+    }
+
+    setSaving(true);
+    setError("");
+
+    try {
+      if (editingBranch) {
+        const { error } = await supabase
+          .from("branches")
+          .update({ name: form.name.trim() })
+          .eq("id", editingBranch.id);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("branches").insert([
+          {
+            name: form.name.trim(),
+            owner_uid: user?.id,
+          },
+        ]);
+
+        if (error) throw error;
+      }
+
+      setModalOpen(false);
+      setEditingBranch(null);
+      setForm({ name: "" });
+      await refreshBranches?.();
+    } catch (err) {
+      console.error("Save error:", err);
+      setError(err.message || "Something went wrong");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDeleteConfirm = async () => {
     if (!selectedBranch) return;
+
+    setDeleting(true);
     try {
       const { error } = await supabase
         .from("branches")
@@ -92,132 +136,226 @@ export default function Navbar({
       setDeleteModalOpen(false);
       setSelectedBranch(null);
       await refreshBranches?.();
-      window.location.reload();
     } catch (err) {
       console.error("Delete error:", err);
+      alert(err.message || "Failed to delete branch");
+    } finally {
+      setDeleting(false);
     }
   };
 
   return (
-    <header className="erp-navbar">
-      <div className="erp-navbar__left">
-        <button className="erp-navbar__menu-btn" onClick={toggleSidebar}>
-          <Menu size={20} />
-        </button>
-        <h1 className="erp-navbar__title">{centerName || "EDU ERP"}</h1>
-      </div>
-      <div className="erp-navbar__right">
-        <div className="erp-navbar__dropdown" ref={dropdownRef}>
+    <>
+      <header className="erpNavbar">
+        {/* LEFT */}
+        <div className="erpNavbar__left">
           <button
-            className="erp-navbar__dropdown-btn"
-            onClick={() => setDropdownOpen(!dropdownOpen)}
+            className="erpNavbar__menuBtn"
+            onClick={toggleSidebar}
+            aria-label="Toggle sidebar"
           >
-            {activeBranch?.name || "Select Branch"}
-            <ChevronDown size={14} />
+            <Menu size={20} strokeWidth={2} />
           </button>
-          {dropdownOpen && (
-            <div className="erp-navbar__dropdown-menu">
-              <div
-                className="erp-navbar__dropdown-add"
-                onClick={() => {
-                  setModalOpen(true);
-                  setEditingBranch(null);
-                  setForm({ name: "" });
-                  setDropdownOpen(false);
-                }}
-              >
-                <Plus size={15} />
-                Add New Branch
-              </div>
-              <div className="erp-navbar__divider" />
-              {branches.map((b) => (
-                <div
-                  key={b.id}
-                  className={`erp-navbar__branch-item ${activeBranch?.id === b.id ? "is-active" : ""}`}
-                  onClick={() => {
-                    setActiveBranch(b);
-                    setDropdownOpen(false);
-                  }}
-                >
-                  <span className="erp-navbar__branch-name">{b.name}</span>
-                  <div className="erp-navbar__actions">
-                    <button
-                      className="erp-navbar__action-btn edit"
-                      onClick={(e) => handleEdit(e, b)}
-                    >
-                      <Edit size={13} />
-                    </button>
-                    <button
-                      className="erp-navbar__action-btn delete"
-                      onClick={(e) => handleDeleteClick(e, b)}
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-        <div className="erp-navbar__user">
-          <div className="erp-navbar__avatar">
-            {user?.email?.charAt(0).toUpperCase()}
-          </div>
-          <span className="erp-navbar__email">{user?.email}</span>
-        </div>
-      </div>
 
+          <h1 className="erpNavbar__title">
+            {centerName || "EDU ERP"}
+          </h1>
+        </div>
+
+        {/* RIGHT */}
+        <div className="erpNavbar__right">
+          {/* Branch Dropdown */}
+          <div className="erpNavbar__dropdown" ref={dropdownRef}>
+            <button
+              className="erpNavbar__dropdownBtn"
+              onClick={() => setDropdownOpen((prev) => !prev)}
+              aria-expanded={dropdownOpen}
+              aria-haspopup="true"
+            >
+              <span className="erpNavbar__branchLabel">
+                {activeBranch?.name || "Select Branch"}
+              </span>
+              <ChevronDown
+                size={16}
+                className={`erpNavbar__chevron ${dropdownOpen ? "isOpen" : ""}`}
+              />
+            </button>
+
+            {dropdownOpen && (
+              <div className="erpNavbar__dropdownMenu" role="menu">
+                <button
+                  className="erpNavbar__addBtn"
+                  onClick={openCreateModal}
+                  role="menuitem"
+                >
+                  <Plus size={16} strokeWidth={2.2} />
+                  <span>Add New Branch</span>
+                </button>
+
+                <div className="erpNavbar__divider" />
+
+                <div className="erpNavbar__branchList">
+                  {branches.length === 0 ? (
+                    <div className="erpNavbar__empty">No branches yet</div>
+                  ) : (
+                    branches.map((b) => (
+                      <div
+                        key={b.id}
+                        className={`erpNavbar__branchItem ${
+                          activeBranch?.id === b.id ? "isActive" : ""
+                        }`}
+                        onClick={() => {
+                          setActiveBranch(b);
+                          setDropdownOpen(false);
+                        }}
+                        role="menuitem"
+                      >
+                        <span className="erpNavbar__branchName">{b.name}</span>
+
+                        <div className="erpNavbar__actions">
+                          <button
+                            className="erpNavbar__actionBtn edit"
+                            onClick={(e) => handleEdit(e, b)}
+                            title="Edit"
+                            aria-label="Edit branch"
+                          >
+                            <Edit size={14} />
+                          </button>
+                          <button
+                            className="erpNavbar__actionBtn delete"
+                            onClick={(e) => handleDeleteClick(e, b)}
+                            title="Delete"
+                            aria-label="Delete branch"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* User */}
+          <div className="erpNavbar__user">
+            <div className="erpNavbar__avatar" title={user?.email}>
+              {user?.email?.charAt(0).toUpperCase() || "U"}
+            </div>
+            <span className="erpNavbar__email">{user?.email}</span>
+          </div>
+        </div>
+      </header>
+
+      {/* ====== CREATE / EDIT MODAL ====== */}
       {modalOpen && (
-        <div className="erp-modal__overlay">
-          <div className="erp-modal">
-            <h3>{editingBranch ? "Edit Branch" : "Create New Branch"}</h3>
-            <input
-              value={form.name}
-              onChange={(e) => setForm({ name: e.target.value })}
-              placeholder="Enter branch name"
-              autoFocus
-            />
-            <div className="erp-modal__actions">
+        <div className="erpModal__overlay" onClick={() => !saving && setModalOpen(false)}>
+          <div
+            className="erpModal"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="erpModal__header">
+              <h3>{editingBranch ? "Edit Branch" : "Create New Branch"}</h3>
               <button
-                className="btn-cancel"
+                className="erpModal__close"
+                onClick={() => !saving && setModalOpen(false)}
+                aria-label="Close"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="erpModal__body">
+              <label className="erpModal__label">Branch name</label>
+              <input
+                className="erpModal__input"
+                value={form.name}
+                onChange={(e) => {
+                  setForm({ name: e.target.value });
+                  setError("");
+                }}
+                placeholder="e.g. Main Campus, Tashkent Branch"
+                autoFocus
+                disabled={saving}
+                onKeyDown={(e) => e.key === "Enter" && handleSave()}
+              />
+              {error && <p className="erpModal__error">{error}</p>}
+            </div>
+
+            <div className="erpModal__footer">
+              <button
+                className="erpBtn erpBtn--ghost"
                 onClick={() => setModalOpen(false)}
+                disabled={saving}
               >
                 Cancel
               </button>
-              <button className="btn-save" onClick={handleSave}>
-                {editingBranch ? "Save Changes" : "Create Branch"}
+              <button
+                className="erpBtn erpBtn--primary"
+                onClick={handleSave}
+                disabled={saving}
+              >
+                {saving ? "Saving..." : editingBranch ? "Save Changes" : "Create Branch"}
               </button>
             </div>
           </div>
         </div>
       )}
 
+      {/* ====== DELETE CONFIRMATION ====== */}
       {deleteModalOpen && (
-        <div className="erp-modal__overlay">
-          <div className="erp-modal erp-modal--danger">
-            <h3>Are you absolutely sure?</h3>
-            <p>
-              Are you sure you want to delete <b>{selectedBranch?.name}</b>?
-              This action cannot be undone and all associated data will be
-              removed.
-            </p>
-            <div className="erp-modal__actions">
+        <div className="erpModal__overlay" onClick={() => !deleting && setDeleteModalOpen(false)}>
+          <div
+            className="erpModal erpModal--danger"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="erpModal__header">
+              <h3>Delete Branch?</h3>
               <button
-                className="btn-cancel"
+                className="erpModal__close"
+                onClick={() => !deleting && setDeleteModalOpen(false)}
+                aria-label="Close"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="erpModal__body">
+              <p>
+                Are you sure you want to delete{" "}
+                <strong>{selectedBranch?.name}</strong>?
+                <br />
+                This action cannot be undone.
+              </p>
+            </div>
+
+            <div className="erpModal__footer">
+              <button
+                className="erpBtn erpBtn--ghost"
                 onClick={() => {
                   setDeleteModalOpen(false);
                   setSelectedBranch(null);
                 }}
+                disabled={deleting}
               >
                 Keep Branch
               </button>
-              <button className="btn-danger" onClick={handleDeleteConfirm}>
-                Yes, Delete Permanently
+              <button
+                className="erpBtn erpBtn--danger"
+                onClick={handleDeleteConfirm}
+                disabled={deleting}
+              >
+                {deleting ? "Deleting..." : "Yes, Delete"}
               </button>
             </div>
           </div>
         </div>
       )}
-    </header>
+    </>
   );
 }

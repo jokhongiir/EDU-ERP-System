@@ -44,7 +44,7 @@ function Sidebar({ collapsed, mobileOpen, activeBranch, setMobileOpen }) {
       { label: "Archive", icon: Archive, path: "archive" },
       { label: "Profile", icon: User, path: "profile" },
     ],
-    [],
+    []
   );
 
   const handleLogout = useCallback(async () => {
@@ -52,7 +52,12 @@ function Sidebar({ collapsed, mobileOpen, activeBranch, setMobileOpen }) {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
 
-      localStorage.removeItem("sb-" + "gurmyvqbkrpyvfnunepu" + "-auth-token");
+      // Barcha supabase auth tokenlarni tozalash (xavfsizroq)
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith("sb-") && key.endsWith("-auth-token")) {
+          localStorage.removeItem(key);
+        }
+      });
 
       navigate("/login", { replace: true });
       setMobileOpen?.(false);
@@ -67,48 +72,74 @@ function Sidebar({ collapsed, mobileOpen, activeBranch, setMobileOpen }) {
   }, [setMobileOpen]);
 
   return (
-    <aside
-      className={`erpSidebar 
-      ${collapsed ? "isCollapsed" : ""} 
-      ${mobileOpen ? "isMobileOpen" : ""}`}
-    >
-      <div className="erpSidebar__header">
-        <div className="erpSidebar__logoBox">
-          <img src={logo} alt="Edu ERP" className="erpSidebar__logoImg" />
+    <>
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="erpSidebar__overlay"
+          onClick={closeMobileMenu}
+          aria-hidden="true"
+        />
+      )}
 
-          {!collapsed && (
-            <div className="erpSidebar__logoText">
-              <h2>Edu ERP</h2>
-              <span>Education Management</span>
-            </div>
-          )}
+      <aside
+        className={`erpSidebar 
+          ${collapsed ? "isCollapsed" : ""} 
+          ${mobileOpen ? "isMobileOpen" : ""}`}
+        aria-label="Main navigation"
+      >
+        {/* Header */}
+        <div className="erpSidebar__header">
+          <div className="erpSidebar__logoBox">
+            <img
+              src={logo}
+              alt="Edu ERP"
+              className="erpSidebar__logoImg"
+            />
+
+            {!collapsed && (
+              <div className="erpSidebar__logoText">
+                <h2>Edu ERP</h2>
+                <span>Education Management</span>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
 
-      <nav className="erpSidebar__nav">
-        {menu.map(({ label, icon: Icon, path }) => (
-          <NavLink
-            key={path || "dashboard"}
-            to={path ? `${basePath}/${path}` : basePath}
-            end={path === ""}
-            onClick={closeMobileMenu}
-            className={({ isActive }) =>
-              `erpSidebar__link ${isActive ? "isActive" : ""}`
-            }
+        {/* Navigation */}
+        <nav className="erpSidebar__nav" role="navigation">
+          {menu.map(({ label, icon: Icon, path }) => (
+            <NavLink
+              key={path || "dashboard"}
+              to={path ? `${basePath}/${path}` : basePath}
+              end={path === ""}
+              onClick={closeMobileMenu}
+              className={({ isActive }) =>
+                `erpSidebar__link ${isActive ? "isActive" : ""}`
+              }
+              title={collapsed ? label : undefined}
+              aria-label={label}
+            >
+              <Icon className="erpSidebar__icon" strokeWidth={1.8} />
+              {!collapsed && <span className="erpSidebar__label">{label}</span>}
+            </NavLink>
+          ))}
+        </nav>
+
+        {/* Footer */}
+        <div className="erpSidebar__footer">
+          <button
+            className="erpSidebar__logout"
+            onClick={handleLogout}
+            title={collapsed ? "Sign out" : undefined}
+            aria-label="Sign out"
           >
-            <Icon className="erpSidebar__icon" />
-            {!collapsed && <span>{label}</span>}
-          </NavLink>
-        ))}
-      </nav>
-
-      <div className="erpSidebar__footer">
-        <button className="erpSidebar__logout" onClick={handleLogout}>
-          <LogOut className="erpSidebar__icon" />
-          {!collapsed && <span>Sign out</span>}
-        </button>
-      </div>
-    </aside>
+            <LogOut className="erpSidebar__icon" strokeWidth={1.8} />
+            {!collapsed && <span>Sign out</span>}
+          </button>
+        </div>
+      </aside>
+    </>
   );
 }
 
