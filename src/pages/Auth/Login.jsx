@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../../services/supabaseClient";
 import BranchModal from "../BranchModal/BranchModal";
 import logo2 from "../../assets/logo2.png";
@@ -8,7 +8,6 @@ import {
   FiLock,
   FiEye,
   FiEyeOff,
-  FiShield,
   FiArrowRight,
 } from "react-icons/fi";
 import "./Auth.css";
@@ -37,7 +36,6 @@ export default function Login() {
 
         const uid = session.user.id;
 
-        // 1. O'qituvchi ekanligini tekshirish
         const { data: teacherCheck } = await supabase
           .from("teachers")
           .select("id")
@@ -49,7 +47,6 @@ export default function Login() {
           return;
         }
 
-        // 2. Admin filiallarini tekshirish
         const { data: branches } = await supabase
           .from("branches")
           .select("id")
@@ -93,7 +90,6 @@ export default function Login() {
       const user = data?.user;
       if (!user) throw new Error("Login failed: User data not found");
 
-      // 1. O'qituvchi ekanligini tekshirish
       const { data: teacherCheck } = await supabase
         .from("teachers")
         .select("id")
@@ -105,7 +101,6 @@ export default function Login() {
         return;
       }
 
-      // 2. Admin filiallarini tekshirish
       const { data: branches } = await supabase
         .from("branches")
         .select("id")
@@ -119,9 +114,9 @@ export default function Login() {
       }
     } catch (err) {
       if (err.message?.includes("Invalid login credentials")) {
-        setError("Email yoki parol noto'g'ri kiritildi.");
+        setError("Invalid email or password.");
       } else {
-        setError(err.message || "Xatolik yuz berdi. Qaytdan urinib ko'ring.");
+        setError(err.message || "Something went wrong. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -130,9 +125,9 @@ export default function Login() {
 
   if (checkingSession) {
     return (
-      <div className="authWrapper">
-        <div className="authSessionLoader">
-          <span className="loader"></span>
+      <div className="auth-page">
+        <div className="auth-session-loader">
+          <span className="auth-spinner"></span>
           <p>Checking session...</p>
         </div>
       </div>
@@ -140,7 +135,7 @@ export default function Login() {
   }
 
   return (
-    <div className="authWrapper">
+    <div className="auth-page">
       <BranchModal
         open={showBranchModal}
         userId={userId}
@@ -149,109 +144,86 @@ export default function Login() {
         }
       />
 
-      <div className="authCard">
-        <div className="authLeft">
-          <div className="authLeftContent">
-            <img src={logo2} alt="Education ERP" className="authImage" />
-            <h1 className="authLogo">Education ERP System</h1>
-            <p className="authText">
-              Smart education management system for academies, schools and
-              learning centers.
-            </p>
-
-            <div className="statsBox">
-              <div className="statItem">
-                <h3>10K+</h3>
-                <span>Students</span>
-              </div>
-              <div className="statItem">
-                <h3>500+</h3>
-                <span>Teachers</span>
-              </div>
-              <div className="statItem">
-                <h3>120+</h3>
-                <span>Branches</span>
-              </div>
-            </div>
-
-            <div className="securityBadge">
-              <FiShield />
-              <span>Enterprise Grade Security</span>
-            </div>
-          </div>
+      <div className="auth-box">
+        {/* Brand panel — centered */}
+        <div className="auth-brand">
+          <img
+            src={logo2}
+            alt="Education ERP System"
+            className="auth-logo-img"
+          />
+          <h1>Education ERP System</h1>
+          <p>
+            Smart education management for academies, schools and learning
+            centers.
+          </p>
         </div>
 
-        <div className="authRight">
-          <div className="authHeader">
-            <h2 className="authTitle">Welcome Back</h2>
-            <p className="authSubtitle">
-              Sign in to access your ERP dashboard
-            </p>
+        {/* Form */}
+        <div className="auth-form-side">
+          <div className="auth-form-header">
+            <h2>Welcome back</h2>
+            <p>Sign in to your account</p>
           </div>
 
-          <form className="authForm" onSubmit={handleLogin}>
-            <div className="inputGroup">
-              <FiMail className="inputIcon" />
-              <input
-                type="email"
-                name="email"
-                className="authInput"
-                placeholder="Email address"
-                value={form.email}
-                onChange={handleChange}
-                autoComplete="email"
-                required
-              />
+          <form className="auth-form" onSubmit={handleLogin}>
+            <div className="auth-field">
+              <label className="auth-label">Email</label>
+              <div className="auth-input-wrap">
+                <FiMail className="auth-field-icon" />
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="you@example.com"
+                  value={form.email}
+                  onChange={handleChange}
+                  autoComplete="email"
+                  required
+                />
+              </div>
             </div>
 
-            <div className="inputGroup">
-              <FiLock className="inputIcon" />
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                className="authInput"
-                placeholder="Password"
-                value={form.password}
-                onChange={handleChange}
-                autoComplete="current-password"
-                required
-              />
-              <button
-                type="button"
-                className="eyeButton"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <FiEyeOff /> : <FiEye />}
-              </button>
+            <div className="auth-field">
+              <label className="auth-label">Password</label>
+              <div className="auth-input-wrap">
+                <FiLock className="auth-field-icon" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Enter your password"
+                  value={form.password}
+                  onChange={handleChange}
+                  autoComplete="current-password"
+                  required
+                />
+                <button
+                  type="button"
+                  className="auth-eye"
+                  onClick={() => setShowPassword(!showPassword)}
+                  tabIndex={-1}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <FiEyeOff /> : <FiEye />}
+                </button>
+              </div>
             </div>
 
-            <div className="authOptions">
-              <span />
-              <Link to="/forgot-password" className="forgotPassword">
-                Forgot password?
-              </Link>
-            </div>
+            {error && <div className="auth-error">{error}</div>}
 
-            {error && <div className="authError">{error}</div>}
-
-            <button type="submit" className="authButton" disabled={loading}>
+            <button type="submit" className="auth-submit" disabled={loading}>
               {loading ? (
                 <>
-                  <span className="loader"></span>
-                  <span>Signing In...</span>
+                  <span className="auth-spinner auth-spinner--sm"></span>
+                  Signing in...
                 </>
               ) : (
                 <>
-                  <span>Sign In</span>
+                  Sign in
                   <FiArrowRight />
                 </>
               )}
             </button>
           </form>
-
-          <div className="authFooter">
-            <p>Protected by Education ERP Security Infrastructure</p>
-          </div>
         </div>
       </div>
     </div>
