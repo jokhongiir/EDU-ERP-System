@@ -9,7 +9,6 @@ import {
   FiUser,
   FiMenu,
   FiX,
-  FiBell,
 } from "react-icons/fi";
 import "./TeacherLayout.css";
 
@@ -26,6 +25,7 @@ export default function TeacherLayout() {
         const {
           data: { session },
         } = await supabase.auth.getSession();
+
         if (!session) {
           navigate("/login");
           return;
@@ -50,7 +50,6 @@ export default function TeacherLayout() {
     fetchTeacher();
   }, [navigate]);
 
-  // Route o'zgarganda mobile sidebar yopilsin
   useEffect(() => {
     setMobileOpen(false);
   }, [location.pathname]);
@@ -67,6 +66,12 @@ export default function TeacherLayout() {
     return "Teacher Portal";
   };
 
+  const teacherFullName = teacher
+    ? `${teacher.first_name || ""} ${teacher.last_name || ""}`.trim() ||
+      teacher.name ||
+      "O'qituvchi"
+    : "O'qituvchi";
+
   if (loading) {
     return (
       <div className="t-loader">
@@ -77,7 +82,7 @@ export default function TeacherLayout() {
 
   return (
     <div className="teacher-layout-container">
-      {/* Mobile overlay */}
+      {/* Mobile Overlay */}
       {mobileOpen && (
         <div
           className="sidebar-overlay"
@@ -98,6 +103,7 @@ export default function TeacherLayout() {
           <button
             className="sidebar-close-btn"
             onClick={() => setMobileOpen(false)}
+            aria-label="Yopish"
           >
             <FiX />
           </button>
@@ -113,6 +119,7 @@ export default function TeacherLayout() {
             <FiLayers className="nav-icon" />
             <span>Mening Guruhlarim</span>
           </Link>
+
           <Link
             to="/teacher/students"
             className={`nav-item ${
@@ -122,6 +129,7 @@ export default function TeacherLayout() {
             <FiUsers className="nav-icon" />
             <span>Mening O'quvchilarim</span>
           </Link>
+
           <Link
             to="/teacher/attendance"
             className={`nav-item ${
@@ -141,7 +149,7 @@ export default function TeacherLayout() {
         </div>
       </aside>
 
-      {/* Main area */}
+      {/* Main Area */}
       <div className="teacher-main-area">
         {/* Top Navbar */}
         <header className="teacher-navbar">
@@ -149,6 +157,7 @@ export default function TeacherLayout() {
             <button
               className="navbar-menu-btn"
               onClick={() => setMobileOpen(true)}
+              aria-label="Menyu"
             >
               <FiMenu />
             </button>
@@ -156,23 +165,19 @@ export default function TeacherLayout() {
           </div>
 
           <div className="navbar-right">
-            <button className="navbar-icon-btn" title="Bildirishnomalar">
-              <FiBell />
-            </button>
             <div className="navbar-profile">
               <div className="navbar-avatar">
                 <FiUser />
               </div>
               <div className="navbar-profile-info">
-                <span className="navbar-name">{teacher?.name || "O'qituvchi"}</span>
-                <span className="navbar-role">O'qituvchi</span>
+                <span className="navbar-name">{teacherFullName}</span>
               </div>
             </div>
           </div>
         </header>
 
         {/* Content */}
-        <main className="teacher-main-content">
+        <main className="teacher-main-contentt">
           <Outlet context={{ teacher }} />
         </main>
       </div>

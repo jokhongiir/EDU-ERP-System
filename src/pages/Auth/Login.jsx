@@ -37,12 +37,12 @@ export default function Login() {
 
         const uid = session.user.id;
 
-        // 1. Foydalanuvchi o'qituvchiligini tekshirish
+        // 1. O'qituvchi ekanligini tekshirish
         const { data: teacherCheck } = await supabase
           .from("teachers")
           .select("id")
           .eq("auth_id", uid)
-          .single();
+          .maybeSingle();
 
         if (teacherCheck) {
           navigate("/teacher/groups", { replace: true });
@@ -98,7 +98,7 @@ export default function Login() {
         .from("teachers")
         .select("id")
         .eq("auth_id", user.id)
-        .single();
+        .maybeSingle();
 
       if (teacherCheck) {
         navigate("/teacher/groups", { replace: true });
@@ -118,7 +118,7 @@ export default function Login() {
         navigate(`/dashboard/${branches[0].id}`, { replace: true });
       }
     } catch (err) {
-      if (err.message.includes("Invalid login credentials")) {
+      if (err.message?.includes("Invalid login credentials")) {
         setError("Email yoki parol noto'g'ri kiritildi.");
       } else {
         setError(err.message || "Xatolik yuz berdi. Qaytdan urinib ko'ring.");

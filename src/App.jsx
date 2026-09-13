@@ -11,7 +11,6 @@ import ForgotPassword from "./pages/Auth/ForgotPassword";
 import UpdatePassword from "./pages/Auth/UpdatePassword";
 import Dashboard from "./pages/Dashboard/Dashboard";
 
-// Yangi qo'shiladigan O'qituvchi layout va sahifalari
 import TeacherLayout from "./pages/TeacherDashboard/TeacherLayout";
 import MyGroups from "./pages/TeacherDashboard/MyGroups";
 import MyStudents from "./pages/TeacherDashboard/MyStudents";
@@ -23,14 +22,19 @@ export default function App() {
   const [centerName, setCenterName] = useState("");
 
   return (
-    <Router>
+    <Router
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/update-password" element={<UpdatePassword />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/registerforeducationerpsystem" element={<Register />} />
 
-        {/* O'qituvchi Portali (Sidebar va sahifalar) */}
+        {/* O'qituvchi Portali */}
         <Route path="/teacher" element={<TeacherLayout />}>
           <Route index element={<Navigate to="groups" replace />} />
           <Route path="groups" element={<MyGroups />} />
@@ -45,7 +49,7 @@ export default function App() {
             <Dashboard centerName={centerName} setCenterName={setCenterName} />
           }
         />
-        
+
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
 

@@ -83,40 +83,44 @@ export default function MyStudents() {
 
   if (loading) {
     return (
-      <div className="ms-loading">
-        <FiLoader className="ms-spin" />
+      <div className="students-loading">
+        <FiLoader className="students-spinner" />
         <p>O'quvchilar yuklanmoqda...</p>
       </div>
     );
   }
 
   return (
-    <div className="ms-page">
+    <div className="students-page">
       {/* Header */}
-      <div className="ms-header">
-        <div>
-          <h1 className="ms-title">Mening O'quvchilarim</h1>
-          <p className="ms-subtitle">
+      <header className="students-header">
+        <div className="students-header-text">
+          <h1 className="students-title">Mening O'quvchilarim</h1>
+          <p className="students-subtitle">
             Barcha guruhlaringizdagi faol o'quvchilar ro'yxati
           </p>
         </div>
-        <div className="ms-stats">
-          <div className="ms-stat-chip">
-            <FiUsers /> {students.length} o'quvchi
+
+        <div className="students-stats">
+          <div className="students-stat">
+            <FiUsers />
+            <span>{students.length} o'quvchi</span>
           </div>
-          <div className="ms-stat-chip paid">
-            <FiCheckCircle /> {paidCount} to'langan
+          <div className="students-stat students-stat--paid">
+            <FiCheckCircle />
+            <span>{paidCount} to'langan</span>
           </div>
-          <div className="ms-stat-chip unpaid">
-            <FiXCircle /> {unpaidCount} to'lanmagan
+          <div className="students-stat students-stat--unpaid">
+            <FiXCircle />
+            <span>{unpaidCount} to'lanmagan</span>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Filters */}
-      <div className="ms-filters">
-        <div className="ms-search">
-          <FiSearch />
+      <div className="students-filters">
+        <div className="students-search">
+          <FiSearch className="students-search-icon" />
           <input
             type="text"
             placeholder="Ism yoki familiya bo'yicha qidirish..."
@@ -124,8 +128,9 @@ export default function MyStudents() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
+
         <select
-          className="ms-select"
+          className="students-select"
           value={groupFilter}
           onChange={(e) => setGroupFilter(e.target.value)}
         >
@@ -140,8 +145,8 @@ export default function MyStudents() {
 
       {/* Content */}
       {filtered.length === 0 ? (
-        <div className="ms-empty">
-          <FiUsers size={44} />
+        <div className="students-empty">
+          <FiUsers size={48} />
           <h3>O'quvchilar topilmadi</h3>
           <p>
             {search || groupFilter
@@ -150,118 +155,68 @@ export default function MyStudents() {
           </p>
         </div>
       ) : (
-        <>
-          {/* Desktop table */}
-          <div className="ms-table-card ms-desktop-only">
-            <div className="ms-table-scroll">
-              <table className="ms-table">
-                <thead>
-                  <tr>
-                    <th className="ms-th-num">#</th>
-                    <th>F.I.O</th>
-                    <th>Guruh</th>
-                    <th>Telefon</th>
-                    <th>To'lov holati</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((s, idx) => (
-                    <tr key={s.id}>
-                      <td className="ms-num">{idx + 1}</td>
-                      <td>
-                        <div className="ms-user">
-                          <div className="ms-avatar">
-                            {s.first_name?.[0] || "?"}
-                          </div>
-                          <div className="ms-user-info">
-                            <span className="ms-name">
-                              {s.first_name} {s.last_name}
-                            </span>
-                            {s.parent_name && (
-                              <span className="ms-parent">
-                                Ota-ona: {s.parent_name}
-                              </span>
-                            )}
-                          </div>
+        <div className="students-table-wrapper">
+          <div className="students-table-scroll">
+            <table className="students-table">
+              <thead>
+                <tr>
+                  <th className="students-col-num">#</th>
+                  <th>F.I.O</th>
+                  <th>Guruh</th>
+                  <th>Telefon</th>
+                  <th>To'lov holati</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((s, idx) => (
+                  <tr key={s.id}>
+                    <td className="students-num">{idx + 1}</td>
+                    <td data-label="O'quvchi">
+                      <div className="students-user">
+                        <div className="students-avatar">
+                          {s.first_name?.[0] || "?"}
                         </div>
-                      </td>
-                      <td>
-                        <span className="ms-group-tag">
-                          <FiLayers /> {s.groups?.name || "—"}
-                        </span>
-                      </td>
-                      <td>
-                        <span className="ms-phone">
-                          <FiPhone /> {s.phone || s.parent_phone || "—"}
-                        </span>
-                      </td>
-                      <td>
-                        <span
-                          className={`ms-pill ${s.paid ? "paid" : "unpaid"}`}
-                        >
-                          {s.paid ? "To'langan" : "To'lanmagan"}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Mobile cards */}
-          <div className="ms-cards ms-mobile-only">
-            {filtered.map((s, idx) => (
-              <div key={s.id} className="ms-card">
-                <div className="ms-card-top">
-                  <div className="ms-user">
-                    <div className="ms-avatar">
-                      {s.first_name?.[0] || "?"}
-                    </div>
-                    <div className="ms-user-info">
-                      <span className="ms-name">
-                        {s.first_name} {s.last_name}
+                        <div className="students-user-info">
+                          <span className="students-name">
+                            {s.first_name} {s.last_name}
+                          </span>
+                          {s.parent_name && (
+                            <span className="students-parent">
+                              Ota-ona: {s.parent_name}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td data-label="Guruh">
+                      <span className="students-badge students-badge--group">
+                        <FiLayers />
+                        {s.groups?.name || "—"}
                       </span>
-                      {s.parent_name && (
-                        <span className="ms-parent">
-                          Ota-ona: {s.parent_name}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <span className="ms-card-num">#{idx + 1}</span>
-                </div>
-
-                <div className="ms-card-body">
-                  <div className="ms-card-row">
-                    <span className="ms-card-label">
-                      <FiLayers /> Guruh
-                    </span>
-                    <span className="ms-group-tag">
-                      {s.groups?.name || "—"}
-                    </span>
-                  </div>
-                  <div className="ms-card-row">
-                    <span className="ms-card-label">
-                      <FiPhone /> Telefon
-                    </span>
-                    <span className="ms-phone-text">
-                      {s.phone || s.parent_phone || "—"}
-                    </span>
-                  </div>
-                  <div className="ms-card-row">
-                    <span className="ms-card-label">To'lov</span>
-                    <span
-                      className={`ms-pill ${s.paid ? "paid" : "unpaid"}`}
-                    >
-                      {s.paid ? "To'langan" : "To'lanmagan"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
+                    </td>
+                    <td data-label="Telefon">
+                      <span className="students-phone">
+                        <FiPhone />
+                        {s.phone || s.parent_phone || "—"}
+                      </span>
+                    </td>
+                    <td data-label="To'lov">
+                      <span
+                        className={`students-badge ${
+                          s.paid
+                            ? "students-badge--paid"
+                            : "students-badge--unpaid"
+                        }`}
+                      >
+                        {s.paid ? "To'langan" : "To'lanmagan"}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
