@@ -1,7 +1,8 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 
 /* ==========================================================================
-   TEACHER LAYOUT — Professional White Sidebar + Navbar
+   TEACHER LAYOUT — Professional
+   Barcha qurilmalarda height auto (100dvh + fallback)
    ========================================================================== */
 
 :root {
@@ -29,11 +30,25 @@
   --tl-navbar-height: 68px;
   --tl-radius: 12px;
   --tl-t: all 0.25s ease;
+
+  /* Barcha qurilmalar uchun viewport height */
+  --tl-app-height: 100vh;
+  --tl-app-height: 100dvh; /* dynamic viewport — mobil uchun eng to'g'ri */
+}
+
+/* ========== GLOBAL ========== */
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 /* ========== LOADER ========== */
 .t-loader {
-  min-height: 100vh;
+  min-height: var(--tl-app-height);
+  height: var(--tl-app-height);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -58,7 +73,9 @@
 /* ========== LAYOUT ========== */
 .teacher-layout-container {
   display: flex;
-  height: 100vh;
+  width: 100%;
+  height: var(--tl-app-height);
+  max-height: var(--tl-app-height);
   overflow: hidden;
   background: var(--tl-bg);
   font-family: "Inter", system-ui, -apple-system, sans-serif;
@@ -70,7 +87,8 @@
 .teacher-sidebar {
   width: var(--tl-sidebar-width);
   min-width: var(--tl-sidebar-width);
-  height: 100vh;
+  height: var(--tl-app-height);
+  max-height: var(--tl-app-height);
   background: var(--tl-card);
   border-right: 1px solid var(--tl-border);
   box-shadow: var(--tl-shadow-sidebar);
@@ -157,6 +175,7 @@
   gap: 6px;
   overflow-y: auto;
   min-height: 0;
+  -webkit-overflow-scrolling: touch;
 }
 
 .nav-item {
@@ -244,7 +263,8 @@
 .teacher-main-area {
   flex: 1;
   margin-left: var(--tl-sidebar-width);
-  height: 100vh;
+  height: var(--tl-app-height);
+  max-height: var(--tl-app-height);
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -255,6 +275,7 @@
 .teacher-navbar {
   height: var(--tl-navbar-height);
   min-height: var(--tl-navbar-height);
+  max-height: var(--tl-navbar-height);
   background: var(--tl-card);
   border-bottom: 1px solid var(--tl-border);
   display: flex;
@@ -310,9 +331,9 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }
 
-/* Profile — ism-familiya doim ko‘rinadi */
 .navbar-profile {
   display: flex;
   align-items: center;
@@ -370,6 +391,17 @@
   flex-direction: column;
 }
 
+/* Eski typo uchun fallback */
+.teacher-main-contentt {
+  flex: 1;
+  min-height: 0;
+  padding: 15px;
+  overflow: hidden;
+  background: var(--tl-bg);
+  display: flex;
+  flex-direction: column;
+}
+
 /* ========== OVERLAY ========== */
 .sidebar-overlay {
   display: none;
@@ -406,7 +438,8 @@
     display: flex;
   }
 
-  .teacher-main-content {
+  .teacher-main-content,
+  .teacher-main-contentt {
     padding: 16px 18px;
   }
 }
@@ -414,6 +447,9 @@
 @media (max-width: 640px) {
   .teacher-navbar {
     padding: 0 14px;
+    height: 60px;
+    min-height: 60px;
+    max-height: 60px;
   }
 
   .navbar-title {
@@ -429,10 +465,12 @@
     font-size: 13px;
   }
 
-  .teacher-main-content {
+  .teacher-main-content,
+  .teacher-main-contentt {
     padding: 14px;
     overflow-y: auto;
     overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
   }
 }
 
@@ -443,5 +481,12 @@
 
   .navbar-name {
     font-size: 12.5px;
+  }
+}
+
+/* Eski brauzerlar uchun fallback */
+@supports not (height: 100dvh) {
+  :root {
+    --tl-app-height: 100vh;
   }
 }
