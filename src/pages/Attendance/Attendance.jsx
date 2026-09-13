@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../services/supabaseClient";
 import {
@@ -17,8 +17,6 @@ import {
   FiX,
   FiEye,
   FiTrendingUp,
-  FiBookOpen,
-  FiUser,
 } from "react-icons/fi";
 import "./Attendance.css";
 
@@ -77,7 +75,7 @@ export default function Attendance({ activeBranch }) {
       setCourses(c.data || []);
       setTeachers(t.data || []);
     } catch {
-      showToast("Failed to load groups", "error");
+      showToast("Ma'lumotlarni yuklashda xatolik", "error");
     }
   }, [branchId, showToast]);
 
@@ -121,7 +119,7 @@ export default function Attendance({ activeBranch }) {
         setOriginalMap(JSON.parse(JSON.stringify(map)));
       } catch (err) {
         console.error(err);
-        showToast("Failed to load attendance", "error");
+        showToast("Davomatni yuklashda xatolik", "error");
       } finally {
         setIsLoading(false);
       }
@@ -154,7 +152,9 @@ export default function Attendance({ activeBranch }) {
     }
     setCurrentMonth(m);
     setCurrentYear(y);
-    if (selectedGroup) fetchFullData(selectedGroup.id, m, y);
+    if (selectedGroup) {
+      fetchFullData(selectedGroup.id, m, y);
+    }
   };
 
   const toggleAttendance = (studentId, lessonKey) => {
@@ -186,7 +186,7 @@ export default function Attendance({ activeBranch }) {
     });
 
     if (!rows.length) {
-      showToast("No changes detected", "info");
+      showToast("O'zgarishlar aniqlanmadi", "info");
       setIsSaving(false);
       return;
     }
@@ -196,10 +196,10 @@ export default function Attendance({ activeBranch }) {
       .upsert(rows, { onConflict: "student_id,lesson_key" });
 
     if (error) {
-      showToast("Error saving data!", "error");
+      showToast("Saqlashda xatolik yuz berdi!", "error");
     } else {
       setOriginalMap(JSON.parse(JSON.stringify(attendanceMap)));
-      showToast("Attendance saved successfully!", "success");
+      showToast("Davomat muvaffaqiyatli saqlandi!", "success");
     }
     setIsSaving(false);
   };
@@ -236,7 +236,7 @@ export default function Attendance({ activeBranch }) {
         index: i + 1,
         day: dayNum,
         date: `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}`,
-        formattedDate: new Intl.DateTimeFormat("en-US", {
+        formattedDate: new Intl.DateTimeFormat("uz-UZ", {
           month: "short",
           day: "numeric",
           weekday: "short",
@@ -279,9 +279,9 @@ export default function Attendance({ activeBranch }) {
   };
 
   const scheduleLabel = (type) => {
-    if (type === "odd") return "Odd Days (Mon-Wed-Fri)";
-    if (type === "even") return "Even Days (Tue-Thu-Sat)";
-    return "All Days";
+    if (type === "odd") return "Toq kunlar (Dush-Chor-Jum)";
+    if (type === "even") return "Juft kunlar (Sesh-Pay-Shan)";
+    return "Har kuni";
   };
 
   return (
@@ -289,10 +289,10 @@ export default function Attendance({ activeBranch }) {
       <div className="at-header">
         <div>
           <h1 className="at-title">
-            {activeBranch?.name || "Branch"} • Attendance
+            {activeBranch?.name || "Filial"} • Davomat
           </h1>
           <p className="at-desc">
-            <FiHome /> Select a group to manage attendance
+            <FiHome /> Guruhlar davomatini boshqarish
           </p>
         </div>
       </div>
@@ -301,7 +301,7 @@ export default function Attendance({ activeBranch }) {
         <div className="at-search">
           <FiSearch />
           <input
-            placeholder="Search groups..."
+            placeholder="Guruhlarni qidirish..."
             value={mainSearch}
             onChange={(e) => setMainSearch(e.target.value)}
           />
@@ -310,7 +310,7 @@ export default function Attendance({ activeBranch }) {
           value={selectedCourse}
           onChange={(e) => setSelectedCourse(e.target.value)}
         >
-          <option value="">All Courses</option>
+          <option value="">Barcha kurslar</option>
           {courses.map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}
@@ -321,7 +321,7 @@ export default function Attendance({ activeBranch }) {
           value={selectedTeacher}
           onChange={(e) => setSelectedTeacher(e.target.value)}
         >
-          <option value="">All Teachers</option>
+          <option value="">Barcha ustozlar</option>
           {teachers.map((t) => (
             <option key={t.id} value={t.id}>
               {t.name}
@@ -330,13 +330,13 @@ export default function Attendance({ activeBranch }) {
         </select>
       </div>
 
-      <h2 className="at-section-title">Available Groups</h2>
+      <h2 className="at-section-title">Mavjud guruhlar</h2>
 
       {filteredGroups.length === 0 ? (
         <div className="at-empty">
           <FiLayers size={44} />
-          <h3>No groups found</h3>
-          <p>No groups match your filter criteria</p>
+          <h3>Guruhlar topilmadi</h3>
+          <p>Filtr bo'yicha hech qanday guruh topilmadi</p>
         </div>
       ) : (
         <div className="at-grid">
@@ -355,7 +355,7 @@ export default function Attendance({ activeBranch }) {
                 <h3>{g.name}</h3>
                 <div className="at-card-foot">
                   <span>
-                    <FiClock /> Click to view
+                    <FiClock /> Davomatni ko'rish
                   </span>
                   <FiEye className="at-eye" />
                 </div>
@@ -365,20 +365,21 @@ export default function Attendance({ activeBranch }) {
         </div>
       )}
 
+      {/* Guruh davomati modali */}
       {isModalOpen &&
         createPortal(
           <div className="at-overlay" onClick={closeModal}>
             <div className="at-modal" onClick={(e) => e.stopPropagation()}>
               <div className="at-modal-header">
                 <div>
-                  <h2>{selectedGroup?.name} — Attendance</h2>
+                  <h2>{selectedGroup?.name} — Davomat</h2>
                   <p>
-                    Schedule:{" "}
+                    Jadval:{" "}
                     <strong>
                       {scheduleLabel(selectedGroup?.schedule_type)}
                     </strong>
                     {" · "}
-                    Lessons: <strong>{lessons.length}</strong>
+                    Darslar: <strong>{lessons.length}</strong>
                   </p>
                 </div>
                 <button className="at-close" onClick={closeModal}>
@@ -393,7 +394,7 @@ export default function Attendance({ activeBranch }) {
                   </button>
                   <h3>
                     <FiCalendar />
-                    {new Intl.DateTimeFormat("en-US", {
+                    {new Intl.DateTimeFormat("uz-UZ", {
                       month: "long",
                       year: "numeric",
                     }).format(new Date(currentYear, currentMonth))}
@@ -407,7 +408,7 @@ export default function Attendance({ activeBranch }) {
                   <div className="at-search sm">
                     <FiSearch />
                     <input
-                      placeholder="Search student..."
+                      placeholder="Talabani qidirish..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -417,12 +418,8 @@ export default function Attendance({ activeBranch }) {
                     onClick={saveAttendance}
                     disabled={isSaving}
                   >
-                    {isSaving ? (
-                      <FiLoader className="at-spin" />
-                    ) : (
-                      <FiDatabase />
-                    )}
-                    {isSaving ? "Saving..." : "Save Changes"}
+                    {isSaving ? <FiLoader className="at-spin" /> : <FiDatabase />}
+                    {isSaving ? "Saqlanmoqda..." : "Saqlash"}
                   </button>
                 </div>
               </div>
@@ -431,14 +428,14 @@ export default function Attendance({ activeBranch }) {
                 {isLoading ? (
                   <div className="at-loading">
                     <FiLoader className="at-spin-lg" />
-                    <p>Loading attendance...</p>
+                    <p>Davomat yuklanmoqda...</p>
                   </div>
                 ) : (
                   <div className="at-table-scroll">
                     <table className="at-table">
                       <thead>
                         <tr>
-                          <th className="at-sticky">Student</th>
+                          <th className="at-sticky">Talaba</th>
                           {lessons.map((l) => (
                             <th
                               key={l.key}
@@ -450,10 +447,10 @@ export default function Attendance({ activeBranch }) {
                                 {l.formattedDate}
                               </span>
                               {l.isSunday && (
-                                <span className="at-chip sun">Sun</span>
+                                <span className="at-chip sun">Dam</span>
                               )}
                               {l.isToday && (
-                                <span className="at-chip today">Today</span>
+                                <span className="at-chip today">Bugun</span>
                               )}
                             </th>
                           ))}
@@ -469,7 +466,7 @@ export default function Attendance({ activeBranch }) {
                               colSpan={lessons.length + 2}
                               className="at-no-data"
                             >
-                              No students found
+                              Talabalar topilmadi
                             </td>
                           </tr>
                         ) : (
@@ -515,8 +512,8 @@ export default function Attendance({ activeBranch }) {
                                       stats.percent > 70
                                         ? "good"
                                         : stats.percent > 40
-                                          ? "warn"
-                                          : "bad"
+                                        ? "warn"
+                                        : "bad"
                                     }`}
                                   >
                                     {stats.percent}%

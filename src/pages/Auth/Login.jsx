@@ -36,6 +36,20 @@ export default function Login() {
         }
 
         const uid = session.user.id;
+
+        // 1. Foydalanuvchi o'qituvchiligini tekshirish
+        const { data: teacherCheck } = await supabase
+          .from("teachers")
+          .select("id")
+          .eq("auth_id", uid)
+          .single();
+
+        if (teacherCheck) {
+          navigate("/teacher/groups", { replace: true });
+          return;
+        }
+
+        // 2. Admin filiallarini tekshirish
         const { data: branches } = await supabase
           .from("branches")
           .select("id")
@@ -49,7 +63,7 @@ export default function Login() {
           navigate(`/dashboard/${branches[0].id}`, { replace: true });
         }
       } catch (err) {
-        console.error(err);
+        console.error("Session check error:", err.message);
         setCheckingSession(false);
       }
     };
@@ -69,16 +83,29 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
         email: form.email.trim(),
         password: form.password,
       });
 
-      if (error) throw error;
+      if (authError) throw authError;
 
       const user = data?.user;
-      if (!user) throw new Error("Login failed");
+      if (!user) throw new Error("Login failed: User data not found");
 
+      // 1. O'qituvchi ekanligini tekshirish
+      const { data: teacherCheck } = await supabase
+        .from("teachers")
+        .select("id")
+        .eq("auth_id", user.id)
+        .single();
+
+      if (teacherCheck) {
+        navigate("/teacher/groups", { replace: true });
+        return;
+      }
+
+      // 2. Admin filiallarini tekshirish
       const { data: branches } = await supabase
         .from("branches")
         .select("id")
@@ -91,7 +118,11 @@ export default function Login() {
         navigate(`/dashboard/${branches[0].id}`, { replace: true });
       }
     } catch (err) {
-      setError(err.message || "Something went wrong");
+      if (err.message.includes("Invalid login credentials")) {
+        setError("Email yoki parol noto'g'ri kiritildi.");
+      } else {
+        setError(err.message || "Xatolik yuz berdi. Qaytdan urinib ko'ring.");
+      }
     } finally {
       setLoading(false);
     }
