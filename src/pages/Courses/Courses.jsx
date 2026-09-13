@@ -203,7 +203,8 @@ export default function Courses({ activeBranch }) {
                 <div className="cr-detail-card">
                   <span>Total Groups</span>
                   <strong>
-                    {currentStats?.groupsCount || 0} active groups
+                    {currentStats?.groupsCount || 0} active{" "}
+                    {currentStats?.groupsCount === 1 ? "group" : "groups"}
                   </strong>
                 </div>
                 <div className="cr-detail-card">
@@ -257,6 +258,7 @@ export default function Courses({ activeBranch }) {
 
   return (
     <div className="cr-module-root">
+      {/* HEADER */}
       <div className="cr-header-section">
         <div className="title-area">
           <h1 className="page-main-title">
@@ -279,6 +281,8 @@ export default function Courses({ activeBranch }) {
           <FiPlus /> New Course
         </button>
       </div>
+
+      {/* ERROR */}
       {error && (
         <div className="cr-error-state">
           <FiAlertCircle />
@@ -286,15 +290,21 @@ export default function Courses({ activeBranch }) {
           <button onClick={fetchData}>Retry</button>
         </div>
       )}
+
+      {/* LOADING */}
       {loading && !error ? (
         <div className="cr-grid-layout">
-          {[...Array(9)].map((_, index) => (
+          {[...Array(8)].map((_, index) => (
             <div key={index} className="cr-course-card cr-skeleton-card">
-              <div className="cr-skeleton-top-line skeleton shimmer"></div>
+              <div className="cr-skeleton-top-line skeleton"></div>
               <div className="cr-card-body">
-                <div className="cr-skeleton-icon skeleton shimmer"></div>
-                <div className="cr-skeleton-title skeleton shimmer"></div>
-                <div className="cr-skeleton-text skeleton shimmer"></div>
+                <div className="cr-skeleton-icon skeleton"></div>
+                <div className="cr-skeleton-title skeleton"></div>
+                <div className="cr-skeleton-text skeleton"></div>
+                <div className="cr-skeleton-stats">
+                  <div className="cr-skeleton-stat skeleton"></div>
+                  <div className="cr-skeleton-stat skeleton"></div>
+                </div>
               </div>
             </div>
           ))}
@@ -355,6 +365,7 @@ export default function Courses({ activeBranch }) {
                         setCourseName(course.name);
                         setModalMode("edit");
                       }}
+                      title="Edit"
                     >
                       <FiEdit3 />
                     </button>
@@ -365,6 +376,7 @@ export default function Courses({ activeBranch }) {
                         setSelectedCourse(course);
                         setModalMode("delete_confirm");
                       }}
+                      title="Delete"
                     >
                       <FiTrash2 />
                     </button>
@@ -375,6 +387,7 @@ export default function Courses({ activeBranch }) {
           </div>
         )
       )}
+
       {renderModal()}
     </div>
   );

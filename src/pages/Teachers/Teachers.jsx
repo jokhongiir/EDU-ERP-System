@@ -43,9 +43,6 @@ export default function Teachers({ activeBranch }) {
   const [editId, setEditId] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
 
-  // Jadval ichida parollarni ko'rsatish/yashirish uchun state (teacher.id bo'yicha)
-  const [visibleTablePasswords, setVisibleTablePasswords] = useState({});
-
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -61,7 +58,6 @@ export default function Teachers({ activeBranch }) {
   const branchId = activeBranch?.id;
   const getTodayStr = () => new Date().toISOString().slice(0, 10);
 
-  // Ma'lumotlarni xavfsiz va parallel yuklab olish
   const fetchData = useCallback(
     async (silent = false) => {
       if (!branchId) return;
@@ -86,7 +82,7 @@ export default function Teachers({ activeBranch }) {
         setCourses(cRes.data || []);
         setStudents(sRes.data || []);
       } catch (err) {
-        console.error("Ma'lumotlarni yuklashda xatolik:", err.message);
+        console.error("Error loading teachers data:", err.message);
       } finally {
         if (!silent) setLoading(false);
       }
@@ -98,12 +94,18 @@ export default function Teachers({ activeBranch }) {
     fetchData();
   }, [fetchData]);
 
-  // Kurslar xaritasi (O'qituvchining kurs nomini tez topish uchun)
+  useEffect(() => {
+    const anyOpen = modalOpen || viewOpen || deleteId;
+    document.body.style.overflow = anyOpen ? "hidden" : "unset";
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [modalOpen, viewOpen, deleteId]);
+
   const courseMap = useMemo(() => {
     return new Map(courses.map((c) => [c.id, c.name]));
   }, [courses]);
 
-  // O'qituvchilarga tegishli statistika va daromadni hisoblash
   const teacherStatsMap = useMemo(() => {
     const stats = {};
     teachers.forEach((teacher) => {
@@ -130,9 +132,8 @@ export default function Teachers({ activeBranch }) {
     return stats;
   }, [teachers, students]);
 
-  const getCourseName = (id) => courseMap.get(id) || "Kurs biriktirilmagan";
+  const getCourseName = (id) => courseMap.get(id) || "No course assigned";
 
-  // Qidiruv va filtratsiya
   const filteredTeachers = useMemo(() => {
     const query = search.toLowerCase().trim();
     return teachers.filter((t) => {
@@ -196,7 +197,7 @@ export default function Teachers({ activeBranch }) {
       name: teacher.name || "",
       phone: teacher.phone || "",
       email: teacher.email || "",
-      password: "", // Xavfsizlik uchun tahrirlashda parol bo'sh keladi (kerak bo'lsa yangi yoziladi)
+      password: "",
       course_id: teacher.course_id || "",
       salary_paid: teacher.salary_paid || false,
       last_payment: teacher.last_payment || "",
@@ -207,7 +208,6 @@ export default function Teachers({ activeBranch }) {
     setModalOpen(true);
   };
 
-  // Saqlash funksiyasi (Auth va Teachers bazasini xavfsiz bog'lash bilan)
   const handleSaveTeacher = async (e) => {
     e.preventDefault();
     if (!form.name.trim() || !branchId) return;
@@ -217,12 +217,12 @@ export default function Teachers({ activeBranch }) {
       let authId = null;
 
       if (!editId) {
-        // Yangi o'qituvchi uchun Auth akkaunt ochish
         if (form.email && form.password) {
-          const { data: authData, error: authError } = await supabase.auth.signUp({
-            email: form.email.trim(),
-            password: form.password,
-          });
+          const { data: authData, error: authError } =
+            await supabase.auth.signUp({
+              email: form.email.trim(),
+              password: form.password,
+            });
           if (authError) throw authError;
           authId = authData?.user?.id || null;
         }
@@ -231,7 +231,7 @@ export default function Teachers({ activeBranch }) {
           name: form.name.trim(),
           phone: form.phone.trim(),
           email: form.email.trim() || null,
-          password: form.password || null, // Parolni ham bazada saqlab qo'yish uchun
+          password: form.password || null,
           course_id: form.course_id || null,
           salary_paid: form.salary_paid,
           last_payment: form.last_payment || null,
@@ -244,15 +244,15 @@ export default function Teachers({ activeBranch }) {
         const { error } = await supabase.from("teachers").insert([newTeacher]);
         if (error) throw error;
       } else {
-        // Mavjud o'qituvchini tahrirlash
         const currentTeacher = teachers.find((t) => t.id === editId);
         authId = currentTeacher?.auth_id || null;
 
         if (!authId && form.email && form.password) {
-          const { data: authData, error: authError } = await supabase.auth.signUp({
-            email: form.email.trim(),
-            password: form.password,
-          });
+          const { data: authData, error: authError } =
+            await supabase.auth.signUp({
+              email: form.email.trim(),
+              password: form.password,
+            });
           if (!authError) {
             authId = authData?.user?.id || null;
           }
@@ -271,7 +271,6 @@ export default function Teachers({ activeBranch }) {
           updated_at: new Date(),
         };
 
-        // Agar yangi parol kiritilgan bo'lsa, uni ham yangilaymiz
         if (form.password) {
           updatedTeacher.password = form.password;
         }
@@ -287,7 +286,7 @@ export default function Teachers({ activeBranch }) {
       resetForm();
       fetchData(true);
     } catch (err) {
-      alert("Xatolik yuz berdi: " + err.message);
+      alert("Error: " + err.message);
     } finally {
       setSaving(false);
     }
@@ -305,14 +304,14 @@ export default function Teachers({ activeBranch }) {
       setTeachers((prev) => prev.filter((t) => t.id !== deleteId));
       setDeleteId(null);
     } catch (err) {
-      alert("O'chirishda xatolik yuz berdi: " + err.message);
+      alert("Delete failed: " + err.message);
     }
   };
 
   const renderModals = () =>
     createPortal(
       <>
-        {/* Ko'rish (View) Modali */}
+        {/* VIEW MODAL */}
         {viewOpen && viewData && (
           <div className="portal-overlay" onClick={() => setViewOpen(false)}>
             <div
@@ -320,7 +319,10 @@ export default function Teachers({ activeBranch }) {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="modal-top-accent"></div>
-              <button className="close-x-btn" onClick={() => setViewOpen(false)}>
+              <button
+                className="close-x-btn"
+                onClick={() => setViewOpen(false)}
+              >
                 <FiX />
               </button>
 
@@ -331,53 +333,53 @@ export default function Teachers({ activeBranch }) {
                   </div>
                   <h2 className="profile-name">{viewData.name}</h2>
                   <p className="profile-role">
-                    {viewData.email || "Email kiritilmagan"}
+                    {viewData.email || "No email provided"}
                   </p>
                   <div
                     className={`status-label ${
                       viewData.salary_paid ? "paid" : "pending"
                     }`}
                   >
-                    {viewData.salary_paid ? "Maosh to'langan" : "Maosh kutilmoqda"}
+                    {viewData.salary_paid ? "Salary Paid" : "Salary Pending"}
                   </div>
                 </div>
 
                 <div className="info-grid-details">
                   <div className="info-item">
                     <label>
-                      <FiPhone /> Telefon
+                      <FiPhone /> Phone
                     </label>
-                    <span>{viewData.phone || "Mavjud emas"}</span>
+                    <span>{viewData.phone || "Not available"}</span>
                   </div>
                   <div className="info-item">
                     <label>
-                      <FiMail /> Gmail
+                      <FiMail /> Email
                     </label>
-                    <span>{viewData.email || "Mavjud emas"}</span>
+                    <span>{viewData.email || "Not available"}</span>
                   </div>
                   <div className="info-item">
                     <label>
-                      <FiLock /> Parol
+                      <FiLock /> Password
                     </label>
-                    <span>{viewData.password || "Mavjud emas"}</span>
+                    <span>{viewData.password || "Not available"}</span>
                   </div>
                   <div className="info-item">
                     <label>
-                      <FiBookOpen /> Kurs
+                      <FiBookOpen /> Course
                     </label>
                     <span>{getCourseName(viewData.course_id)}</span>
                   </div>
                   <div className="info-item">
                     <label>
-                      <FiUsers /> O'quvchilar
+                      <FiUsers /> Students
                     </label>
                     <span>
-                      {teacherStatsMap[String(viewData.id)]?.count || 0} ta
+                      {teacherStatsMap[String(viewData.id)]?.count || 0}
                     </span>
                   </div>
                   <div className="info-item">
                     <label>
-                      <FiDollarSign /> Daromad
+                      <FiDollarSign /> Income
                     </label>
                     <span className="income-highlight">
                       {(
@@ -392,7 +394,7 @@ export default function Teachers({ activeBranch }) {
           </div>
         )}
 
-        {/* Qo'shish / Tahrirlash Modali */}
+        {/* ADD / EDIT MODAL */}
         {modalOpen && (
           <div className="portal-overlay" onClick={resetForm}>
             <div
@@ -403,11 +405,11 @@ export default function Teachers({ activeBranch }) {
                 <h3>
                   {editId ? (
                     <>
-                      <FiEdit /> O'qituvchi ma'lumotlarini tahrirlash
+                      <FiEdit /> Edit Teacher
                     </>
                   ) : (
                     <>
-                      <FiUserPlus /> Yangi o'qituvchi qo'shish
+                      <FiUserPlus /> Add New Teacher
                     </>
                   )}
                 </h3>
@@ -418,19 +420,19 @@ export default function Teachers({ activeBranch }) {
 
               <form onSubmit={handleSaveTeacher} className="modal-form-main">
                 <div className="input-group-full">
-                  <label>O'qituvchining F.I.Sh *</label>
+                  <label>Full Name *</label>
                   <input
                     name="name"
                     value={form.name}
                     onChange={handleInputChange}
-                    placeholder="Masalan: Anvar Karimov"
+                    placeholder="e.g. Anvar Karimov"
                     required
                   />
                 </div>
 
                 <div className="input-row-double">
                   <div className="input-group-half">
-                    <label>Telefon raqam</label>
+                    <label>Phone Number</label>
                     <input
                       name="phone"
                       value={form.phone}
@@ -440,14 +442,14 @@ export default function Teachers({ activeBranch }) {
                   </div>
 
                   <div className="input-group-half">
-                    <label>Biriktirilgan kurs</label>
+                    <label>Assigned Course</label>
                     <select
                       name="course_id"
                       value={form.course_id}
                       onChange={handleInputChange}
                     >
                       <option hidden value="">
-                        Kursni tanlang
+                        Select course
                       </option>
                       {courses.map((c) => (
                         <option key={c.id} value={c.id}>
@@ -460,7 +462,7 @@ export default function Teachers({ activeBranch }) {
 
                 <div className="input-row-double">
                   <div className="input-group-half">
-                    <label>Gmail (Tizimga kirish uchun)</label>
+                    <label>Email (for login)</label>
                     <input
                       type="email"
                       name="email"
@@ -472,41 +474,31 @@ export default function Teachers({ activeBranch }) {
 
                   <div className="input-group-half">
                     <label>
-                      {editId ? "Yangi parol (ixtiyoriy)" : "Parol *"}
+                      {editId ? "New Password (optional)" : "Password *"}
                     </label>
-                    <div
-                      style={{
-                        position: "relative",
-                        display: "flex",
-                        alignItems: "center",
-                      }}
-                    >
+                    <div className="password-input-wrap">
                       <input
                         type={showPassword ? "text" : "password"}
                         name="password"
                         value={form.password}
                         onChange={handleInputChange}
                         placeholder={
-                          editId ? "O'zgartirmasangiz bo'sh qoldiring" : "Min 6 ta belgi"
+                          editId
+                            ? "Leave blank to keep current"
+                            : "Min 6 characters"
                         }
-                        style={{ width: "100%", paddingRight: "40px" }}
                         required={!editId && Boolean(form.email)}
                       />
                       <button
                         type="button"
+                        className="toggle-password-btn"
                         onClick={() => setShowPassword(!showPassword)}
-                        style={{
-                          position: "absolute",
-                          right: "10px",
-                          background: "transparent",
-                          border: "none",
-                          cursor: "pointer",
-                          color: "#6b7280",
-                          display: "flex",
-                          alignItems: "center",
-                        }}
                       >
-                        {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                        {showPassword ? (
+                          <FiEyeOff size={18} />
+                        ) : (
+                          <FiEye size={18} />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -514,7 +506,7 @@ export default function Teachers({ activeBranch }) {
 
                 <div className="input-row-double">
                   <div className="input-group-half">
-                    <label>Oxirgi to'langan sana</label>
+                    <label>Last Payment Date</label>
                     <input
                       type="date"
                       name="last_payment"
@@ -523,7 +515,7 @@ export default function Teachers({ activeBranch }) {
                     />
                   </div>
                   <div className="input-group-half">
-                    <label>Keyingi to'lov sanasi</label>
+                    <label>Next Payment Date</label>
                     <input
                       type="date"
                       name="next_payment"
@@ -543,7 +535,7 @@ export default function Teachers({ activeBranch }) {
                       onChange={handleInputChange}
                     />
                     <label htmlFor="salary_paid">
-                      Ushbu oy uchun maoshi to'langan
+                      Salary paid for the current month
                     </label>
                   </div>
                 </div>
@@ -554,7 +546,7 @@ export default function Teachers({ activeBranch }) {
                     className="btn-cancel-form"
                     onClick={resetForm}
                   >
-                    Bekor qilish
+                    Cancel
                   </button>
                   <button
                     type="submit"
@@ -562,10 +554,10 @@ export default function Teachers({ activeBranch }) {
                     disabled={saving}
                   >
                     {saving ? (
-                      "Saqlanmoqda..."
+                      "Saving..."
                     ) : (
                       <>
-                        <FiSave /> Saqlash
+                        <FiSave /> Save
                       </>
                     )}
                   </button>
@@ -575,7 +567,7 @@ export default function Teachers({ activeBranch }) {
           </div>
         )}
 
-        {/* O'chirishni tasdiqlash Modali */}
+        {/* DELETE CONFIRM MODAL */}
         {deleteId && (
           <div className="portal-overlay" onClick={() => setDeleteId(null)}>
             <div
@@ -585,17 +577,17 @@ export default function Teachers({ activeBranch }) {
               <div className="confirm-icon-wrapper">
                 <FiAlertTriangle />
               </div>
-              <h3>O'qituvchini o'chirish</h3>
-              <p>Haqiqatan ham ushbu o'qituvchini o'chirmoqchimisiz?</p>
+              <h3>Delete Teacher</h3>
+              <p>
+                Are you sure you want to permanently delete this teacher? This
+                action cannot be undone.
+              </p>
               <div className="confirm-footer-btns">
-                <button
-                  className="btn-no"
-                  onClick={() => setDeleteId(null)}
-                >
-                  Yo'q
+                <button className="btn-no" onClick={() => setDeleteId(null)}>
+                  Cancel
                 </button>
                 <button className="btn-yes" onClick={confirmDelete}>
-                  Ha, o'chirish
+                  Yes, Delete
                 </button>
               </div>
             </div>
@@ -607,13 +599,16 @@ export default function Teachers({ activeBranch }) {
 
   return (
     <div className="teachers-page-container">
+      {/* HEADER */}
       <header className="teachers-header-box">
         <div className="title-area">
           <h1 className="page-main-title">
-            {activeBranch ? `${activeBranch.name} • O'qituvchilar` : "O'qituvchilar"}
+            {activeBranch
+              ? `${activeBranch.name} • Teachers`
+              : "Teachers"}
           </h1>
           <p className="page-description">
-            Filial bo'yicha o'qituvchilarni boshqarish va oylik maoshlarini kuzatib borish
+            Manage teachers and track monthly salary payments by branch
           </p>
         </div>
 
@@ -622,16 +617,17 @@ export default function Teachers({ activeBranch }) {
           disabled={!branchId}
           onClick={() => setModalOpen(true)}
         >
-          <FiPlus /> O'qituvchi qo'shish
+          <FiPlus /> Add Teacher
         </button>
       </header>
 
+      {/* CONTROLS */}
       <div className="teachers-controls-bar">
         <div className="search-input-field">
           <FiSearch className="search-icon-fixed" />
           <input
             type="text"
-            placeholder="Ism, telefon yoki email bo'yicha qidirish..."
+            placeholder="Search by name, phone or email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -642,7 +638,7 @@ export default function Teachers({ activeBranch }) {
           value={filterCourse}
           onChange={(e) => setFilterCourse(e.target.value)}
         >
-          <option value="all">Barcha kurslar</option>
+          <option value="all">All Courses</option>
           {courses.map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}
@@ -651,95 +647,125 @@ export default function Teachers({ activeBranch }) {
         </select>
       </div>
 
+      {/* TABLE */}
       <div className="teachers-table-overflow">
         <table className="modern-data-table">
           <thead>
             <tr>
               <th>#</th>
-              <th>F.I.Sh</th>
-              {/* <th>Gmail</th> */}
-              {/* <th>Parol</th> */}
-              <th>Telefon</th>
-              <th>Kurs</th>
-              <th>O'quvchilar</th>
-              <th>Daromad</th>
-              <th>Holati</th>
-              <th className="text-center">Amallar</th>
+              <th>Full Name</th>
+              <th>Phone</th>
+              <th>Course</th>
+              <th>Students</th>
+              <th>Income</th>
+              <th>Status</th>
+              <th className="text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr>
-                <td colSpan="10" className="td-empty">
-                  Yuklanmoqda...
-                </td>
-              </tr>
+              Array.from({ length: 10 }).map((_, i) => (
+                <tr key={i} className="skeleton-row">
+                  <td>
+                    <div className="skeleton skeleton-id"></div>
+                  </td>
+                  <td>
+                    <div className="skeleton skeleton-name"></div>
+                  </td>
+                  <td>
+                    <div className="skeleton skeleton-phone"></div>
+                  </td>
+                  <td>
+                    <div className="skeleton skeleton-badge"></div>
+                  </td>
+                  <td>
+                    <div className="skeleton skeleton-badge"></div>
+                  </td>
+                  <td>
+                    <div className="skeleton skeleton-price"></div>
+                  </td>
+                  <td>
+                    <div className="skeleton skeleton-status"></div>
+                  </td>
+                  <td>
+                    <div className="skeleton-actions">
+                      <div className="skeleton skeleton-btn"></div>
+                      <div className="skeleton skeleton-btn"></div>
+                    </div>
+                  </td>
+                </tr>
+              ))
             ) : filteredTeachers.length === 0 ? (
               <tr>
-                <td colSpan="10" className="td-empty">
-                  O'qituvchilar topilmadi
+                <td colSpan="8">
+                  <div className="teachers-empty">
+                    <FiUser size={42} style={{ opacity: 0.35 }} />
+                    <p>No teachers found matching the selected filters</p>
+                  </div>
                 </td>
               </tr>
             ) : (
-              filteredTeachers.map((t, idx) => {
-                const isPassVisible = visibleTablePasswords[t.id];
-                return (
-                  <tr
-                    key={t.id}
-                    onClick={() => {
-                      setViewData(t);
-                      setViewOpen(true);
-                    }}
-                  >
-                    <td>{idx + 1}</td>
-                    <td className="font-bold-name">{t.name}</td>
-                    <td>{t.phone || "—"}</td>
-                    <td>
-                      <span className="badge-course">
-                        {getCourseName(t.course_id)}
-                      </span>
-                    </td>
-                    <td>
-                      <FiUsers style={{ marginRight: "5px" }} />
-                      {teacherStatsMap[String(t.id)]?.count || 0} ta
-                    </td>
-                    <td className="price-col">
-                      {(
-                        teacherStatsMap[String(t.id)]?.income || 0
-                      ).toLocaleString()}{" "}
-                      UZS
-                    </td>
-                    <td>
-                      <span
-                        className={`status-pill-small ${
-                          t.salary_paid ? "paid" : "unpaid"
-                        }`}
-                      >
-                        {t.salary_paid ? "To'langan" : "To'lanmagan"}
-                      </span>
-                    </td>
-                    <td
-                      className="actions-cell-row"
-                      onClick={(e) => e.stopPropagation()}
+              filteredTeachers.map((t, idx) => (
+                <tr
+                  key={t.id}
+                  onClick={() => {
+                    setViewData(t);
+                    setViewOpen(true);
+                  }}
+                >
+                  <td data-label="#">{idx + 1}</td>
+                  <td data-label="Full Name" className="font-bold-name">
+                    {t.name}
+                  </td>
+                  <td data-label="Phone">{t.phone || "—"}</td>
+                  <td data-label="Course">
+                    <span className="badge-course">
+                      {getCourseName(t.course_id)}
+                    </span>
+                  </td>
+                  <td data-label="Students">
+                    <span className="students-count">
+                      <FiUsers />
+                      {teacherStatsMap[String(t.id)]?.count || 0}
+                    </span>
+                  </td>
+                  <td data-label="Income" className="price-col">
+                    {(
+                      teacherStatsMap[String(t.id)]?.income || 0
+                    ).toLocaleString()}{" "}
+                    UZS
+                  </td>
+                  <td data-label="Status">
+                    <span
+                      className={`status-pill-small ${
+                        t.salary_paid ? "paid" : "unpaid"
+                      }`}
                     >
-                      <button
-                        className="row-btn edit"
-                        onClick={() => openEditModal(t)}
-                        title="Tahrirlash"
-                      >
-                        <FiEdit />
-                      </button>
-                      <button
-                        className="row-btn delete"
-                        onClick={() => setDeleteId(t.id)}
-                        title="O'chirish"
-                      >
-                        <FiTrash2 />
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })
+                      {t.salary_paid ? "Paid" : "Unpaid"}
+                    </span>
+                  </td>
+                  <td
+                    data-label="Actions"
+                    className="actions-cell-row"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <button
+                      className="row-btn edit"
+                      onClick={() => openEditModal(t)}
+                      title="Edit"
+                    >
+                      <FiEdit />
+                    </button>
+                    <button
+                      className="row-btn delete"
+                      onClick={() => setDeleteId(t.id)}
+                      title="Delete"
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </td>
+                </tr>
+              ))
             )}
           </tbody>
         </table>

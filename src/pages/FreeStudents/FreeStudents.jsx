@@ -396,7 +396,8 @@ export default function FreeStudents({ activeBranch }) {
 
   return (
     <div className="students free-students">
-      <div className="Column-Table-Students">
+      {/* ===== HEADER + FILTERS ===== */}
+      <div className="students-top">
         <div className="students__header">
           <div className="title-area">
             <h1 className="page-main-title">
@@ -409,10 +410,12 @@ export default function FreeStudents({ activeBranch }) {
 
           <button
             className="primary-btn free-btn"
-            onClick={() => navigate(`/dashboard/${branchId}/addstudents?type=free`)}
+            onClick={() =>
+              navigate(`/dashboard/${branchId}/addstudents?type=free`)
+            }
             disabled={!branchId}
           >
-            <FiGift style={{ marginRight: 8 }} />
+            <FiGift />
             + Add Free Student
           </button>
         </div>
@@ -426,6 +429,7 @@ export default function FreeStudents({ activeBranch }) {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
+
           <div className="filter-select-box">
             <select
               value={filterCourse}
@@ -439,6 +443,7 @@ export default function FreeStudents({ activeBranch }) {
               ))}
             </select>
           </div>
+
           <div className="filter-select-box">
             <select
               value={filterTeacher}
@@ -452,6 +457,7 @@ export default function FreeStudents({ activeBranch }) {
               ))}
             </select>
           </div>
+
           <div className="filter-select-box">
             <select
               value={filterGroup}
@@ -468,6 +474,7 @@ export default function FreeStudents({ activeBranch }) {
         </div>
       </div>
 
+      {/* ===== TABLE ===== */}
       <div className="students__table-wrapper">
         <table className="students__table">
           <thead>
@@ -475,9 +482,9 @@ export default function FreeStudents({ activeBranch }) {
               <th>#</th>
               <th>Full Name</th>
               <th>Contact Phone</th>
-              <th>Enrolled Course</th>
-              <th>Assigned Teacher</th>
-              <th>Group Class</th>
+              <th>Course</th>
+              <th>Teacher</th>
+              <th>Group</th>
               <th>Status</th>
               <th align="center">Actions</th>
             </tr>
@@ -485,8 +492,8 @@ export default function FreeStudents({ activeBranch }) {
 
           <tbody>
             {loading ? (
-              Array.from({ length: 15 }).map((_, i) => (
-                <tr key={i}>
+              Array.from({ length: 12 }).map((_, i) => (
+                <tr key={i} className="skeleton-row">
                   <td>
                     <div className="skeleton skeleton-id"></div>
                   </td>
@@ -527,10 +534,7 @@ export default function FreeStudents({ activeBranch }) {
               <tr>
                 <td colSpan="8">
                   <div className="students__empty">
-                    <FiGift
-                      size={40}
-                      style={{ marginBottom: "12px", opacity: 0.4 }}
-                    />
+                    <FiGift size={42} style={{ opacity: 0.35 }} />
                     <p>No free students found matching the selected filters</p>
                   </div>
                 </td>
@@ -538,24 +542,26 @@ export default function FreeStudents({ activeBranch }) {
             ) : (
               filteredStudents.map((s, i) => (
                 <tr key={s.id} onClick={() => openView(s)}>
-                  <td>{i + 1}</td>
-                  <td className="font-bold-name">
+                  <td data-label="#">{i + 1}</td>
+                  <td data-label="Full Name" className="font-bold-name">
                     {s.first_name} {s.last_name}
                   </td>
-                  <td>{s.phone || "—"}</td>
-                  <td>
+                  <td data-label="Phone">{s.phone || "—"}</td>
+                  <td data-label="Course">
                     <span className="badge-course">
                       {s.courses?.name || "N/A"}
                     </span>
                   </td>
-                  <td>{s.teachers?.name || "—"}</td>
-                  <td>{s.groups?.name || "—"}</td>
-                  <td>
-                    <span className="status-pill-small free">
-                      FREE
-                    </span>
+                  <td data-label="Teacher">{s.teachers?.name || "—"}</td>
+                  <td data-label="Group">{s.groups?.name || "—"}</td>
+                  <td data-label="Status">
+                    <span className="status-pill-small free">FREE</span>
                   </td>
-                  <td onClick={(e) => e.stopPropagation()} align="center">
+                  <td
+                    data-label="Actions"
+                    onClick={(e) => e.stopPropagation()}
+                    align="center"
+                  >
                     <div className="actions-cell-row">
                       <button
                         className="row-btn edit"
@@ -567,14 +573,14 @@ export default function FreeStudents({ activeBranch }) {
                       <button
                         className="row-btn archive"
                         onClick={() => openArchiveConfirm(s)}
-                        title="Archive Student"
+                        title="Archive"
                       >
                         <FiArchive />
                       </button>
                       <button
                         className="row-btn delete"
                         onClick={() => openDeleteConfirm(s)}
-                        title="Delete Permanently"
+                        title="Delete"
                       >
                         <FiTrash2 />
                       </button>
@@ -587,7 +593,7 @@ export default function FreeStudents({ activeBranch }) {
         </table>
       </div>
 
-      {/* VIEW MODAL */}
+      {/* ===== VIEW MODAL ===== */}
       {viewOpen && viewData && (
         <div className="modal" onClick={() => setViewOpen(false)}>
           <div
@@ -596,13 +602,14 @@ export default function FreeStudents({ activeBranch }) {
           >
             <div className="modal__header">
               <h3>
-                <FiGift style={{ marginRight: 8 }} />
+                <FiGift style={{ marginRight: 8, color: "#059669" }} />
                 Free Student Record
               </h3>
               <button onClick={() => setViewOpen(false)}>
                 <FiX />
               </button>
             </div>
+
             <div className="view__grid">
               <div className="view__column">
                 <div className="view__field">
@@ -618,19 +625,19 @@ export default function FreeStudents({ activeBranch }) {
                   </div>
                 </div>
                 <div className="view__field">
-                  <label>Emergency Parent Contact</label>
+                  <label>Parent Contact</label>
                   <div className="view__value">
                     {viewData.parent_phone || "Not specified"}
                   </div>
                 </div>
                 <div className="view__field">
-                  <label>Program / Course</label>
+                  <label>Course</label>
                   <div className="view__value">
                     {viewData.courses?.name || "Unassigned"}
                   </div>
                 </div>
                 <div className="view__field">
-                  <label>Primary Instructor</label>
+                  <label>Teacher</label>
                   <div className="view__value">
                     {viewData.teachers?.name || "Unassigned"}
                   </div>
@@ -639,13 +646,13 @@ export default function FreeStudents({ activeBranch }) {
 
               <div className="view__column">
                 <div className="view__field">
-                  <label>Allocated Group</label>
+                  <label>Group</label>
                   <div className="view__value">
                     {viewData.groups?.name || "Unassigned"}
                   </div>
                 </div>
                 <div className="view__field">
-                  <label>Enrollment Commencement</label>
+                  <label>Start Date</label>
                   <div className="view__value">
                     <FiCalendar /> {viewData.start_date || "—"}
                   </div>
@@ -674,6 +681,7 @@ export default function FreeStudents({ activeBranch }) {
         </div>
       )}
 
+      {/* ===== EDIT MODAL ===== */}
       {editOpen && editData && (
         <div className="modal" onClick={() => setEditOpen(false)}>
           <div className="modal__box" onClick={(e) => e.stopPropagation()}>
@@ -683,6 +691,7 @@ export default function FreeStudents({ activeBranch }) {
                 <FiX />
               </button>
             </div>
+
             <div className="modal__form">
               <div className="form__group">
                 <label>First Name *</label>
@@ -735,7 +744,7 @@ export default function FreeStudents({ activeBranch }) {
                   value={editData.course_id || ""}
                   onChange={handleChange}
                 >
-                  <option value="">Select program...</option>
+                  <option value="">Select course...</option>
                   {courses.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
@@ -806,6 +815,7 @@ export default function FreeStudents({ activeBranch }) {
                 />
               </div>
             </div>
+
             <div className="modal__actions">
               <button
                 className="save-btn"

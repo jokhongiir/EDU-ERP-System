@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { supabase } from "../../services/supabaseClient";
-
 import {
   FiUsers,
   FiUserCheck,
@@ -9,12 +8,11 @@ import {
   FiRefreshCw,
   FiTrendingUp,
   FiBarChart2,
-  FiHome,
   FiGift,
   FiDollarSign,
   FiArchive,
+  FiHome,
 } from "react-icons/fi";
-
 import {
   ResponsiveContainer,
   AreaChart,
@@ -27,7 +25,6 @@ import {
   Pie,
   Cell,
 } from "recharts";
-
 import "./DashboardHome.css";
 
 export default function DashboardHome({ activeBranch }) {
@@ -35,7 +32,6 @@ export default function DashboardHome({ activeBranch }) {
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-
   const [dashboardData, setDashboardData] = useState({
     totalStudents: 0,
     paidStudents: 0,
@@ -69,39 +65,33 @@ export default function DashboardHome({ activeBranch }) {
           .select("*", { count: "exact", head: true })
           .eq("branch_id", branchId)
           .eq("is_archived", false),
-
         supabase
           .from("students")
           .select("*", { count: "exact", head: true })
           .eq("branch_id", branchId)
           .eq("is_archived", false)
           .eq("is_free", false),
-
         supabase
           .from("students")
           .select("*", { count: "exact", head: true })
           .eq("branch_id", branchId)
           .eq("is_archived", false)
           .eq("is_free", true),
-
         supabase
           .from("students")
           .select("*", { count: "exact", head: true })
           .eq("branch_id", branchId)
           .eq("is_archived", true),
-
         supabase
           .from("teachers")
           .select("*", { count: "exact" })
           .eq("branch_id", branchId)
           .order("created_at", { ascending: false }),
-
         supabase
           .from("courses")
           .select("*", { count: "exact" })
           .eq("branch_id", branchId)
           .order("created_at", { ascending: false }),
-
         supabase
           .from("groups")
           .select("*", { count: "exact", head: true })
@@ -119,11 +109,10 @@ export default function DashboardHome({ activeBranch }) {
       const students = studentsData || [];
 
       const chartData = courses.map((course) => {
-        const courseStudents = students.filter(
-          (s) => s.course_id === course.id,
-        );
+        const courseStudents = students.filter((s) => s.course_id === course.id);
         return {
-          name: course.name,
+          name: course.name?.length > 12 ? course.name.slice(0, 12) + "…" : course.name,
+          fullName: course.name,
           students: courseStudents.length,
           paid: courseStudents.filter((s) => !s.is_free).length,
           free: courseStudents.filter((s) => s.is_free).length,
@@ -165,33 +154,33 @@ export default function DashboardHome({ activeBranch }) {
       {
         title: "Total Students",
         value: dashboardData.totalStudents,
-        icon: <FiUsers />,
+        icon: <FiUsers size={22} />,
         color: "#3b82f6",
         subtitle: "All active students",
       },
       {
         title: "Paid Students",
         value: dashboardData.paidStudents,
-        icon: <FiDollarSign />,
+        icon: <FiDollarSign size={22} />,
         color: "#10b981",
         subtitle: "Paying students",
       },
       {
         title: "Free Students",
         value: dashboardData.freeStudents,
-        icon: <FiGift />,
+        icon: <FiGift size={22} />,
         color: "#8b5cf6",
-        subtitle: "Free / Trial students",
+        subtitle: "Free / Trial",
       },
       {
         title: "Active Teachers",
         value: dashboardData.teachers,
-        icon: <FiUserCheck />,
+        icon: <FiUserCheck size={22} />,
         color: "#f59e0b",
         subtitle: "Teaching staff",
       },
     ],
-    [dashboardData],
+    [dashboardData]
   );
 
   const secondaryCards = useMemo(
@@ -199,23 +188,23 @@ export default function DashboardHome({ activeBranch }) {
       {
         title: "Courses",
         value: dashboardData.courses,
-        icon: <FiBookOpen />,
+        icon: <FiBookOpen size={20} />,
         color: "#06b6d4",
       },
       {
         title: "Groups",
         value: dashboardData.groups,
-        icon: <FiLayers />,
+        icon: <FiLayers size={20} />,
         color: "#ef4444",
       },
       {
         title: "Archived",
         value: dashboardData.archivedStudents,
-        icon: <FiArchive />,
+        icon: <FiArchive size={20} />,
         color: "#64748b",
       },
     ],
-    [dashboardData],
+    [dashboardData]
   );
 
   const pieData = useMemo(() => {
@@ -230,15 +219,15 @@ export default function DashboardHome({ activeBranch }) {
 
   if (!branchId) {
     return (
-      <div className="dashboard-empty-wrapper">
-        <div className="dashboard-empty">
-          <div className="empty-icon-box">
-            <FiBarChart2 className="empty-icon" />
+      <div className="dh-empty-wrapper">
+        <div className="dh-empty">
+          <div className="dh-empty__icon">
+            <FiBarChart2 size={32} />
           </div>
           <h2>No Branch Selected</h2>
           <p>
-            Please choose a specific branch from the system to load real-time
-            analytics data.
+            Please choose a branch from the top navigation to view real-time
+            analytics.
           </p>
         </div>
       </div>
@@ -246,64 +235,60 @@ export default function DashboardHome({ activeBranch }) {
   }
 
   return (
-    <div className="dashboard-home">
-      <div className="dashboard-header">
-        <div className="header-title-box">
-          <h1>{activeBranch?.name} • Dashboard</h1>
-          <p>Real-time analytics and branch performance overview</p>
+    <div className="dh">
+      {/* Header */}
+      <div className="dh-header">
+        <div className="dh-header__text">
+          <h1>{activeBranch?.name} · Dashboard</h1>
+          <p>Real-time analytics & branch performance</p>
         </div>
 
         <button
-          className={`refresh-icon-btn ${refreshing ? "refreshing" : ""}`}
+          className={`dh-refresh ${refreshing ? "is-refreshing" : ""}`}
           onClick={handleRefresh}
           disabled={refreshing || loading}
-          title="Refresh Dashboard Data"
+          title="Refresh data"
+          aria-label="Refresh dashboard"
         >
-          <FiRefreshCw />
+          <FiRefreshCw size={18} />
         </button>
       </div>
 
-      <div className="dashboard-stats-grid">
-        {mainCards.map((card, i) => (
+      {/* Main Stats */}
+      <div className="dh-stats">
+        {mainCards.map((card) => (
           <div
-            key={i}
-            className="dashboard-stat-card"
-            style={{ borderTop: `4px solid ${card.color}` }}
+            key={card.title}
+            className="dh-stat"
+            style={{ "--accent": card.color }}
           >
-            <div className="dashboard-stat-top">
-              <div
-                className="dashboard-stat-icon-wrapper"
-                style={{
-                  background: `${card.color}15`,
-                  color: card.color,
-                }}
-              >
-                {card.icon}
-              </div>
-              <div className="dashboard-trend-badge">
-                <FiTrendingUp />
+            <div className="dh-stat__top">
+              <div className="dh-stat__icon">{card.icon}</div>
+              <div className="dh-stat__badge">
+                <FiTrendingUp size={12} />
                 <span>Live</span>
               </div>
             </div>
 
-            <div className="dashboard-stat-content">
+            <div className="dh-stat__body">
               <h4>{card.title}</h4>
               {loading ? (
-                <div className="shimmer sk-stat-value"></div>
+                <div className="dh-shimmer dh-shimmer--value" />
               ) : (
                 <h2>{card.value.toLocaleString()}</h2>
               )}
-              <p className="stat-subtitle">{card.subtitle}</p>
+              <p>{card.subtitle}</p>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="dashboard-secondary-grid">
-        {secondaryCards.map((card, i) => (
-          <div key={i} className="dashboard-secondary-card">
+      {/* Secondary Stats */}
+      <div className="dh-secondary">
+        {secondaryCards.map((card) => (
+          <div key={card.title} className="dh-secondary__card">
             <div
-              className="secondary-icon"
+              className="dh-secondary__icon"
               style={{ background: `${card.color}15`, color: card.color }}
             >
               {card.icon}
@@ -311,7 +296,7 @@ export default function DashboardHome({ activeBranch }) {
             <div>
               <h4>{card.title}</h4>
               {loading ? (
-                <div className="shimmer sk-secondary-value"></div>
+                <div className="dh-shimmer dh-shimmer--sm" />
               ) : (
                 <h3>{card.value.toLocaleString()}</h3>
               )}
@@ -320,53 +305,35 @@ export default function DashboardHome({ activeBranch }) {
         ))}
       </div>
 
-      <div className="dashboard-charts-row">
-        <div className="dashboard-chart-card">
-          <div className="dashboard-chart-header">
+      {/* Charts Row */}
+      <div className="dh-charts">
+        {/* Area Chart */}
+        <div className="dh-card dh-chart">
+          <div className="dh-card__header">
             <div>
               <h3>Students by Course</h3>
-              <p>Enrollment distribution across all programs</p>
+              <p>Enrollment distribution</p>
             </div>
           </div>
 
-          <div className="dashboard-chart-wrapper">
+          <div className="dh-chart__body">
             {loading ? (
-              <div className="chart-skeleton-container">
-                <div className="shimmer sk-chart-line"></div>
-                <div className="shimmer sk-chart-bar"></div>
-              </div>
+              <div className="dh-shimmer dh-shimmer--chart" />
             ) : dashboardData.chartData.length === 0 ? (
-              <div className="dashboard-empty-text-mid">
-                No course statistics available yet.
-              </div>
+              <div className="dh-empty-text">No course data yet</div>
             ) : (
-              <ResponsiveContainer width="100%" height={320}>
+              <ResponsiveContainer width="100%" height={300}>
                 <AreaChart
                   data={dashboardData.chartData}
-                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                  margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                 >
                   <defs>
-                    <linearGradient
-                      id="studentGradient"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
+                    <linearGradient id="studentGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.25} />
-                      <stop
-                        offset="95%"
-                        stopColor="#3b82f6"
-                        stopOpacity={0.01}
-                      />
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.02} />
                     </linearGradient>
                   </defs>
-
-                  <CartesianGrid
-                    strokeDasharray="4 4"
-                    vertical={false}
-                    stroke="#f1f5f9"
-                  />
+                  <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f1f5f9" />
                   <XAxis
                     dataKey="name"
                     tickLine={false}
@@ -380,31 +347,30 @@ export default function DashboardHome({ activeBranch }) {
                   />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#0f172a",
-                      borderRadius: "12px",
+                      background: "#0f172a",
+                      borderRadius: 12,
                       border: "none",
-                      boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)",
                       padding: "10px 14px",
                     }}
-                    itemStyle={{
-                      color: "#fff",
-                      fontSize: "13px",
-                      fontWeight: "600",
-                    }}
+                    itemStyle={{ color: "#fff", fontSize: 13, fontWeight: 600 }}
                     labelStyle={{
                       color: "#94a3b8",
-                      fontSize: "11px",
-                      fontWeight: "700",
-                      marginBottom: "4px",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      marginBottom: 4,
                       textTransform: "uppercase",
                     }}
+                    formatter={(value, name, props) => [
+                      value,
+                      props.payload.fullName || name,
+                    ]}
                   />
                   <Area
                     type="monotone"
                     dataKey="students"
                     stroke="#3b82f6"
                     strokeWidth={3}
-                    fill="url(#studentGradient)"
+                    fill="url(#studentGrad)"
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -412,40 +378,41 @@ export default function DashboardHome({ activeBranch }) {
           </div>
         </div>
 
-        <div className="dashboard-pie-card">
-          <div className="dashboard-chart-header">
+        {/* Pie Chart */}
+        <div className="dh-card dh-pie">
+          <div className="dh-card__header">
             <div>
               <h3>Paid vs Free</h3>
               <p>Student type breakdown</p>
             </div>
           </div>
 
-          <div className="pie-wrapper">
+          <div className="dh-pie__body">
             {loading ? (
-              <div className="shimmer sk-pie"></div>
+              <div className="dh-shimmer dh-shimmer--pie" />
             ) : pieData.length === 0 ? (
-              <div className="dashboard-empty-text-mid">No data available</div>
+              <div className="dh-empty-text">No data available</div>
             ) : (
               <>
-                <ResponsiveContainer width="100%" height={220}>
+                <ResponsiveContainer width="100%" height={200}>
                   <PieChart>
                     <Pie
                       data={pieData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={60}
-                      outerRadius={90}
+                      innerRadius={55}
+                      outerRadius={85}
                       paddingAngle={4}
                       dataKey="value"
                     >
-                      {pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      {pieData.map((entry, i) => (
+                        <Cell key={i} fill={entry.color} />
                       ))}
                     </Pie>
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: "#0f172a",
-                        borderRadius: "10px",
+                        background: "#0f172a",
+                        borderRadius: 10,
                         border: "none",
                         color: "#fff",
                       }}
@@ -453,15 +420,15 @@ export default function DashboardHome({ activeBranch }) {
                   </PieChart>
                 </ResponsiveContainer>
 
-                <div className="pie-legend">
+                <div className="dh-pie__legend">
                   {pieData.map((item) => (
-                    <div key={item.name} className="pie-legend-item">
+                    <div key={item.name} className="dh-pie__item">
                       <span
-                        className="pie-dot"
+                        className="dh-pie__dot"
                         style={{ background: item.color }}
-                      ></span>
-                      <span className="pie-label">{item.name}</span>
-                      <span className="pie-value">{item.value}</span>
+                      />
+                      <span className="dh-pie__label">{item.name}</span>
+                      <span className="dh-pie__value">{item.value}</span>
                     </div>
                   ))}
                 </div>
@@ -471,43 +438,41 @@ export default function DashboardHome({ activeBranch }) {
         </div>
       </div>
 
-      <div className="dashboard-bottom-grid">
-        <div className="dashboard-list-card">
-          <div className="dashboard-list-header">
-            <div className="list-header-icon teachers-sec">
-              <FiUserCheck />
+      {/* Bottom Lists */}
+      <div className="dh-lists">
+        {/* Teachers */}
+        <div className="dh-card dh-list">
+          <div className="dh-list__header">
+            <div className="dh-list__icon teachers">
+              <FiUserCheck size={18} />
             </div>
             <div>
               <h3>Latest Teachers</h3>
-              <p>Recently onboarded instructors</p>
+              <p>Recently added</p>
             </div>
           </div>
 
-          <div className="dashboard-list-body">
+          <div className="dh-list__body">
             {loading ? (
-              Array.from({ length: 3 }).map((_, idx) => (
-                <div key={idx} className="dashboard-list-item-skeleton">
-                  <div className="shimmer sk-list-avatar"></div>
-                  <div className="sk-list-text-block">
-                    <div className="shimmer sk-list-title"></div>
-                    <div className="shimmer sk-list-subtitle"></div>
+              Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="dh-list__skeleton">
+                  <div className="dh-shimmer dh-shimmer--avatar" />
+                  <div className="dh-list__skeleton-text">
+                    <div className="dh-shimmer dh-shimmer--title" />
+                    <div className="dh-shimmer dh-shimmer--sub" />
                   </div>
                 </div>
               ))
             ) : dashboardData.latestTeachers.length === 0 ? (
-              <div className="dashboard-list-empty-box">
-                <p className="dashboard-empty-text">
-                  No teachers registered yet
-                </p>
-              </div>
+              <div className="dh-empty-text">No teachers yet</div>
             ) : (
-              dashboardData.latestTeachers.map((teacher) => (
-                <div key={teacher.id} className="dashboard-list-item">
-                  <div className="dashboard-list-avatar teacher-av">
-                    <FiUserCheck />
+              dashboardData.latestTeachers.map((t) => (
+                <div key={t.id} className="dh-list__item">
+                  <div className="dh-list__avatar teacher">
+                    <FiUserCheck size={18} />
                   </div>
-                  <div className="list-item-meta">
-                    <h4>{teacher.name}</h4>
+                  <div>
+                    <h4>{t.name}</h4>
                     <p>Faculty Member</p>
                   </div>
                 </div>
@@ -516,42 +481,41 @@ export default function DashboardHome({ activeBranch }) {
           </div>
         </div>
 
-        <div className="dashboard-list-card">
-          <div className="dashboard-list-header">
-            <div className="list-header-icon courses-sec">
-              <FiBookOpen />
+        {/* Courses */}
+        <div className="dh-card dh-list">
+          <div className="dh-list__header">
+            <div className="dh-list__icon courses">
+              <FiBookOpen size={18} />
             </div>
             <div>
               <h3>Latest Courses</h3>
-              <p>Recently added programs</p>
+              <p>Recently created</p>
             </div>
           </div>
 
-          <div className="dashboard-list-body">
+          <div className="dh-list__body">
             {loading ? (
-              Array.from({ length: 3 }).map((_, idx) => (
-                <div key={idx} className="dashboard-list-item-skeleton">
-                  <div className="shimmer sk-list-avatar"></div>
-                  <div className="sk-list-text-block">
-                    <div className="shimmer sk-list-title"></div>
-                    <div className="shimmer sk-list-subtitle"></div>
+              Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="dh-list__skeleton">
+                  <div className="dh-shimmer dh-shimmer--avatar" />
+                  <div className="dh-list__skeleton-text">
+                    <div className="dh-shimmer dh-shimmer--title" />
+                    <div className="dh-shimmer dh-shimmer--sub" />
                   </div>
                 </div>
               ))
             ) : dashboardData.latestCourses.length === 0 ? (
-              <div className="dashboard-list-empty-box">
-                <p className="dashboard-empty-text">No courses created yet</p>
-              </div>
+              <div className="dh-empty-text">No courses yet</div>
             ) : (
-              dashboardData.latestCourses.map((course) => (
-                <div key={course.id} className="dashboard-list-item">
-                  <div className="dashboard-list-avatar course-av">
-                    <FiBookOpen />
+              dashboardData.latestCourses.map((c) => (
+                <div key={c.id} className="dh-list__item">
+                  <div className="dh-list__avatar course">
+                    <FiBookOpen size={18} />
                   </div>
-                  <div className="list-item-meta">
-                    <h4>{course.name}</h4>
+                  <div>
+                    <h4>{c.name}</h4>
                     <p>
-                      <FiHome className="meta-icon" /> {activeBranch?.name}
+                      <FiHome size={12} /> {activeBranch?.name}
                     </p>
                   </div>
                 </div>

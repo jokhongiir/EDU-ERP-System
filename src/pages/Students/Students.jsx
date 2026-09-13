@@ -86,7 +86,7 @@ export default function Students({ activeBranch }) {
           .select("*, courses(name), teachers(name), groups(name)")
           .eq("branch_id", branchId)
           .eq("is_archived", false)
-          .eq("is_free", false) // ★ FAQAT PULLIK TALABALAR
+          .eq("is_free", false)
           .order("created_at", { ascending: false }),
 
         supabase.from("courses").select("*").eq("branch_id", branchId),
@@ -265,7 +265,7 @@ export default function Students({ activeBranch }) {
       monthly_fee: Number(editData.monthly_fee) || 0,
       teacher_percent: Number(editData.teacher_percent) || 0,
       paid: Boolean(editData.paid),
-      is_free: false, // pullik talaba sifatida saqlanadi
+      is_free: false,
     };
 
     try {
@@ -396,7 +396,8 @@ export default function Students({ activeBranch }) {
 
   return (
     <div className="students">
-      <div className="Column-Table-Students">
+      {/* ===== HEADER + FILTERS ===== */}
+      <div className="students-top">
         <div className="students__header">
           <div className="title-area">
             <h1 className="page-main-title">
@@ -420,11 +421,12 @@ export default function Students({ activeBranch }) {
           <div className="students__search">
             <FiSearch />
             <input
-              placeholder="Search student profiles by name..."
+              placeholder="Search student by name..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
+
           <div className="filter-select-box">
             <select
               value={filterCourse}
@@ -438,6 +440,7 @@ export default function Students({ activeBranch }) {
               ))}
             </select>
           </div>
+
           <div className="filter-select-box">
             <select
               value={filterTeacher}
@@ -451,6 +454,7 @@ export default function Students({ activeBranch }) {
               ))}
             </select>
           </div>
+
           <div className="filter-select-box">
             <select
               value={filterGroup}
@@ -467,6 +471,7 @@ export default function Students({ activeBranch }) {
         </div>
       </div>
 
+      {/* ===== TABLE ===== */}
       <div className="students__table-wrapper">
         <table className="students__table">
           <thead>
@@ -474,21 +479,19 @@ export default function Students({ activeBranch }) {
               <th>#</th>
               <th>Full Name</th>
               <th>Contact Phone</th>
-              <th>Enrolled Course</th>
-              <th>Assigned Teacher</th>
-              <th>Group Class</th>
-              <th>Billing Status</th>
+              <th>Course</th>
+              <th>Teacher</th>
+              <th>Group</th>
+              <th>Status</th>
               <th align="center">Actions</th>
             </tr>
           </thead>
 
           <tbody>
             {loading ? (
-              Array.from({ length: 15 }).map((_, i) => (
-                <tr key={i}>
-                  <td>
-                    <div className="skeleton skeleton-id"></div>
-                  </td>
+              Array.from({ length: 12 }).map((_, i) => (
+                <tr key={i} className="skeleton-row">
+                  <td><div className="skeleton skeleton-id"></div></td>
                   <td>
                     <div className="student-user">
                       <div className="skeleton skeleton-avatar"></div>
@@ -498,21 +501,11 @@ export default function Students({ activeBranch }) {
                       </div>
                     </div>
                   </td>
-                  <td>
-                    <div className="skeleton skeleton-phone"></div>
-                  </td>
-                  <td>
-                    <div className="skeleton skeleton-badge"></div>
-                  </td>
-                  <td>
-                    <div className="skeleton skeleton-badge"></div>
-                  </td>
-                  <td>
-                    <div className="skeleton skeleton-badge"></div>
-                  </td>
-                  <td>
-                    <div className="skeleton skeleton-status"></div>
-                  </td>
+                  <td><div className="skeleton skeleton-phone"></div></td>
+                  <td><div className="skeleton skeleton-badge"></div></td>
+                  <td><div className="skeleton skeleton-badge"></div></td>
+                  <td><div className="skeleton skeleton-badge"></div></td>
+                  <td><div className="skeleton skeleton-status"></div></td>
                   <td>
                     <div className="student-actions-loading">
                       <div className="skeleton skeleton-btn"></div>
@@ -526,30 +519,27 @@ export default function Students({ activeBranch }) {
               <tr>
                 <td colSpan="8">
                   <div className="students__empty">
-                    <FiUser
-                      size={40}
-                      style={{ marginBottom: "12px", opacity: 0.4 }}
-                    />
-                    <p>No active paid students matching the selected parameters</p>
+                    <FiUser size={42} style={{ opacity: 0.35 }} />
+                    <p>No active paid students matching the selected filters</p>
                   </div>
                 </td>
               </tr>
             ) : (
               filteredStudents.map((s, i) => (
                 <tr key={s.id} onClick={() => openView(s)}>
-                  <td>{i + 1}</td>
-                  <td className="font-bold-name">
+                  <td data-label="#">{i + 1}</td>
+                  <td data-label="Full Name" className="font-bold-name">
                     {s.first_name} {s.last_name}
                   </td>
-                  <td>{s.phone || "—"}</td>
-                  <td>
+                  <td data-label="Phone">{s.phone || "—"}</td>
+                  <td data-label="Course">
                     <span className="badge-course">
                       {s.courses?.name || "N/A"}
                     </span>
                   </td>
-                  <td>{s.teachers?.name || "—"}</td>
-                  <td>{s.groups?.name || "—"}</td>
-                  <td>
+                  <td data-label="Teacher">{s.teachers?.name || "—"}</td>
+                  <td data-label="Group">{s.groups?.name || "—"}</td>
+                  <td data-label="Status">
                     <span
                       className={`status-pill-small ${
                         s.paid ? "paid" : "unpaid"
@@ -558,7 +548,11 @@ export default function Students({ activeBranch }) {
                       {s.paid ? "COLLECTED" : "OVERDUE"}
                     </span>
                   </td>
-                  <td onClick={(e) => e.stopPropagation()} align="center">
+                  <td
+                    data-label="Actions"
+                    onClick={(e) => e.stopPropagation()}
+                    align="center"
+                  >
                     <div className="actions-cell-row">
                       <button
                         className="row-btn edit"
@@ -570,14 +564,14 @@ export default function Students({ activeBranch }) {
                       <button
                         className="row-btn archive"
                         onClick={() => openArchiveConfirm(s)}
-                        title="Archive Student"
+                        title="Archive"
                       >
                         <FiArchive />
                       </button>
                       <button
                         className="row-btn delete"
                         onClick={() => openDeleteConfirm(s)}
-                        title="Delete Permanently"
+                        title="Delete"
                       >
                         <FiTrash2 />
                       </button>
@@ -590,7 +584,7 @@ export default function Students({ activeBranch }) {
         </table>
       </div>
 
-      {/* VIEW MODAL */}
+      {/* ===== VIEW MODAL ===== */}
       {viewOpen && viewData && (
         <div className="modal" onClick={() => setViewOpen(false)}>
           <div
@@ -603,6 +597,7 @@ export default function Students({ activeBranch }) {
                 <FiX />
               </button>
             </div>
+
             <div className="view__grid">
               <div className="view__column">
                 <div className="view__field">
@@ -618,19 +613,19 @@ export default function Students({ activeBranch }) {
                   </div>
                 </div>
                 <div className="view__field">
-                  <label>Emergency Parent Contact</label>
+                  <label>Parent Contact</label>
                   <div className="view__value">
                     {viewData.parent_phone || "Not specified"}
                   </div>
                 </div>
                 <div className="view__field">
-                  <label>Program / Course</label>
+                  <label>Course</label>
                   <div className="view__value">
                     {viewData.courses?.name || "Unassigned"}
                   </div>
                 </div>
                 <div className="view__field">
-                  <label>Primary Instructor</label>
+                  <label>Teacher</label>
                   <div className="view__value">
                     {viewData.teachers?.name || "Unassigned"}
                   </div>
@@ -639,43 +634,43 @@ export default function Students({ activeBranch }) {
 
               <div className="view__column">
                 <div className="view__field">
-                  <label>Allocated Group</label>
+                  <label>Group</label>
                   <div className="view__value">
                     {viewData.groups?.name || "Unassigned"}
                   </div>
                 </div>
                 <div className="view__field">
-                  <label>Enrollment Commencement</label>
+                  <label>Start Date</label>
                   <div className="view__value">
                     <FiCalendar /> {viewData.start_date || "—"}
                   </div>
                 </div>
                 <div className="view__field">
-                  <label>Latest Settlement Date</label>
+                  <label>Payment Date</label>
                   <div className="view__value">
                     {viewData.payment_date || "—"}
                   </div>
                 </div>
                 <div className="view__field">
-                  <label>Next Invoicing Cycle</label>
+                  <label>Next Payment</label>
                   <div className="view__value">
                     {viewData.next_payment_date || "—"}
                   </div>
                 </div>
                 <div className="view__field">
-                  <label>Standard Monthly Fee</label>
+                  <label>Monthly Fee</label>
                   <div className="view__value income-highlight">
                     {formatCurrency(viewData.monthly_fee)}
                   </div>
                 </div>
                 <div className="view__field">
-                  <label>Teacher Share Yield</label>
+                  <label>Teacher Share</label>
                   <div className="view__value">
                     {viewData.teacher_percent || 0}%
                   </div>
                 </div>
                 <div className="view__field">
-                  <label>Current Status</label>
+                  <label>Status</label>
                   <div
                     className={`status-pill-small ${
                       viewData.paid ? "paid" : "unpaid"
@@ -691,16 +686,17 @@ export default function Students({ activeBranch }) {
         </div>
       )}
 
-      {/* EDIT MODAL */}
+      {/* ===== EDIT MODAL ===== */}
       {editOpen && editData && (
         <div className="modal" onClick={() => setEditOpen(false)}>
           <div className="modal__box" onClick={(e) => e.stopPropagation()}>
             <div className="modal__header">
-              <h3>Update Student Parameters</h3>
+              <h3>Update Student</h3>
               <button onClick={() => setEditOpen(false)}>
                 <FiX />
               </button>
             </div>
+
             <div className="modal__form">
               <div className="form__group">
                 <label>First Name *</label>
@@ -723,7 +719,7 @@ export default function Students({ activeBranch }) {
               </div>
 
               <div className="form__group">
-                <label>Phone Connection</label>
+                <label>Phone</label>
                 <input
                   name="phone"
                   value={editData.phone || "+998 "}
@@ -735,7 +731,7 @@ export default function Students({ activeBranch }) {
               </div>
 
               <div className="form__group">
-                <label>Parent Emergency Contact</label>
+                <label>Parent Phone</label>
                 <input
                   name="parent_phone"
                   value={editData.parent_phone || "+998 "}
@@ -747,13 +743,13 @@ export default function Students({ activeBranch }) {
               </div>
 
               <div className="form__group">
-                <label>Program Specialization</label>
+                <label>Course</label>
                 <select
                   name="course_id"
                   value={editData.course_id || ""}
                   onChange={handleChange}
                 >
-                  <option value="">Select program...</option>
+                  <option value="">Select course...</option>
                   {courses.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
@@ -763,7 +759,7 @@ export default function Students({ activeBranch }) {
               </div>
 
               <div className="form__group">
-                <label>Assigned Instructor</label>
+                <label>Teacher</label>
                 <select
                   name="teacher_id"
                   value={editData.teacher_id || ""}
@@ -779,7 +775,7 @@ export default function Students({ activeBranch }) {
               </div>
 
               <div className="form__group">
-                <label>Classroom Group</label>
+                <label>Group</label>
                 <select
                   name="group_id"
                   value={editData.group_id || ""}
@@ -811,7 +807,7 @@ export default function Students({ activeBranch }) {
               ))}
 
               <div className="form__group">
-                <label>Monthly Assessment Fee (UZS)</label>
+                <label>Monthly Fee (UZS)</label>
                 <input
                   type="number"
                   name="monthly_fee"
@@ -821,7 +817,7 @@ export default function Students({ activeBranch }) {
               </div>
 
               <div className="form__group">
-                <label>Instructor Percent Share (%)</label>
+                <label>Teacher Percent (%)</label>
                 <input
                   type="number"
                   name="teacher_percent"
@@ -838,17 +834,18 @@ export default function Students({ activeBranch }) {
                     checked={editData.paid || false}
                     onChange={handleChange}
                   />
-                  Mark student active and paid for current tracking month
+                  Mark as paid for current month
                 </label>
               </div>
             </div>
+
             <div className="modal__actions">
               <button
                 className="save-btn"
                 onClick={handleSave}
                 disabled={saving}
               >
-                <FiSave /> {saving ? "Saving Changes..." : "Commit Changes"}
+                <FiSave /> {saving ? "Saving..." : "Save Changes"}
               </button>
             </div>
           </div>
