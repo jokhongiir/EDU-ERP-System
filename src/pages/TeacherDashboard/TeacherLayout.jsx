@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
 import { supabase } from "../../services/supabaseClient";
+import logo2 from "../../assets/logo2.png";
 import {
   FiLayers,
   FiUsers,
@@ -35,9 +36,11 @@ export default function TeacherLayout() {
           .from("teachers")
           .select("*")
           .eq("auth_id", session.user.id)
-          .single();
+          .maybeSingle();
 
-        if (error || !data) throw new Error("O'qituvchi topilmadi");
+        if (error) throw error;
+        if (!data) throw new Error("O'qituvchi topilmadi");
+
         setTeacher(data);
       } catch (err) {
         console.error(err);
@@ -63,7 +66,7 @@ export default function TeacherLayout() {
     if (location.pathname.includes("groups")) return "Mening Guruhlarim";
     if (location.pathname.includes("students")) return "Mening O'quvchilarim";
     if (location.pathname.includes("attendance")) return "Davomat qilish";
-    return "Teacher Portal";
+    return "O'qituvchi paneli";
   };
 
   const teacherFullName = teacher
@@ -82,7 +85,6 @@ export default function TeacherLayout() {
 
   return (
     <div className="teacher-layout-container">
-      {/* Mobile Overlay */}
       {mobileOpen && (
         <div
           className="sidebar-overlay"
@@ -90,14 +92,17 @@ export default function TeacherLayout() {
         />
       )}
 
-      {/* Sidebar */}
       <aside className={`teacher-sidebar ${mobileOpen ? "is-mobile-open" : ""}`}>
         <div className="sidebar-brand">
           <div className="sidebar-logo-box">
-            <div className="sidebar-logo-icon">E</div>
+            <img
+              src={logo2}
+              alt="Education ERP System"
+              className="sidebar-logo-img"
+            />
             <div className="sidebar-logo-text">
-              <h2>Edu ERP</h2>
-              <span>Teacher Portal</span>
+              <h2>Education ERP System</h2>
+              <span>O'qituvchi paneli</span>
             </div>
           </div>
           <button
@@ -149,9 +154,7 @@ export default function TeacherLayout() {
         </div>
       </aside>
 
-      {/* Main Area */}
       <div className="teacher-main-area">
-        {/* Top Navbar */}
         <header className="teacher-navbar">
           <div className="navbar-left">
             <button
@@ -176,8 +179,7 @@ export default function TeacherLayout() {
           </div>
         </header>
 
-        {/* Content */}
-        <main className="teacher-main-contentt">
+        <main className="teacher-main-content">
           <Outlet context={{ teacher }} />
         </main>
       </div>
