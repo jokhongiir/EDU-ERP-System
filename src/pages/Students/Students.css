@@ -30,6 +30,13 @@
   height: 100%;
   min-height: 0;
   animation: pageReveal 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+.students *,
+.students *::before,
+.students *::after {
+  box-sizing: border-box;
 }
 
 .students-top {
@@ -166,7 +173,7 @@
   padding: 0 36px 0 14px;
   border-radius: 12px;
   border: 1px solid var(--border);
-  background: var(--card);
+  background-color: var(--card);
   font-size: 13.5px;
   font-weight: 600;
   color: var(--text-soft);
@@ -174,6 +181,7 @@
   box-shadow: var(--shadow-sm);
   transition: var(--transition);
   appearance: none;
+  -webkit-appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
@@ -350,18 +358,51 @@
 }
 
 @keyframes shimmerMove {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
-.skeleton-id { width: 18px; height: 15px; }
-.skeleton-avatar { width: 32px; height: 32px; border-radius: 50%; }
-.skeleton-name { width: 120px; height: 15px; margin-bottom: 5px; }
-.skeleton-sub { width: 80px; height: 12px; }
-.skeleton-phone { width: 110px; height: 15px; }
-.skeleton-badge { width: 85px; height: 24px; border-radius: 8px; }
-.skeleton-status { width: 72px; height: 22px; border-radius: 6px; }
-.skeleton-btn { width: 32px; height: 32px; border-radius: 8px; }
+.skeleton-id {
+  width: 18px;
+  height: 15px;
+}
+.skeleton-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+.skeleton-name {
+  width: 120px;
+  height: 15px;
+  margin-bottom: 5px;
+}
+.skeleton-sub {
+  width: 80px;
+  height: 12px;
+}
+.skeleton-phone {
+  width: 110px;
+  height: 15px;
+}
+.skeleton-badge {
+  width: 85px;
+  height: 24px;
+  border-radius: 8px;
+}
+.skeleton-status {
+  width: 72px;
+  height: 22px;
+  border-radius: 6px;
+}
+.skeleton-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
 
 .student-user {
   display: flex;
@@ -514,16 +555,16 @@
 }
 
 .form__group.full {
-  grid-column: span 2;
+  grid-column: 1 / -1;
 }
 
-.form__group label {
+.form__group > label:not(.checkbox) {
   font-size: 13px;
   font-weight: 600;
   color: var(--text-soft);
 }
 
-.form__group input,
+.form__group input:not([type="checkbox"]),
 .form__group select {
   height: 44px;
   padding: 0 13px;
@@ -537,7 +578,7 @@
   width: 100%;
 }
 
-.form__group input:focus,
+.form__group input:not([type="checkbox"]):focus,
 .form__group select:focus {
   outline: none;
   border-color: var(--primary);
@@ -545,34 +586,58 @@
   box-shadow: 0 0 0 4px rgba(55, 111, 255, 0.1);
 }
 
-.checkbox {
-  display: inline-flex;
-  align-items: center;
-  gap: 11px;
+/* ========== CHECKBOX (to'lov) — tuzatilgan ========== */
+.form__group.full .checkbox,
+label.checkbox {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  width: 100%;
+  margin: 0;
   background: var(--soft);
   border: 1px solid var(--border);
-  padding: 13px;
+  padding: 14px 16px;
   border-radius: 10px;
   cursor: pointer;
-  font-size: 13.5px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 500 !important;
   color: var(--text-soft);
   user-select: none;
   transition: var(--transition);
+  line-height: 1.4;
 }
 
-.checkbox:hover {
+label.checkbox:hover {
   background: var(--primary-light);
-  border-color: rgba(55, 111, 255, 0.25);
+  border-color: rgba(55, 111, 255, 0.3);
   color: var(--primary-dark);
 }
 
-.checkbox input {
-  width: 17px;
-  height: 17px;
+/* Checkbox input o‘zi — boshqa input stillariga tushmasin */
+label.checkbox input[type="checkbox"],
+.form__group.full input[type="checkbox"] {
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px;
+  min-height: 18px;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 4px !important;
+  background: transparent !important;
+  box-shadow: none !important;
   accent-color: var(--primary);
   cursor: pointer;
   flex-shrink: 0;
+  appearance: auto;
+  -webkit-appearance: checkbox;
+}
+
+label.checkbox:has(input:checked) {
+  background: var(--primary-light);
+  border-color: rgba(55, 111, 255, 0.35);
+  color: var(--primary-dark);
+  font-weight: 600 !important;
 }
 
 .modal__actions {
@@ -726,26 +791,48 @@
 
 /* Animations */
 @keyframes pageReveal {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes overlayFade {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes modalScaleUp {
-  from { opacity: 0; transform: scale(0.96) translateY(8px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 @keyframes modalSlideUp {
-  from { opacity: 0; transform: translateY(40px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* ========== DESKTOP / TABLET ========== */
+/* ========== DESKTOP ========== */
 @media (min-width: 769px) {
   .students__table-wrapper {
     overflow-y: auto;
@@ -783,7 +870,6 @@
     width: 100%;
   }
 
-  /* Card layout */
   .students__table-wrapper {
     background: transparent;
     border: none;
@@ -887,7 +973,6 @@
     border: 1px solid var(--border);
   }
 
-  /* Modal mobile */
   .modal {
     padding: 0;
     align-items: flex-end;
@@ -908,7 +993,7 @@
   }
 
   .form__group.full {
-    grid-column: span 1;
+    grid-column: 1 / -1;
   }
 
   .modal__header {
@@ -933,7 +1018,6 @@
   }
 }
 
-/* Extra small */
 @media (max-width: 400px) {
   .page-main-title {
     font-size: 18px;
