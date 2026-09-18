@@ -14,14 +14,13 @@ import GroupsPage from "../Groups/Groups";
 import PaymentsPage from "../Payments/Payments";
 import AttendancePage from "../Attendance/Attendance";
 import Profile from "../Profile/Profile";
-import Login from "../Auth/Login";
-import Register from "../Auth/Register";
 import ForgotPassword from "../Auth/ForgotPassword";
 import UpdatePassword from "../Auth/UpdatePassword";
 import Leads from "../Leads/Leads";
+import LeadsDashboard from "../LeadsDashboard/LeadsDashboard";
 import Archive from "../Archive/Archive";
-import { supabase } from "../../services/supabaseClient";
 import Store from "../Store/Store";
+import { supabase } from "../../services/supabaseClient";
 
 export default function Dashboard({ centerName, setCenterName }) {
   const { id } = useParams();
@@ -62,7 +61,7 @@ export default function Dashboard({ centerName, setCenterName }) {
       }
 
       setCenterName(
-        data.user?.user_metadata?.centerName || "Education ERP System",
+        data.user?.user_metadata?.centerName || "Education ERP System"
       );
     };
 
@@ -77,67 +76,129 @@ export default function Dashboard({ centerName, setCenterName }) {
       centerName={centerName}
     >
       <Routes>
-        <Route index element={<DashboardHome activeBranch={activeBranch} />} />
+        <Route
+          index
+          element={
+            <DashboardHome
+              key={activeBranch?.id}
+              activeBranch={activeBranch}
+            />
+          }
+        />
+
         <Route path="forgot-password" element={<ForgotPassword />} />
         <Route path="update-password" element={<UpdatePassword />} />
 
         <Route
           path="students"
-          element={<Students activeBranch={activeBranch} />}
+          element={
+            <Students key={activeBranch?.id} activeBranch={activeBranch} />
+          }
         />
 
         <Route
           path="freestudents"
-          element={<FreeStudents activeBranch={activeBranch} />}
+          element={
+            <FreeStudents
+              key={activeBranch?.id}
+              activeBranch={activeBranch}
+            />
+          }
         />
 
         <Route
           path="addstudents"
-          element={<AddStudentPage activeBranch={activeBranch} />}
+          element={
+            <AddStudentPage
+              key={activeBranch?.id}
+              activeBranch={activeBranch}
+            />
+          }
         />
 
         <Route
           path="teachers"
-          element={<TeachersPage activeBranch={activeBranch} />}
+          element={
+            <TeachersPage
+              key={activeBranch?.id}
+              activeBranch={activeBranch}
+            />
+          }
         />
 
         <Route
           path="courses"
-          element={<CoursesPage activeBranch={activeBranch} />}
+          element={
+            <CoursesPage
+              key={activeBranch?.id}
+              activeBranch={activeBranch}
+            />
+          }
         />
 
         <Route
           path="groups"
-          element={<GroupsPage activeBranch={activeBranch} />}
+          element={
+            <GroupsPage key={activeBranch?.id} activeBranch={activeBranch} />
+          }
         />
 
+        {/* ===== LEADS ===== */}
         <Route
           path="leads"
-          element={<Leads activeBranch={activeBranch} />}
+          element={
+            <LeadsDashboard
+              key={activeBranch?.id}
+              activeBranch={activeBranch}
+            />
+          }
+        />
+        <Route
+          path="leads/manage"
+          element={
+            <Leads key={activeBranch?.id} activeBranch={activeBranch} />
+          }
         />
 
         <Route
           path="archive"
-          element={<Archive activeBranch={activeBranch} />}
+          element={
+            <Archive key={activeBranch?.id} activeBranch={activeBranch} />
+          }
         />
 
         <Route
           path="payments"
-          element={<PaymentsPage activeBranch={activeBranch} />}
+          element={
+            <PaymentsPage
+              key={activeBranch?.id}
+              activeBranch={activeBranch}
+            />
+          }
         />
 
         <Route
           path="attendance"
-          element={<AttendancePage activeBranch={activeBranch} />}
+          element={
+            <AttendancePage
+              key={activeBranch?.id}
+              activeBranch={activeBranch}
+            />
+          }
         />
 
         <Route
           path="profile"
-          element={<Profile activeBranch={activeBranch} />}
+          element={
+            <Profile key={activeBranch?.id} activeBranch={activeBranch} />
+          }
         />
+
         <Route
           path="store"
-          element={<Store activeBranch={activeBranch} />}
+          element={
+            <Store key={activeBranch?.id} activeBranch={activeBranch} />
+          }
         />
 
         <Route path="*" element={<div>Page not found</div>} />

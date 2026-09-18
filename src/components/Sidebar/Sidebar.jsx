@@ -15,6 +15,7 @@ import {
   Archive,
   Gift,
   ShoppingCart,
+  BarChart3,
 } from "lucide-react";
 
 import { supabase } from "../../services/supabaseClient";
@@ -40,7 +41,11 @@ function Sidebar({ collapsed, mobileOpen, activeBranch, setMobileOpen }) {
       { label: "Payments", icon: Wallet, path: "payments" },
       { label: "Store", icon: ShoppingCart, path: "store" },
       { label: "Add Students", icon: UserPlus, path: "addstudents" },
-      { label: "Leads", icon: Target, path: "leads" },
+
+      // ===== LEADS =====
+      { label: "Leads Dashboard", icon: BarChart3, path: "leads" },
+      { label: "Leads Manage", icon: Target, path: "leads/manage" },
+
       { label: "Archive", icon: Archive, path: "archive" },
       { label: "Profile", icon: User, path: "profile" },
     ],
@@ -52,7 +57,6 @@ function Sidebar({ collapsed, mobileOpen, activeBranch, setMobileOpen }) {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
 
-      // Barcha supabase auth tokenlarni tozalash (xavfsizroq)
       Object.keys(localStorage).forEach((key) => {
         if (key.startsWith("sb-") && key.endsWith("-auth-token")) {
           localStorage.removeItem(key);
@@ -73,7 +77,6 @@ function Sidebar({ collapsed, mobileOpen, activeBranch, setMobileOpen }) {
 
   return (
     <>
-      {/* Mobile overlay */}
       {mobileOpen && (
         <div
           className="erpSidebar__overlay"
@@ -91,11 +94,7 @@ function Sidebar({ collapsed, mobileOpen, activeBranch, setMobileOpen }) {
         {/* Header */}
         <div className="erpSidebar__header">
           <div className="erpSidebar__logoBox">
-            <img
-              src={logo}
-              alt="Edu ERP"
-              className="erpSidebar__logoImg"
-            />
+            <img src={logo} alt="Edu ERP" className="erpSidebar__logoImg" />
 
             {!collapsed && (
               <div className="erpSidebar__logoText">

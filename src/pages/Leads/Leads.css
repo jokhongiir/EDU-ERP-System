@@ -1,35 +1,41 @@
+/* ========================================
+   LEADS MODULE — Professional CSS
+   ======================================== */
+
 :root {
-  --primary: #376fff;
-  --primary-dark: #1a56db;
-  --primary-light: #f0f5ff;
-  --bg: #fafbfe;
-  --card: #ffffff;
-  --soft: #f8fafc;
-  --text: #0f172a;
-  --text-soft: #64748b;
-  --muted: #94a3b8;
-  --border: #e2e8f0;
-  --success: #10b981;
-  --success-light: #ecfdf5;
-  --warning: #f59e0b;
-  --warning-light: #fffbeb;
-  --danger: #ef4444;
-  --danger-light: #fef2f2;
-  --shadow-sm: 0 4px 6px -1px rgba(15, 23, 42, 0.03),
-    0 2px 4px -1px rgba(15, 23, 42, 0.02);
-  --shadow-md: 0 12px 24px -4px rgba(15, 23, 42, 0.06),
-    0 4px 12px -2px rgba(15, 23, 42, 0.04);
-  --shadow-lg: 0 24px 48px -12px rgba(15, 23, 42, 0.12);
-  --transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  --ld-primary: #376fff;
+  --ld-primary-dark: #1a56db;
+  --ld-primary-light: #eef3ff;
+  --ld-bg: #f8fafc;
+  --ld-card: #ffffff;
+  --ld-text: #0f172a;
+  --ld-text-soft: #64748b;
+  --ld-muted: #94a3b8;
+  --ld-border: #e2e8f0;
+  --ld-success: #10b981;
+  --ld-warning: #f59e0b;
+  --ld-danger: #ef4444;
+  --ld-purple: #8b5cf6;
+  --ld-shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.03);
+  --ld-shadow-md: 0 8px 20px -4px rgba(15, 23, 42, 0.08);
+  --ld-shadow-lg: 0 20px 40px -8px rgba(15, 23, 42, 0.12);
+  --ld-radius: 12px;
+  --ld-radius-lg: 16px;
+  --ld-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ========== BASE ========== */
+/* ========== ROOT ========== */
 .ld-module-root {
   display: flex;
   flex-direction: column;
-  min-height: 100%;
   height: 100%;
-  animation: pageReveal 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  min-height: 100%;
+  animation: ldFadeIn 0.35s ease-out;
+}
+
+@keyframes ldFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* ========== HEADER ========== */
@@ -44,44 +50,44 @@
 }
 
 .ld-title {
-  font-size: clamp(20px, 4vw, 26px);
+  font-size: clamp(20px, 3.5vw, 26px);
   font-weight: 800;
-  color: var(--text);
-  letter-spacing: -0.02em;
-  margin: 0 0 6px 0;
+  color: var(--ld-text);
+  letter-spacing: -0.025em;
+  margin: 0 0 4px 0;
   line-height: 1.25;
 }
 
 .ld-desc {
   font-size: 14px;
-  color: var(--text-soft);
+  color: var(--ld-text-soft);
   margin: 0;
   font-weight: 500;
 }
 
 .ld-create-btn {
-  height: 48px;
+  height: 46px;
+  padding: 0 20px;
   border: none;
-  border-radius: 12px;
-  padding: 0 22px;
-  background: var(--primary);
-  color: white;
+  border-radius: var(--ld-radius);
+  background: var(--ld-primary);
+  color: #fff;
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 8px 18px rgba(55, 111, 255, 0.2);
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  transition: var(--transition);
+  box-shadow: 0 6px 16px rgba(55, 111, 255, 0.25);
+  transition: var(--ld-transition);
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .ld-create-btn:hover:not(:disabled) {
-  background: var(--primary-dark);
+  background: var(--ld-primary-dark);
   transform: translateY(-1px);
-  box-shadow: 0 12px 22px rgba(55, 111, 255, 0.28);
+  box-shadow: 0 10px 22px rgba(55, 111, 255, 0.3);
 }
 
 .ld-create-btn:disabled {
@@ -100,31 +106,31 @@
 }
 
 .ld-stat-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
+  background: var(--ld-card);
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius-lg);
   padding: 18px 20px;
   display: flex;
   align-items: center;
   gap: 14px;
-  box-shadow: var(--shadow-sm);
-  transition: var(--transition);
+  box-shadow: var(--ld-shadow-sm);
+  transition: var(--ld-transition);
 }
 
 .ld-stat-card:hover {
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--ld-shadow-md);
   transform: translateY(-2px);
 }
 
 .ld-stat-icon {
-  width: 48px;
-  height: 48px;
+  width: 46px;
+  height: 46px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-size: 1.25rem;
+  color: #fff;
+  font-size: 1.2rem;
   flex-shrink: 0;
 }
 
@@ -132,14 +138,14 @@
   display: block;
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-soft);
+  color: var(--ld-text-soft);
   margin-bottom: 2px;
 }
 
 .ld-stat-value {
   font-size: 22px;
   font-weight: 800;
-  color: var(--text);
+  color: var(--ld-text);
   letter-spacing: -0.02em;
 }
 
@@ -147,109 +153,107 @@
 .ld-filters {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
   margin-bottom: 20px;
   flex-shrink: 0;
 }
 
 .ld-search {
-  flex: 1.5 1 220px;
+  flex: 1.4 1 220px;
   position: relative;
   min-width: 0;
 }
 
 .ld-search svg {
   position: absolute;
-  left: 16px;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--muted);
-  font-size: 17px;
+  color: var(--ld-muted);
+  font-size: 16px;
   pointer-events: none;
-  transition: var(--transition);
+  transition: var(--ld-transition);
 }
 
 .ld-search input {
   width: 100%;
-  height: 48px;
-  padding: 0 16px 0 46px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--card);
+  height: 44px;
+  padding: 0 14px 0 42px;
+  border-radius: var(--ld-radius);
+  border: 1px solid var(--ld-border);
+  background: var(--ld-card);
   font-size: 14px;
-  font-weight: 550;
-  color: var(--text);
-  box-shadow: var(--shadow-sm);
-  transition: var(--transition);
+  font-weight: 500;
+  color: var(--ld-text);
+  box-shadow: var(--ld-shadow-sm);
+  transition: var(--ld-transition);
 }
 
 .ld-search input::placeholder {
-  color: var(--muted);
-  font-weight: 400;
+  color: var(--ld-muted);
 }
 
 .ld-search input:focus {
   outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 4px rgba(55, 111, 255, 0.12);
+  border-color: var(--ld-primary);
+  box-shadow: 0 0 0 3px rgba(55, 111, 255, 0.12);
 }
 
 .ld-search:focus-within svg {
-  color: var(--primary);
+  color: var(--ld-primary);
 }
 
 .ld-filter-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: var(--muted);
-  font-size: 16px;
+  gap: 6px;
+  color: var(--ld-muted);
+  font-size: 15px;
 }
 
 .ld-filters select,
 .ld-date-input {
-  height: 48px;
-  padding: 0 14px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--card);
-  font-size: 14px;
+  height: 44px;
+  padding: 0 12px;
+  border-radius: var(--ld-radius);
+  border: 1px solid var(--ld-border);
+  background: var(--ld-card);
+  font-size: 13.5px;
   font-weight: 600;
-  color: var(--text-soft);
+  color: var(--ld-text-soft);
   cursor: pointer;
-  box-shadow: var(--shadow-sm);
-  transition: var(--transition);
-  min-width: 140px;
+  box-shadow: var(--ld-shadow-sm);
+  transition: var(--ld-transition);
+  min-width: 135px;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
-  padding-right: 36px;
+  padding-right: 34px;
 }
 
 .ld-date-input {
   background-image: none;
-  padding-right: 14px;
-  min-width: 150px;
+  padding-right: 12px;
+  min-width: 145px;
 }
 
 .ld-filters select:focus,
 .ld-date-input:focus {
   outline: none;
-  border-color: var(--primary);
-  color: var(--text);
-  box-shadow: 0 0 0 4px rgba(55, 111, 255, 0.12);
+  border-color: var(--ld-primary);
+  color: var(--ld-text);
+  box-shadow: 0 0 0 3px rgba(55, 111, 255, 0.12);
 }
 
 /* ========== TABLE ========== */
 .ld-table-wrapper {
-  background: var(--card);
-  border-radius: 16px;
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
+  background: var(--ld-card);
+  border-radius: var(--ld-radius-lg);
+  border: 1px solid var(--ld-border);
+  box-shadow: var(--ld-shadow-sm);
   overflow: hidden;
-  position: relative;
   flex: 1;
   min-height: 0;
   display: flex;
@@ -260,40 +264,40 @@
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  min-width: 900px;
+  min-width: 1100px;
 }
 
 .ld-table thead {
   position: sticky;
   top: 0;
-  z-index: 20;
+  z-index: 10;
   background: #f8fafc;
 }
 
 .ld-table thead th {
-  border-bottom: 2px solid var(--border);
-  background: #f8fafc;
   text-align: left;
-  padding: 14px 16px;
+  padding: 13px 16px;
   font-size: 11px;
   font-weight: 700;
-  color: var(--text-soft);
+  color: var(--ld-text-soft);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--ld-border);
   white-space: nowrap;
+  background: #f8fafc;
 }
 
 .ld-table td {
   padding: 14px 16px;
   font-size: 14px;
   font-weight: 500;
-  color: var(--text-soft);
+  color: var(--ld-text-soft);
   border-bottom: 1px solid #f1f5f9;
   vertical-align: middle;
 }
 
 .ld-table tbody tr {
-  transition: background 0.2s ease;
+  transition: background 0.15s ease;
 }
 
 .ld-table tbody tr:hover {
@@ -305,58 +309,104 @@
 }
 
 .ld-table strong {
-  color: var(--text);
-  font-weight: 600;
+  color: var(--ld-text);
+  font-weight: 650;
 }
 
+/* Notes preview */
+.ld-notes-preview {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--ld-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Phone */
 .ld-phone {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--primary);
+  color: var(--ld-primary);
   text-decoration: none;
   font-weight: 600;
   font-size: 13.5px;
-  transition: var(--transition);
+  transition: var(--ld-transition);
   white-space: nowrap;
 }
 
 .ld-phone:hover {
-  color: var(--primary-dark);
+  color: var(--ld-primary-dark);
 }
 
-.ld-course-badge {
-  display: inline-block;
-  padding: 5px 10px;
-  background: var(--primary-light);
-  color: var(--primary-dark);
-  border-radius: 8px;
+/* Source badge */
+.ld-source-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  background: #f1f5f9;
+  color: #475569;
+  border-radius: 6px;
   font-size: 12.5px;
   font-weight: 600;
   white-space: nowrap;
 }
 
-.ld-status-badge {
-  display: inline-flex;
-  align-items: center;
+/* Course badge */
+.ld-course-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  background: var(--ld-primary-light);
+  color: var(--ld-primary-dark);
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Status select */
+.ld-status-select {
   padding: 5px 10px;
   border-radius: 6px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.03em;
-  white-space: nowrap;
+  border: 1px solid;
+  cursor: pointer;
+  outline: none;
+  min-width: 140px;
+  appearance: none;
+  background-image: none;
+  transition: var(--ld-transition);
 }
 
-.ld-date {
+.ld-status-select:hover {
+  filter: brightness(0.97);
+}
+
+/* Date & Last contact */
+.ld-date,
+.ld-last-contact {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  color: var(--text-soft);
-  font-size: 13.5px;
-  font-weight: 500;
+  gap: 5px;
+  font-size: 13px;
+  color: var(--ld-text-soft);
+  font-weight: 550;
   white-space: nowrap;
 }
 
+.ld-last-contact {
+  color: #475569;
+  font-weight: 600;
+}
+
+/* Actions */
 .ld-actions {
   display: flex;
   align-items: center;
@@ -365,8 +415,8 @@
 }
 
 .ld-action-btn {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border: none;
   border-radius: 8px;
   display: flex;
@@ -374,63 +424,63 @@
   justify-content: center;
   font-size: 15px;
   cursor: pointer;
-  transition: var(--transition);
+  transition: var(--ld-transition);
   background: #f1f5f9;
-  color: var(--text-soft);
+  color: var(--ld-text-soft);
   flex-shrink: 0;
 }
 
 .ld-action-btn:hover {
-  background: var(--primary-light);
-  color: var(--primary);
+  background: var(--ld-primary-light);
+  color: var(--ld-primary);
 }
 
 .ld-action-btn.ld-del:hover {
-  background: var(--danger-light);
-  color: var(--danger);
+  background: #fef2f2;
+  color: var(--ld-danger);
 }
 
 /* ========== EMPTY / LOADING / ERROR ========== */
 .ld-empty {
-  padding: 64px 24px;
+  padding: 60px 24px;
   text-align: center;
-  color: var(--muted);
-  background: var(--card);
-  border-radius: 16px;
-  border: 1px solid var(--border);
+  color: var(--ld-muted);
+  background: var(--ld-card);
+  border-radius: var(--ld-radius-lg);
+  border: 1px solid var(--ld-border);
 }
 
 .ld-empty h3 {
-  margin: 16px 0 8px;
+  margin: 14px 0 6px;
   font-size: 17px;
   font-weight: 700;
-  color: var(--text);
+  color: var(--ld-text);
 }
 
 .ld-empty p {
   margin: 0;
   font-size: 14px;
   font-weight: 500;
-  color: var(--text-soft);
+  color: var(--ld-text-soft);
 }
 
 .ld-loading {
   padding: 48px;
   text-align: center;
-  color: var(--text-soft);
+  color: var(--ld-text-soft);
   font-weight: 500;
   font-size: 14px;
 }
 
 .ld-error {
-  background: var(--danger-light);
-  color: var(--danger);
-  padding: 14px 18px;
-  border-radius: 12px;
+  background: #fef2f2;
+  color: var(--ld-danger);
+  padding: 13px 16px;
+  border-radius: var(--ld-radius);
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
   font-size: 14px;
   font-weight: 600;
   border: 1px solid #fecaca;
@@ -438,15 +488,15 @@
 
 .ld-error button {
   margin-left: auto;
-  background: white;
+  background: #fff;
   border: 1px solid #fecaca;
-  padding: 6px 14px;
+  padding: 5px 12px;
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
   font-size: 13px;
-  color: var(--danger);
-  transition: var(--transition);
+  color: var(--ld-danger);
+  transition: var(--ld-transition);
 }
 
 .ld-error button:hover {
@@ -457,76 +507,92 @@
 .ld-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.4);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
   z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 16px;
-  animation: overlayFade 0.2s ease-out;
+  animation: ldOverlay 0.2s ease-out;
   overflow-y: auto;
 }
 
+@keyframes ldOverlay {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 .ld-modal-content {
-  background: var(--card);
+  background: var(--ld-card);
   max-width: 520px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  border-radius: 20px;
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--border);
-  animation: modalScaleUp 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border-radius: 18px;
+  box-shadow: var(--ld-shadow-lg);
+  border: 1px solid var(--ld-border);
+  animation: ldModalIn 0.25s cubic-bezier(0.34, 1.4, 0.64, 1);
   margin: auto;
+}
+
+@keyframes ldModalIn {
+  from { opacity: 0; transform: scale(0.96) translateY(12px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .ld-modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 20px;
-  border-bottom: 1px solid var(--border);
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--ld-border);
   position: sticky;
   top: 0;
-  background: var(--card);
+  background: var(--ld-card);
   z-index: 5;
 }
 
 .ld-modal-header h3 {
   font-size: 17px;
   font-weight: 700;
-  color: var(--text);
+  color: var(--ld-text);
   margin: 0;
 }
 
 .ld-close {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border: none;
   border-radius: 50%;
   background: #f1f5f9;
-  color: var(--text-soft);
+  color: var(--ld-text-soft);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   font-size: 16px;
-  transition: var(--transition);
+  transition: var(--ld-transition);
   flex-shrink: 0;
 }
 
 .ld-close:hover {
-  background: var(--danger-light);
-  color: var(--danger);
+  background: #fef2f2;
+  color: var(--ld-danger);
 }
 
 .ld-form {
   padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 15px;
+}
+
+.ld-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
 }
 
 .ld-input-group {
@@ -538,52 +604,64 @@
 .ld-input-group label {
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-soft);
+  color: var(--ld-text-soft);
+}
+
+.ld-input-group input,
+.ld-input-group select,
+.ld-input-group textarea {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--ld-border);
+  background: #fdfefe;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ld-text);
+  transition: var(--ld-transition);
+  font-family: inherit;
 }
 
 .ld-input-group input,
 .ld-input-group select {
-  height: 46px;
-  padding: 0 14px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: #fdfefe;
-  font-size: 14px;
-  font-weight: 550;
-  color: var(--text);
-  transition: var(--transition);
-  width: 100%;
-  font-family: inherit;
+  height: 44px;
+  padding: 0 13px;
+}
+
+.ld-input-group textarea {
+  padding: 11px 13px;
+  resize: vertical;
+  min-height: 82px;
+  line-height: 1.45;
 }
 
 .ld-input-group input:focus,
-.ld-input-group select:focus {
+.ld-input-group select:focus,
+.ld-input-group textarea:focus {
   outline: none;
-  border-color: var(--primary);
-  background: var(--card);
-  box-shadow: 0 0 0 4px rgba(55, 111, 255, 0.1);
+  border-color: var(--ld-primary);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(55, 111, 255, 0.1);
 }
 
 .ld-submit-btn {
-  height: 48px;
+  height: 46px;
   border: none;
-  border-radius: 12px;
-  padding: 0 24px;
-  background: var(--primary);
-  color: white;
+  border-radius: var(--ld-radius);
+  background: var(--ld-primary);
+  color: #fff;
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 6px 16px rgba(55, 111, 255, 0.15);
-  transition: var(--transition);
+  box-shadow: 0 5px 14px rgba(55, 111, 255, 0.2);
+  transition: var(--ld-transition);
   margin-top: 4px;
   width: 100%;
 }
 
 .ld-submit-btn:hover:not(:disabled) {
-  background: var(--primary-dark);
+  background: var(--ld-primary-dark);
   transform: translateY(-1px);
-  box-shadow: 0 10px 20px rgba(55, 111, 255, 0.25);
+  box-shadow: 0 8px 18px rgba(55, 111, 255, 0.28);
 }
 
 .ld-submit-btn:disabled {
@@ -596,32 +674,32 @@
 .ld-confirm-box {
   text-align: center;
   padding: 32px 24px;
-  max-width: 420px;
+  max-width: 400px;
 }
 
 .ld-confirm-icon {
-  width: 56px;
-  height: 56px;
-  background: var(--danger-light);
-  color: var(--danger);
+  width: 54px;
+  height: 54px;
+  background: #fef2f2;
+  color: var(--ld-danger);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
-  margin: 0 auto 16px;
+  font-size: 1.45rem;
+  margin: 0 auto 14px;
 }
 
 .ld-confirm-box h3 {
   margin: 0 0 8px;
   font-size: 18px;
   font-weight: 700;
-  color: var(--text);
+  color: var(--ld-text);
 }
 
 .ld-confirm-box p {
-  color: var(--text-soft);
-  margin: 0 0 24px;
+  color: var(--ld-text-soft);
+  margin: 0 0 22px;
   font-size: 14px;
   font-weight: 500;
   line-height: 1.5;
@@ -629,38 +707,38 @@
 
 .ld-confirm-btns {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   justify-content: center;
   flex-wrap: wrap;
 }
 
 .ld-btn-no,
 .ld-btn-yes {
-  height: 44px;
-  padding: 0 22px;
+  height: 42px;
+  padding: 0 20px;
   border-radius: 10px;
   font-weight: 700;
   font-size: 14px;
   cursor: pointer;
   border: none;
-  transition: var(--transition);
+  transition: var(--ld-transition);
   min-width: 110px;
 }
 
 .ld-btn-no {
   background: #f1f5f9;
-  color: var(--text-soft);
+  color: var(--ld-text-soft);
 }
 
 .ld-btn-no:hover {
   background: #e2e8f0;
-  color: var(--text);
+  color: var(--ld-text);
 }
 
 .ld-btn-yes {
-  background: var(--danger);
-  color: white;
-  box-shadow: 0 6px 14px rgba(239, 68, 68, 0.2);
+  background: var(--ld-danger);
+  color: #fff;
+  box-shadow: 0 5px 12px rgba(239, 68, 68, 0.22);
 }
 
 .ld-btn-yes:hover:not(:disabled) {
@@ -673,34 +751,17 @@
   cursor: not-allowed;
 }
 
-/* ========== ANIMATIONS ========== */
-@keyframes pageReveal {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes overlayFade {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-@keyframes modalScaleUp {
-  from { opacity: 0; transform: scale(0.96) translateY(10px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
-}
-
-/* ========== RESPONSIVE ========== */
-
-/* Desktop - table ichki scroll */
+/* ========== DESKTOP SCROLL ========== */
 @media (min-width: 769px) {
   .ld-table-wrapper {
     overflow-y: auto;
     overflow-x: auto;
-    max-height: calc(100vh - 360px);
+    max-height: calc(100vh - 340px);
   }
 }
 
-@media (max-width: 992px) {
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1100px) {
   .ld-stats-row {
     grid-template-columns: 1fr 1fr;
   }
@@ -710,19 +771,17 @@
   .ld-module-root {
     height: auto;
     min-height: 100%;
-    overflow: visible;
   }
 
   .ld-header {
     flex-direction: column;
     align-items: stretch;
-    gap: 14px;
+    gap: 12px;
   }
 
   .ld-create-btn {
     width: 100%;
     justify-content: center;
-    height: 46px;
   }
 
   .ld-stats-row {
@@ -733,7 +792,6 @@
   .ld-filters {
     flex-direction: column;
     align-items: stretch;
-    gap: 10px;
   }
 
   .ld-search {
@@ -747,14 +805,17 @@
     min-width: 0;
   }
 
-  /* Table → Card layout */
+  .ld-form-row {
+    grid-template-columns: 1fr;
+  }
+
+  /* Card layout for table */
   .ld-table-wrapper {
     background: transparent;
     border: none;
     box-shadow: none;
     overflow: visible;
     max-height: none;
-    display: block;
   }
 
   .ld-table {
@@ -775,17 +836,16 @@
   .ld-table tbody tr {
     display: flex;
     flex-direction: column;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
+    background: var(--ld-card);
+    border: 1px solid var(--ld-border);
+    border-radius: var(--ld-radius-lg);
     padding: 16px;
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--ld-shadow-sm);
     gap: 10px;
   }
 
   .ld-table tbody tr:hover {
-    background: var(--card);
-    border-color: var(--primary);
+    border-color: var(--ld-primary);
   }
 
   .ld-table td {
@@ -797,34 +857,11 @@
     font-size: 13.5px;
   }
 
-  .ld-table td::before {
-    content: attr(data-label);
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    margin-right: 12px;
-    flex-shrink: 0;
-  }
-
-  .ld-table td:first-child {
-    justify-content: flex-start;
-  }
-
-  .ld-table td:first-child::before {
-    display: none;
-  }
-
   .ld-table td:last-child {
     justify-content: flex-end;
-    margin-top: 4px;
+    margin-top: 6px;
     padding-top: 12px;
-    border-top: 1px solid var(--border);
-  }
-
-  .ld-table td:last-child::before {
-    display: none;
+    border-top: 1px solid var(--ld-border);
   }
 
   .ld-actions {
@@ -833,11 +870,10 @@
   }
 
   .ld-action-btn {
-    width: 40px;
-    height: 40px;
+    width: 38px;
+    height: 38px;
   }
 
-  /* Modal mobile */
   .ld-modal-overlay {
     padding: 12px;
     align-items: flex-end;
@@ -845,8 +881,13 @@
 
   .ld-modal-content {
     max-height: 92vh;
-    border-radius: 20px 20px 0 0;
-    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    border-radius: 18px 18px 0 0;
+    animation: ldSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes ldSlideUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
 
   .ld-confirm-btns {
@@ -859,31 +900,12 @@
   }
 }
 
-@media (max-width: 400px) {
+@media (max-width: 420px) {
   .ld-title {
     font-size: 18px;
   }
 
-  .ld-desc {
-    font-size: 13px;
-  }
-
   .ld-stat-value {
     font-size: 20px;
-  }
-
-  .ld-table tbody tr {
-    padding: 14px;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(40px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
