@@ -46,7 +46,7 @@ export default function Payments({ activeBranch }) {
     return d.toLocaleDateString("uz-UZ", { month: "long", year: "numeric" });
   };
 
-  // ========== Xprinter 80mm chek (uzun + professional) ==========
+  // ========== Xprinter 80mm chek (yuqori + pastki joy bilan) ==========
   const printPaymentReceipt = ({
     studentName,
     phone,
@@ -84,12 +84,18 @@ export default function Payments({ activeBranch }) {
       width: 72mm;
       max-width: 72mm;
       margin: 0 auto;
-      padding: 10px 6px 40px;
+      padding: 0;
       font-family: "Courier New", Courier, monospace;
       font-size: 12px;
       color: #000;
       background: #fff;
       line-height: 1.4;
+    }
+    .top-space {
+      height: 12mm;          /* Yuqoridan bo'sh joy */
+    }
+    .content {
+      padding: 0 6px;
     }
     .center { text-align: center; }
     .title {
@@ -97,7 +103,7 @@ export default function Payments({ activeBranch }) {
       font-weight: bold;
       text-transform: uppercase;
       margin-bottom: 4px;
-      letter-spacing: 0.6px;
+      letter-spacing: 0.5px;
     }
     .sub {
       font-size: 11px;
@@ -137,39 +143,44 @@ export default function Payments({ activeBranch }) {
       margin-top: 12px;
       line-height: 1.5;
     }
-    .spacer {
-      height: 38mm;
+    .bottom-space {
+      height: 28mm;          /* Pastdan bo'sh joy (kesish uchun) */
     }
   </style>
 </head>
 <body>
-  <div class="center title">${esc(branchName || "Edu ERP")}</div>
-  <div class="center sub">TO'LOV CHEKI</div>
-  <div class="line"></div>
+  <!-- Yuqoridan ozgina joy -->
+  <div class="top-space"></div>
 
-  <div class="row"><span>O'quvchi:</span><span>${esc(studentName)}</span></div>
-  <div class="row"><span>Telefon:</span><span>${esc(phone)}</span></div>
-  <div class="row"><span>Kurs:</span><span>${esc(course)}</span></div>
-  <div class="row"><span>Sana:</span><span>${esc(paymentDate)}</span></div>
+  <div class="content">
+    <div class="center title">${esc(branchName || "Edu ERP")}</div>
+    <div class="center sub">TO'LOV CHEKI</div>
+    <div class="line"></div>
 
-  <div class="line"></div>
+    <div class="row"><span>O'quvchi:</span><span>${esc(studentName)}</span></div>
+    <div class="row"><span>Telefon:</span><span>${esc(phone)}</span></div>
+    <div class="row"><span>Kurs:</span><span>${esc(course)}</span></div>
+    <div class="row"><span>Sana:</span><span>${esc(paymentDate)}</span></div>
 
-  <div class="row"><span>Davr:</span><span>${esc(fromMonth)}</span></div>
-  <div class="row"><span>gacha:</span><span>${esc(toMonth)}</span></div>
+    <div class="line"></div>
 
-  <div class="line"></div>
+    <div class="row"><span>Davr:</span><span>${esc(fromMonth)}</span></div>
+    <div class="row"><span>gacha:</span><span>${esc(toMonth)}</span></div>
 
-  <div class="amount">${esc(amount)}</div>
-  <div class="status">TO'LANDI</div>
+    <div class="line"></div>
 
-  <div class="line"></div>
-  <div class="footer">
-    Rahmat!<br>
-    ${esc(branchName || "")}
+    <div class="amount">${esc(amount)}</div>
+    <div class="status">TO'LANDI</div>
+
+    <div class="line"></div>
+    <div class="footer">
+      Rahmat!<br>
+      ${esc(branchName || "")}
+    </div>
   </div>
 
-  <!-- Kesish uchun uzun bo'sh joy -->
-  <div class="spacer"></div>
+  <!-- Pastdan ozgina joy -->
+  <div class="bottom-space"></div>
 </body>
 </html>`;
 
