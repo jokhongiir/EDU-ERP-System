@@ -46,7 +46,7 @@ export default function Payments({ activeBranch }) {
     return d.toLocaleDateString("uz-UZ", { month: "long", year: "numeric" });
   };
 
-  // ========== Xprinter 80mm chek (INTELLECT ACADEMY) ==========
+  // ========== Xprinter 80mm chek (qalin matn + INTELLECT ACADEMY) ==========
   const printPaymentReceipt = ({
     studentName,
     phone,
@@ -88,37 +88,35 @@ export default function Payments({ activeBranch }) {
       padding: 0;
       font-family: "Courier New", Courier, monospace;
       font-size: 12px;
+      font-weight: 600;
       color: #000;
       background: #fff;
       line-height: 1.35;
     }
-    .top-space {
-      height: 0mm;
-    }
     .content {
-      padding: 0 5px;
+      padding: 3px 5px 0;
     }
     .center { text-align: center; }
     .logo {
-      width: 70px;
-      height: 70px;
-      margin: 0 auto 4px;
+      width: 42px;
+      height: 42px;
+      margin: 0 auto 3px;
       display: block;
     }
     .brand {
-      font-size: 11px;
-      font-weight: bold;
+      font-size: 12px;
+      font-weight: 900;
       text-transform: uppercase;
       letter-spacing: 0.3px;
-      line-height: 1.25;
-      margin-bottom: 2px;
+      line-height: 1.2;
     }
     .sub {
-      font-size: 10px;
-      margin-bottom: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      margin: 3px 0 5px;
     }
     .line {
-      border-top: 1px dashed #000;
+      border-top: 1.5px dashed #000;
       margin: 6px 0;
     }
     .row {
@@ -126,50 +124,53 @@ export default function Payments({ activeBranch }) {
       justify-content: space-between;
       margin: 3px 0;
       gap: 4px;
+      font-weight: 600;
+    }
+    .row span:first-child {
+      font-weight: 600;
     }
     .row span:last-child {
       text-align: right;
-      font-weight: bold;
+      font-weight: 800;
       max-width: 58%;
       word-break: break-word;
     }
     .amount {
-      font-size: 16px;
-      font-weight: bold;
+      font-size: 17px;
+      font-weight: 900;
       text-align: center;
-      margin: 10px 0 4px;
+      margin: 9px 0 4px;
     }
     .status {
       text-align: center;
-      font-weight: bold;
-      font-size: 13px;
+      font-weight: 900;
+      font-size: 14px;
       margin-bottom: 4px;
     }
     .footer {
       text-align: center;
-      font-size: 10px;
-      margin-top: 8px;
-      line-height: 1.45;
+      font-size: 11px;
+      font-weight: 700;
+      margin-top: 7px;
+      line-height: 1.4;
     }
     .admin {
-      font-size: 10px;
+      font-size: 11px;
+      font-weight: 700;
       text-align: center;
-      margin-top: 4px;
+      margin-top: 3px;
     }
     .bottom-space {
-      height: 1400mm;
+      height: 70mm;
     }
   </style>
 </head>
 <body>
-  <div class="top-space"></div>
-
   <div class="content">
-    <!-- Logo (public/logo-ia.png ga joylashtiring) -->
     <img class="logo" src="/logo-ia.png" alt="IA" onerror="this.style.display='none'" />
 
     <div class="center brand">INTELLECT ACADEMY</div>
-    <div class="center brand" style="font-size:10px; margin-bottom:4px;">LEARNING CENTER</div>
+    <div class="center brand" style="font-size:10px;">LEARNING CENTER</div>
     <div class="center sub">TO'LOV CHEKI</div>
     <div class="line"></div>
 
