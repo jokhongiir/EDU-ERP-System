@@ -46,7 +46,7 @@ export default function Payments({ activeBranch }) {
     return d.toLocaleDateString("uz-UZ", { month: "long", year: "numeric" });
   };
 
-  // ========== Xprinter 80mm chek ==========
+  // ========== Xprinter 80mm chek (tuzatilgan) ==========
   const printPaymentReceipt = ({
     studentName,
     phone,
@@ -57,8 +57,15 @@ export default function Payments({ activeBranch }) {
     toMonth,
     branchName,
   }) => {
-    const html = `
-<!DOCTYPE html>
+    // XSS / maxsus belgilardan himoya
+    const esc = (v) =>
+      String(v ?? "—")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+
+    const html = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8" />
@@ -67,18 +74,20 @@ export default function Payments({ activeBranch }) {
     @page { size: 80mm auto; margin: 0; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      width: 76mm;
+      width: 72mm;
+      max-width: 72mm;
       margin: 0 auto;
-      padding: 10px 8px 14px;
+      padding: 8px 6px 12px;
       font-family: "Courier New", Courier, monospace;
       font-size: 12px;
       color: #000;
       line-height: 1.35;
+      background: #fff;
     }
     .center { text-align: center; }
     .bold { font-weight: bold; }
     .title {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: bold;
       margin-bottom: 4px;
       text-transform: uppercase;
@@ -91,17 +100,17 @@ export default function Payments({ activeBranch }) {
     .row {
       display: flex;
       justify-content: space-between;
-      gap: 8px;
-      margin: 4px 0;
+      gap: 6px;
+      margin: 3px 0;
     }
     .row span:last-child {
       text-align: right;
       font-weight: 600;
-      max-width: 55%;
+      max-width: 58%;
       word-break: break-word;
     }
     .amount {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: bold;
       text-align: center;
       margin: 10px 0 6px;
@@ -111,44 +120,51 @@ export default function Payments({ activeBranch }) {
       font-size: 11px;
       margin-top: 10px;
     }
+    @media print {
+      body { width: 72mm; }
+    }
   </style>
 </head>
 <body>
-  <div class="center title">${branchName || "Edu ERP"}</div>
+  <div class="center title">${esc(branchName || "Edu ERP")}</div>
   <div class="center sub">TO'LOV CHEKI</div>
   <div class="line"></div>
 
-  <div class="row"><span>O'quvchi:</span><span>${studentName || "—"}</span></div>
-  <div class="row"><span>Telefon:</span><span>${phone || "—"}</span></div>
-  <div class="row"><span>Kurs:</span><span>${course || "—"}</span></div>
-  <div class="row"><span>Sana:</span><span>${paymentDate || "—"}</span></div>
+  <div class="row"><span>O'quvchi:</span><span>${esc(studentName)}</span></div>
+  <div class="row"><span>Telefon:</span><span>${esc(phone)}</span></div>
+  <div class="row"><span>Kurs:</span><span>${esc(course)}</span></div>
+  <div class="row"><span>Sana:</span><span>${esc(paymentDate)}</span></div>
 
   <div class="line"></div>
 
-  <div class="row"><span>Davr:</span><span>${fromMonth || "—"}</span></div>
-  <div class="row"><span>gacha:</span><span>${toMonth || "—"}</span></div>
+  <div class="row"><span>Davr:</span><span>${esc(fromMonth)}</span></div>
+  <div class="row"><span>gacha:</span><span>${esc(toMonth)}</span></div>
 
   <div class="line"></div>
 
-  <div class="amount">${amount || "0 UZS"}</div>
+  <div class="amount">${esc(amount)}</div>
   <div class="center bold">TO'LANDI</div>
 
   <div class="line"></div>
-  <div class="footer">Rahmat!<br/>${branchName || ""}</div>
+  <div class="footer">Rahmat!<br/>${esc(branchName || "")}</div>
 
   <script>
     window.onload = function () {
-      window.print();
-      setTimeout(function () { window.close(); }, 400);
+      setTimeout(function () {
+        window.focus();
+        window.print();
+      }, 250);
+    };
+    window.onafterprint = function () {
+      setTimeout(function () { window.close(); }, 300);
     };
   </script>
 </body>
-</html>
-    `;
+</html>`;
 
     const w = window.open("", "_blank", "width=320,height=560");
     if (!w) {
-      alert("Popup bloklangan. Brauzerda ruxsat bering.");
+      alert("Popup bloklangan. Brauzerda ruxsat bering va qayta urinib ko'ring.");
       return;
     }
     w.document.open();
