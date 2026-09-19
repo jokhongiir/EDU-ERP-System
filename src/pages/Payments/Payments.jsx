@@ -104,7 +104,7 @@ export default function Payments({ activeBranch }) {
       display: block;
     }
     .brand {
-      font-size: 12px;
+      font-size: 17px;
       font-weight: 900;
       text-transform: uppercase;
       letter-spacing: 0.3px;
@@ -161,7 +161,7 @@ export default function Payments({ activeBranch }) {
       margin-top: 3px;
     }
     .bottom-space {
-      height: 70mm;
+      height: 1400mm;
     }
   </style>
 </head>
