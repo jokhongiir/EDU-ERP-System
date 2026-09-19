@@ -72,7 +72,7 @@ export default function Payments({ activeBranch }) {
   <title>To'lov cheki</title>
   <style>
     @page {
-      size: 80mm auto;
+      size: 130mm auto;
       margin: 0;
     }
     * {
@@ -137,7 +137,7 @@ export default function Payments({ activeBranch }) {
       margin-top: 10px;
     }
     .spacer {
-      height: 22mm;
+      height: 60mm;
     }
   </style>
 </head>
