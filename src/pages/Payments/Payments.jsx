@@ -46,7 +46,7 @@ export default function Payments({ activeBranch }) {
     return d.toLocaleDateString("uz-UZ", { month: "long", year: "numeric" });
   };
 
-  // ========== Xprinter 80mm chek (iframe — eng ishonchli) ==========
+  // ========== Xprinter 80mm chek (professional + uzunroq) ==========
   const printPaymentReceipt = ({
     studentName,
     phone,
@@ -84,12 +84,12 @@ export default function Payments({ activeBranch }) {
       width: 72mm;
       max-width: 72mm;
       margin: 0 auto;
-      padding: 6px 5px 10px;
+      padding: 8px 5px 32px;
       font-family: "Courier New", Courier, monospace;
       font-size: 12px;
       color: #000;
       background: #fff;
-      line-height: 1.3;
+      line-height: 1.35;
     }
     .center { text-align: center; }
     .title {
@@ -97,19 +97,20 @@ export default function Payments({ activeBranch }) {
       font-weight: bold;
       text-transform: uppercase;
       margin-bottom: 3px;
+      letter-spacing: 0.5px;
     }
     .sub {
       font-size: 11px;
-      margin-bottom: 5px;
+      margin-bottom: 6px;
     }
     .line {
       border-top: 1px dashed #000;
-      margin: 6px 0;
+      margin: 7px 0;
     }
     .row {
       display: flex;
       justify-content: space-between;
-      margin: 2px 0;
+      margin: 3px 0;
       gap: 4px;
     }
     .row span:last-child {
@@ -119,15 +120,24 @@ export default function Payments({ activeBranch }) {
       word-break: break-word;
     }
     .amount {
-      font-size: 15px;
+      font-size: 16px;
       font-weight: bold;
       text-align: center;
-      margin: 8px 0 4px;
+      margin: 10px 0 5px;
+    }
+    .status {
+      text-align: center;
+      font-weight: bold;
+      font-size: 13px;
+      margin-bottom: 4px;
     }
     .footer {
       text-align: center;
       font-size: 11px;
-      margin-top: 8px;
+      margin-top: 10px;
+    }
+    .spacer {
+      height: 22mm;
     }
   </style>
 </head>
@@ -149,10 +159,16 @@ export default function Payments({ activeBranch }) {
   <div class="line"></div>
 
   <div class="amount">${esc(amount)}</div>
-  <div class="center" style="font-weight:bold;">TO'LANDI</div>
+  <div class="status">TO'LANDI</div>
 
   <div class="line"></div>
-  <div class="footer">Rahmat!<br>${esc(branchName || "")}</div>
+  <div class="footer">
+    Rahmat!<br>
+    ${esc(branchName || "")}
+  </div>
+
+  <!-- Kesish uchun qo'shimcha bo'sh joy -->
+  <div class="spacer"></div>
 </body>
 </html>`;
 
@@ -175,16 +191,14 @@ export default function Payments({ activeBranch }) {
     doc.write(html);
     doc.close();
 
-    // Chop etish
     setTimeout(() => {
       iframe.contentWindow.focus();
       iframe.contentWindow.print();
 
-      // 3 soniyadan keyin iframe ni o'chirish
       setTimeout(() => {
         iframe.remove();
-      }, 3000);
-    }, 400);
+      }, 4500);
+    }, 450);
   };
 
   const openReceiptForStudent = (s) => {
