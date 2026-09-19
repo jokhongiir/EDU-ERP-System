@@ -46,7 +46,7 @@ export default function Payments({ activeBranch }) {
     return d.toLocaleDateString("uz-UZ", { month: "long", year: "numeric" });
   };
 
-  // ========== Xprinter 80mm chek (professional + uzunroq) ==========
+  // ========== Xprinter 80mm chek (uzun + professional) ==========
   const printPaymentReceipt = ({
     studentName,
     phone,
@@ -72,7 +72,7 @@ export default function Payments({ activeBranch }) {
   <title>To'lov cheki</title>
   <style>
     @page {
-      size: 130mm auto;
+      size: 80mm auto;
       margin: 0;
     }
     * {
@@ -84,60 +84,61 @@ export default function Payments({ activeBranch }) {
       width: 72mm;
       max-width: 72mm;
       margin: 0 auto;
-      padding: 8px 5px 32px;
+      padding: 10px 6px 40px;
       font-family: "Courier New", Courier, monospace;
       font-size: 12px;
       color: #000;
       background: #fff;
-      line-height: 1.35;
+      line-height: 1.4;
     }
     .center { text-align: center; }
     .title {
-      font-size: 14px;
+      font-size: 15px;
       font-weight: bold;
       text-transform: uppercase;
-      margin-bottom: 3px;
-      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+      letter-spacing: 0.6px;
     }
     .sub {
       font-size: 11px;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
     .line {
       border-top: 1px dashed #000;
-      margin: 7px 0;
+      margin: 8px 0;
     }
     .row {
       display: flex;
       justify-content: space-between;
-      margin: 3px 0;
-      gap: 4px;
+      margin: 4px 0;
+      gap: 6px;
     }
     .row span:last-child {
       text-align: right;
       font-weight: bold;
-      max-width: 55%;
+      max-width: 58%;
       word-break: break-word;
     }
     .amount {
-      font-size: 16px;
+      font-size: 17px;
       font-weight: bold;
       text-align: center;
-      margin: 10px 0 5px;
+      margin: 12px 0 6px;
     }
     .status {
       text-align: center;
       font-weight: bold;
       font-size: 13px;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
     .footer {
       text-align: center;
       font-size: 11px;
-      margin-top: 10px;
+      margin-top: 12px;
+      line-height: 1.5;
     }
     .spacer {
-      height: 60mm;
+      height: 38mm;
     }
   </style>
 </head>
@@ -167,12 +168,11 @@ export default function Payments({ activeBranch }) {
     ${esc(branchName || "")}
   </div>
 
-  <!-- Kesish uchun qo'shimcha bo'sh joy -->
+  <!-- Kesish uchun uzun bo'sh joy -->
   <div class="spacer"></div>
 </body>
 </html>`;
 
-    // Eski iframe ni o'chirish
     const old = document.getElementById("receipt-print-iframe");
     if (old) old.remove();
 
@@ -197,8 +197,8 @@ export default function Payments({ activeBranch }) {
 
       setTimeout(() => {
         iframe.remove();
-      }, 4500);
-    }, 450);
+      }, 5000);
+    }, 500);
   };
 
   const openReceiptForStudent = (s) => {
