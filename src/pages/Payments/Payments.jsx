@@ -13,7 +13,6 @@ import {
   FiRefreshCw,
   FiPrinter,
 } from "react-icons/fi";
-import { jsPDF } from "jspdf";
 import "./Payments.css";
 
 export default function Payments({ activeBranch }) {
@@ -47,7 +46,7 @@ export default function Payments({ activeBranch }) {
     return d.toLocaleDateString("uz-UZ", { month: "long", year: "numeric" });
   };
 
-  // ========== Xprinter 80mm chek (PDF — eng ishonchli) ==========
+  // ========== Xprinter 80mm chek (iframe — eng ishonchli) ==========
   const printPaymentReceipt = ({
     studentName,
     phone,
@@ -58,75 +57,134 @@ export default function Payments({ activeBranch }) {
     toMonth,
     branchName,
   }) => {
-    const doc = new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: [80, 140], // 80mm kenglik
-    });
+    const esc = (v) =>
+      String(v ?? "—")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
 
-    const pageWidth = 80;
-    const margin = 5;
-    let y = 8;
-
-    const centerText = (text, size = 11, isBold = false) => {
-      doc.setFont("courier", isBold ? "bold" : "normal");
-      doc.setFontSize(size);
-      const textWidth = doc.getTextWidth(String(text));
-      doc.text(String(text), (pageWidth - textWidth) / 2, y);
-      y += size * 0.42 + 1.8;
-    };
-
-    const leftRight = (left, right) => {
-      doc.setFont("courier", "normal");
-      doc.setFontSize(10);
-      doc.text(String(left), margin, y);
-
-      doc.setFont("courier", "bold");
-      const rightStr = String(right || "—");
-      const rightWidth = doc.getTextWidth(rightStr);
-      doc.text(rightStr, pageWidth - margin - rightWidth, y);
-      y += 5.8;
-    };
-
-    const dashedLine = () => {
-      doc.setDrawColor(0);
-      doc.setLineDashPattern([1.2, 1.2], 0);
-      doc.line(margin, y, pageWidth - margin, y);
-      y += 4.5;
-    };
-
-    // === Chek mazmuni ===
-    centerText(branchName || "Edu ERP", 13, true);
-    centerText("TO'LOV CHEKI", 10);
-    dashedLine();
-
-    leftRight("O'quvchi:", studentName || "—");
-    leftRight("Telefon:", phone || "—");
-    leftRight("Kurs:", course || "—");
-    leftRight("Sana:", paymentDate || "—");
-    dashedLine();
-
-    leftRight("Davr:", fromMonth || "—");
-    leftRight("gacha:", toMonth || "—");
-    dashedLine();
-
-    centerText(amount || "0 UZS", 14, true);
-    centerText("TO'LANDI", 11, true);
-    dashedLine();
-
-    centerText("Rahmat!", 10);
-    centerText(branchName || "", 9);
-
-    // PDF ni ochib chop etish
-    doc.autoPrint();
-    const blobUrl = doc.output("bloburl");
-    const printWindow = window.open(blobUrl, "_blank");
-
-    if (!printWindow) {
-      alert("Popup bloklangan. Brauzerda ruxsat bering.");
-      // Fallback: yuklab olish
-      doc.save(`chek_${Date.now()}.pdf`);
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>To'lov cheki</title>
+  <style>
+    @page {
+      size: 80mm auto;
+      margin: 0;
     }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      width: 72mm;
+      max-width: 72mm;
+      margin: 0 auto;
+      padding: 6px 5px 10px;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 12px;
+      color: #000;
+      background: #fff;
+      line-height: 1.3;
+    }
+    .center { text-align: center; }
+    .title {
+      font-size: 14px;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+    .sub {
+      font-size: 11px;
+      margin-bottom: 5px;
+    }
+    .line {
+      border-top: 1px dashed #000;
+      margin: 6px 0;
+    }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      margin: 2px 0;
+      gap: 4px;
+    }
+    .row span:last-child {
+      text-align: right;
+      font-weight: bold;
+      max-width: 55%;
+      word-break: break-word;
+    }
+    .amount {
+      font-size: 15px;
+      font-weight: bold;
+      text-align: center;
+      margin: 8px 0 4px;
+    }
+    .footer {
+      text-align: center;
+      font-size: 11px;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="center title">${esc(branchName || "Edu ERP")}</div>
+  <div class="center sub">TO'LOV CHEKI</div>
+  <div class="line"></div>
+
+  <div class="row"><span>O'quvchi:</span><span>${esc(studentName)}</span></div>
+  <div class="row"><span>Telefon:</span><span>${esc(phone)}</span></div>
+  <div class="row"><span>Kurs:</span><span>${esc(course)}</span></div>
+  <div class="row"><span>Sana:</span><span>${esc(paymentDate)}</span></div>
+
+  <div class="line"></div>
+
+  <div class="row"><span>Davr:</span><span>${esc(fromMonth)}</span></div>
+  <div class="row"><span>gacha:</span><span>${esc(toMonth)}</span></div>
+
+  <div class="line"></div>
+
+  <div class="amount">${esc(amount)}</div>
+  <div class="center" style="font-weight:bold;">TO'LANDI</div>
+
+  <div class="line"></div>
+  <div class="footer">Rahmat!<br>${esc(branchName || "")}</div>
+</body>
+</html>`;
+
+    // Eski iframe ni o'chirish
+    const old = document.getElementById("receipt-print-iframe");
+    if (old) old.remove();
+
+    const iframe = document.createElement("iframe");
+    iframe.id = "receipt-print-iframe";
+    iframe.style.position = "fixed";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "0";
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(html);
+    doc.close();
+
+    // Chop etish
+    setTimeout(() => {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+
+      // 3 soniyadan keyin iframe ni o'chirish
+      setTimeout(() => {
+        iframe.remove();
+      }, 3000);
+    }, 400);
   };
 
   const openReceiptForStudent = (s) => {
@@ -234,7 +292,6 @@ export default function Payments({ activeBranch }) {
       return;
     }
 
-    // Faqat to'lov qabul qilinganda chek
     if (isNowPaid) {
       printPaymentReceipt({
         studentName: `${student.first_name || ""} ${student.last_name || ""}`.trim(),
@@ -429,10 +486,7 @@ export default function Payments({ activeBranch }) {
             <tbody>
               {processedStudents.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan="6"
-                    style={{ textAlign: "center", padding: "40px" }}
-                  >
+                  <td colSpan="6" style={{ textAlign: "center", padding: "40px" }}>
                     O‘quvchi topilmadi
                   </td>
                 </tr>
@@ -464,18 +518,12 @@ export default function Payments({ activeBranch }) {
                       {formatCurrency(s.monthly_fee)}
                     </td>
                     <td>
-                      <span
-                        className={`badge ${
-                          s.paid ? "bg-success" : "bg-danger"
-                        }`}
-                      >
+                      <span className={`badge ${s.paid ? "bg-success" : "bg-danger"}`}>
                         {s.paid ? "TO‘LANGAN" : "QARZDOR"}
                       </span>
                     </td>
                     <td>
-                      <div
-                        className={`due-date ${!s.paid ? "text-danger" : ""}`}
-                      >
+                      <div className={`due-date ${!s.paid ? "text-danger" : ""}`}>
                         <FiCalendar /> {s.next_payment_date || "Sana yo‘q"}
                       </div>
                     </td>
@@ -501,9 +549,7 @@ export default function Payments({ activeBranch }) {
                           <FiEdit2 />
                         </button>
                         <button
-                          className={`action-pill ${
-                            s.paid ? "is-paid" : "is-unpaid"
-                          }`}
+                          className={`action-pill ${s.paid ? "is-paid" : "is-unpaid"}`}
                           onClick={() => togglePayment(s)}
                         >
                           <FiCreditCard /> {s.paid ? "Refund" : "Collect"}
@@ -562,10 +608,7 @@ export default function Payments({ activeBranch }) {
               </div>
             </div>
             <div className="modal-actions">
-              <button
-                className="btn-cancel"
-                onClick={() => setEditOpen(false)}
-              >
+              <button className="btn-cancel" onClick={() => setEditOpen(false)}>
                 Bekor qilish
               </button>
               <button
