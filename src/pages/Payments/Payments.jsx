@@ -11,6 +11,7 @@ import {
   FiAlertCircle,
   FiFilter,
   FiRefreshCw,
+  FiPrinter,
 } from "react-icons/fi";
 import "./Payments.css";
 
@@ -27,10 +28,151 @@ export default function Payments({ activeBranch }) {
   const [saving, setSaving] = useState(false);
 
   const formatCurrency = (value = 0) =>
-    new Intl.NumberFormat("en-US").format(value) + " UZS";
+    new Intl.NumberFormat("uz-UZ").format(value) + " UZS";
 
   const getTodayStr = () => new Date().toISOString().slice(0, 10);
 
+  const formatPhoneDisplay = (value) => {
+    if (!value) return "—";
+    const digits = String(value).replace(/\D/g, "");
+    if (digits.length < 12) return value;
+    return `+${digits.slice(0, 3)} (${digits.slice(3, 5)}) ${digits.slice(5, 8)}-${digits.slice(8, 10)}-${digits.slice(10, 12)}`;
+  };
+
+  const formatMonthYear = (dateStr) => {
+    if (!dateStr) return "—";
+    const d = new Date(dateStr);
+    if (Number.isNaN(d.getTime())) return "—";
+    return d.toLocaleDateString("uz-UZ", { month: "long", year: "numeric" });
+  };
+
+  // ========== Xprinter 80mm chek ==========
+  const printPaymentReceipt = ({
+    studentName,
+    phone,
+    course,
+    amount,
+    paymentDate,
+    fromMonth,
+    toMonth,
+    branchName,
+  }) => {
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>To'lov cheki</title>
+  <style>
+    @page { size: 80mm auto; margin: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 76mm;
+      margin: 0 auto;
+      padding: 10px 8px 14px;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 12px;
+      color: #000;
+      line-height: 1.35;
+    }
+    .center { text-align: center; }
+    .bold { font-weight: bold; }
+    .title {
+      font-size: 15px;
+      font-weight: bold;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+    .sub { font-size: 11px; margin-bottom: 6px; }
+    .line {
+      border-top: 1px dashed #000;
+      margin: 8px 0;
+    }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin: 4px 0;
+    }
+    .row span:last-child {
+      text-align: right;
+      font-weight: 600;
+      max-width: 55%;
+      word-break: break-word;
+    }
+    .amount {
+      font-size: 16px;
+      font-weight: bold;
+      text-align: center;
+      margin: 10px 0 6px;
+    }
+    .footer {
+      text-align: center;
+      font-size: 11px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="center title">${branchName || "Edu ERP"}</div>
+  <div class="center sub">TO'LOV CHEKI</div>
+  <div class="line"></div>
+
+  <div class="row"><span>O'quvchi:</span><span>${studentName || "—"}</span></div>
+  <div class="row"><span>Telefon:</span><span>${phone || "—"}</span></div>
+  <div class="row"><span>Kurs:</span><span>${course || "—"}</span></div>
+  <div class="row"><span>Sana:</span><span>${paymentDate || "—"}</span></div>
+
+  <div class="line"></div>
+
+  <div class="row"><span>Davr:</span><span>${fromMonth || "—"}</span></div>
+  <div class="row"><span>gacha:</span><span>${toMonth || "—"}</span></div>
+
+  <div class="line"></div>
+
+  <div class="amount">${amount || "0 UZS"}</div>
+  <div class="center bold">TO'LANDI</div>
+
+  <div class="line"></div>
+  <div class="footer">Rahmat!<br/>${branchName || ""}</div>
+
+  <script>
+    window.onload = function () {
+      window.print();
+      setTimeout(function () { window.close(); }, 400);
+    };
+  </script>
+</body>
+</html>
+    `;
+
+    const w = window.open("", "_blank", "width=320,height=560");
+    if (!w) {
+      alert("Popup bloklangan. Brauzerda ruxsat bering.");
+      return;
+    }
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+  };
+
+  const openReceiptForStudent = (s) => {
+    const payDate = s.payment_date || getTodayStr();
+    const nextDate = s.next_payment_date;
+
+    printPaymentReceipt({
+      studentName: `${s.first_name || ""} ${s.last_name || ""}`.trim(),
+      phone: formatPhoneDisplay(s.phone),
+      course: s.courses?.name || "—",
+      amount: formatCurrency(s.monthly_fee || 0),
+      paymentDate: new Date(payDate).toLocaleDateString("uz-UZ"),
+      fromMonth: formatMonthYear(payDate),
+      toMonth: formatMonthYear(nextDate),
+      branchName: activeBranch?.name || "Edu ERP",
+    });
+  };
+
+  // ========== Fetch ==========
   const fetchPayments = useCallback(
     async (showSilent = false) => {
       if (!branchId) return;
@@ -41,16 +183,17 @@ export default function Payments({ activeBranch }) {
           .from("students")
           .select(`*, courses(name), teachers(name), groups(name)`)
           .eq("branch_id", branchId)
-          .eq("is_free", false) // faqat pullik studentlar
+          .eq("is_free", false)
+          .eq("is_archived", false)
           .order("created_at", { ascending: false });
 
         if (error) throw error;
 
         const today = getTodayStr();
-        const expiredIds = data
+        const expiredIds = (data || [])
           .filter(
             (s) =>
-              s.paid && s.next_payment_date && s.next_payment_date <= today,
+              s.paid && s.next_payment_date && s.next_payment_date <= today
           )
           .map((s) => s.id);
 
@@ -70,13 +213,14 @@ export default function Payments({ activeBranch }) {
         setLoading(false);
       }
     },
-    [branchId],
+    [branchId]
   );
 
   useEffect(() => {
     fetchPayments();
   }, [fetchPayments]);
 
+  // ========== Collect / Refund ==========
   const togglePayment = async (student) => {
     const isNowPaid = !student.paid;
     const today = getTodayStr();
@@ -98,8 +242,8 @@ export default function Payments({ activeBranch }) {
               payment_date: isNowPaid ? today : null,
               next_payment_date: nextDate,
             }
-          : s,
-      ),
+          : s
+      )
     );
 
     const { error } = await supabase
@@ -114,9 +258,25 @@ export default function Payments({ activeBranch }) {
     if (error) {
       setStudents(oldStudents);
       alert("Update failed: " + error.message);
+      return;
+    }
+
+    // Faqat to'lov qabul qilinganda chek
+    if (isNowPaid) {
+      printPaymentReceipt({
+        studentName: `${student.first_name || ""} ${student.last_name || ""}`.trim(),
+        phone: formatPhoneDisplay(student.phone),
+        course: student.courses?.name || "—",
+        amount: formatCurrency(student.monthly_fee || 0),
+        paymentDate: new Date(today).toLocaleDateString("uz-UZ"),
+        fromMonth: formatMonthYear(today),
+        toMonth: formatMonthYear(nextDate),
+        branchName: activeBranch?.name || "Edu ERP",
+      });
     }
   };
 
+  // ========== Edit modal ==========
   const handleSave = async () => {
     if (!editData?.id) return;
     setSaving(true);
@@ -124,10 +284,10 @@ export default function Payments({ activeBranch }) {
     const { error } = await supabase
       .from("students")
       .update({
-        monthly_fee: Number(editData.monthly_fee),
+        monthly_fee: Number(editData.monthly_fee) || 0,
         paid: Boolean(editData.paid),
-        payment_date: editData.payment_date,
-        next_payment_date: editData.next_payment_date,
+        payment_date: editData.payment_date || null,
+        next_payment_date: editData.next_payment_date || null,
       })
       .eq("id", editData.id);
 
@@ -142,7 +302,7 @@ export default function Payments({ activeBranch }) {
     const { name, value, type, checked } = e.target;
 
     setEditData((prev) => {
-      let updatedData = {
+      const updatedData = {
         ...prev,
         [name]: type === "checkbox" ? checked : value,
       };
@@ -152,7 +312,6 @@ export default function Payments({ activeBranch }) {
           const today = getTodayStr();
           const d = new Date();
           d.setMonth(d.getMonth() + 1);
-
           updatedData.payment_date = today;
           updatedData.next_payment_date = d.toISOString().slice(0, 10);
         } else {
@@ -165,6 +324,7 @@ export default function Payments({ activeBranch }) {
     });
   };
 
+  // ========== Filter ==========
   const processedStudents = useMemo(() => {
     return students.filter((s) => {
       const matchesSearch = `${s.first_name || ""} ${s.last_name || ""}`
@@ -191,17 +351,30 @@ export default function Payments({ activeBranch }) {
     };
   }, [students]);
 
+  if (!branchId) {
+    return (
+      <div className="payments-container">
+        <div style={{ padding: 40, textAlign: "center", color: "#94a3b8" }}>
+          Filial tanlanmagan
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="payments-container">
       <header className="payments-header">
         <div className="header-info">
           <h1>{activeBranch?.name || "Management"} • Payments</h1>
-          <p>Automated billing system for {students.length} active students</p>
+          <p>
+            Avtomatik to‘lov tizimi — {students.length} ta faol o‘quvchi
+          </p>
         </div>
         <button
           className="refresh-btn"
           onClick={() => fetchPayments()}
           disabled={loading}
+          title="Yangilash"
         >
           <FiRefreshCw className={loading ? "spin" : ""} />
         </button>
@@ -214,7 +387,7 @@ export default function Payments({ activeBranch }) {
           </div>
           <div className="stat-val">
             <h3>{formatCurrency(stats.total)}</h3>
-            <span>Total Collected</span>
+            <span>Jami yig‘ilgan</span>
           </div>
         </div>
         <div className="stat-card">
@@ -223,7 +396,7 @@ export default function Payments({ activeBranch }) {
           </div>
           <div className="stat-val">
             <h3>{stats.countPaid}</h3>
-            <span>Paid This Month</span>
+            <span>Shu oy to‘lagan</span>
           </div>
         </div>
         <div className="stat-card">
@@ -232,7 +405,7 @@ export default function Payments({ activeBranch }) {
           </div>
           <div className="stat-val">
             <h3>{stats.countUnpaid}</h3>
-            <span>Pending Payments</span>
+            <span>Qarzdor</span>
           </div>
         </div>
       </section>
@@ -242,7 +415,7 @@ export default function Payments({ activeBranch }) {
           <FiSearch />
           <input
             type="text"
-            placeholder="Search students..."
+            placeholder="O‘quvchi qidirish..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -254,9 +427,9 @@ export default function Payments({ activeBranch }) {
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
           >
-            <option value="all">All Students</option>
-            <option value="paid">Paid Only</option>
-            <option value="unpaid">Unpaid / Due</option>
+            <option value="all">Barchasi</option>
+            <option value="paid">To‘langan</option>
+            <option value="unpaid">Qarzdor</option>
           </select>
         </div>
       </div>
@@ -272,19 +445,22 @@ export default function Payments({ activeBranch }) {
           <table className="modern-table">
             <thead>
               <tr>
-                <th>Student Details</th>
-                <th>Course Info</th>
-                <th>Monthly Fee</th>
-                <th>Payment Status</th>
-                <th>Next Due Date</th>
-                <th align="right">Actions</th>
+                <th>O‘quvchi</th>
+                <th>Kurs</th>
+                <th>Oylik to‘lov</th>
+                <th>Status</th>
+                <th>Keyingi to‘lov</th>
+                <th align="right">Amallar</th>
               </tr>
             </thead>
             <tbody>
               {processedStudents.length === 0 ? (
                 <tr>
-                  <td colSpan="6" style={{ textAlign: "center", padding: "40px" }}>
-                    No students found
+                  <td
+                    colSpan="6"
+                    style={{ textAlign: "center", padding: "40px" }}
+                  >
+                    O‘quvchi topilmadi
                   </td>
                 </tr>
               ) : (
@@ -301,7 +477,7 @@ export default function Payments({ activeBranch }) {
                             {s.first_name} {s.last_name}
                           </div>
                           <div className="sub-text">
-                            {s.groups?.name || "No Group"}
+                            {formatPhoneDisplay(s.phone)}
                           </div>
                         </div>
                       </div>
@@ -311,32 +487,50 @@ export default function Payments({ activeBranch }) {
                         {s.courses?.name || "N/A"}
                       </span>
                     </td>
-                    <td className="fee-cell">{formatCurrency(s.monthly_fee)}</td>
+                    <td className="fee-cell">
+                      {formatCurrency(s.monthly_fee)}
+                    </td>
                     <td>
                       <span
-                        className={`badge ${s.paid ? "bg-success" : "bg-danger"}`}
+                        className={`badge ${
+                          s.paid ? "bg-success" : "bg-danger"
+                        }`}
                       >
-                        {s.paid ? "COLLECTED" : "OVERDUE"}
+                        {s.paid ? "TO‘LANGAN" : "QARZDOR"}
                       </span>
                     </td>
                     <td>
-                      <div className={`due-date ${!s.paid ? "text-danger" : ""}`}>
-                        <FiCalendar /> {s.next_payment_date || "Set Date"}
+                      <div
+                        className={`due-date ${!s.paid ? "text-danger" : ""}`}
+                      >
+                        <FiCalendar /> {s.next_payment_date || "Sana yo‘q"}
                       </div>
                     </td>
                     <td align="right">
                       <div className="action-btns">
+                        {s.paid && (
+                          <button
+                            className="icon-btn edit"
+                            title="Chek chiqarish"
+                            onClick={() => openReceiptForStudent(s)}
+                          >
+                            <FiPrinter />
+                          </button>
+                        )}
                         <button
                           className="icon-btn edit"
+                          title="Tahrirlash"
                           onClick={() => {
-                            setEditData(s);
+                            setEditData({ ...s });
                             setEditOpen(true);
                           }}
                         >
                           <FiEdit2 />
                         </button>
                         <button
-                          className={`action-pill ${s.paid ? "is-paid" : "is-unpaid"}`}
+                          className={`action-pill ${
+                            s.paid ? "is-paid" : "is-unpaid"
+                          }`}
                           onClick={() => togglePayment(s)}
                         >
                           <FiCreditCard /> {s.paid ? "Refund" : "Collect"}
@@ -355,7 +549,7 @@ export default function Payments({ activeBranch }) {
         <div className="professional-modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
-              <h2>Payment Settings</h2>
+              <h2>To‘lov sozlamalari</h2>
               <button onClick={() => setEditOpen(false)}>
                 <FiX />
               </button>
@@ -363,7 +557,7 @@ export default function Payments({ activeBranch }) {
             <div className="modal-form">
               <div className="input-grid">
                 <div className="form-item">
-                  <label>Monthly Fee</label>
+                  <label>Oylik to‘lov (UZS)</label>
                   <input
                     type="number"
                     name="monthly_fee"
@@ -372,7 +566,7 @@ export default function Payments({ activeBranch }) {
                   />
                 </div>
                 <div className="form-item">
-                  <label>Next Due Date</label>
+                  <label>Keyingi to‘lov sanasi</label>
                   <input
                     type="date"
                     name="next_payment_date"
@@ -390,25 +584,27 @@ export default function Payments({ activeBranch }) {
                   onChange={handleChange}
                 />
                 <label htmlFor="paidCheck">
-                  Mark as Paid for current cycle
+                  Joriy oy uchun to‘langan deb belgilash
                 </label>
               </div>
             </div>
             <div className="modal-actions">
-              <button className="btn-cancel" onClick={() => setEditOpen(false)}>
-                Cancel
+              <button
+                className="btn-cancel"
+                onClick={() => setEditOpen(false)}
+              >
+                Bekor qilish
               </button>
               <button
                 className="btn-primary"
                 onClick={handleSave}
                 disabled={saving}
               >
-                {saving ? "Processing..." : "Save Changes"}
+                {saving ? "Saqlanmoqda..." : "Saqlash"}
               </button>
             </div>
           </div>
         </div>
-
       )}
     </div>
   );
