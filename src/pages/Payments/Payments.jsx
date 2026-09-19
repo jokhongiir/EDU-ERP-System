@@ -46,7 +46,7 @@ export default function Payments({ activeBranch }) {
     return d.toLocaleDateString("uz-UZ", { month: "long", year: "numeric" });
   };
 
-  // ========== Xprinter 80mm chek (qalin matn + INTELLECT ACADEMY) ==========
+  // ========== Xprinter 80mm chek (logo + pechat) ==========
   const printPaymentReceipt = ({
     studentName,
     phone,
@@ -98,13 +98,13 @@ export default function Payments({ activeBranch }) {
     }
     .center { text-align: center; }
     .logo {
-      width: 55px;
-      height: 55px;
+      width: 48px;
+      height: 48px;
       margin: 0 auto 3px;
       display: block;
     }
     .brand {
-      font-size: 17px;
+      font-size: 13px;
       font-weight: 900;
       text-transform: uppercase;
       letter-spacing: 0.3px;
@@ -124,9 +124,6 @@ export default function Payments({ activeBranch }) {
       justify-content: space-between;
       margin: 3px 0;
       gap: 4px;
-      font-weight: 600;
-    }
-    .row span:first-child {
       font-weight: 600;
     }
     .row span:last-child {
@@ -160,8 +157,14 @@ export default function Payments({ activeBranch }) {
       text-align: center;
       margin-top: 3px;
     }
+    .stamp {
+      width: 70px;
+      height: 70px;
+      margin: 10px auto 0;
+      display: block;
+    }
     .bottom-space {
-      height: 1400mm;
+      height: 1600mm;
     }
   </style>
 </head>
@@ -197,6 +200,9 @@ export default function Payments({ activeBranch }) {
       INTELLECT ACADEMY
     </div>
     <div class="admin">Admin: +998 94 618 89 39</div>
+
+    <!-- Pechat (muhr) -->
+    <img class="stamp" src="/stamp-ia.png" alt="Pechat" onerror="this.style.display='none'" />
   </div>
 
   <div class="bottom-space"></div>
