@@ -46,16 +46,17 @@ export default function Payments({ activeBranch }) {
     return d.toLocaleDateString("uz-UZ", { month: "long", year: "numeric" });
   };
 
-  // ========== Xprinter 80mm chek (yuqori + ancha uzun pastki joy) ==========
+  // ========== Xprinter 80mm chek (INTELLECT ACADEMY) ==========
   const printPaymentReceipt = ({
     studentName,
     phone,
     course,
+    teacher,
+    group,
     amount,
     paymentDate,
     fromMonth,
     toMonth,
-    branchName,
   }) => {
     const esc = (v) =>
       String(v ?? "—")
@@ -89,35 +90,42 @@ export default function Payments({ activeBranch }) {
       font-size: 12px;
       color: #000;
       background: #fff;
-      line-height: 1.4;
+      line-height: 1.35;
     }
     .top-space {
-      height: 12mm;
+      height: 8mm;
     }
     .content {
-      padding: 0 6px;
+      padding: 0 5px;
     }
     .center { text-align: center; }
-    .title {
-      font-size: 15px;
+    .logo {
+      width: 42px;
+      height: 42px;
+      margin: 0 auto 4px;
+      display: block;
+    }
+    .brand {
+      font-size: 11px;
       font-weight: bold;
       text-transform: uppercase;
-      margin-bottom: 4px;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.3px;
+      line-height: 1.25;
+      margin-bottom: 2px;
     }
     .sub {
-      font-size: 11px;
-      margin-bottom: 8px;
+      font-size: 10px;
+      margin-bottom: 6px;
     }
     .line {
       border-top: 1px dashed #000;
-      margin: 8px 0;
+      margin: 6px 0;
     }
     .row {
       display: flex;
       justify-content: space-between;
-      margin: 4px 0;
-      gap: 6px;
+      margin: 3px 0;
+      gap: 4px;
     }
     .row span:last-child {
       text-align: right;
@@ -126,25 +134,30 @@ export default function Payments({ activeBranch }) {
       word-break: break-word;
     }
     .amount {
-      font-size: 17px;
+      font-size: 16px;
       font-weight: bold;
       text-align: center;
-      margin: 12px 0 6px;
+      margin: 10px 0 4px;
     }
     .status {
       text-align: center;
       font-weight: bold;
       font-size: 13px;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
     .footer {
       text-align: center;
-      font-size: 11px;
-      margin-top: 12px;
-      line-height: 1.5;
+      font-size: 10px;
+      margin-top: 8px;
+      line-height: 1.45;
+    }
+    .admin {
+      font-size: 10px;
+      text-align: center;
+      margin-top: 4px;
     }
     .bottom-space {
-      height: 800mm;
+      height: 70mm;
     }
   </style>
 </head>
@@ -152,13 +165,19 @@ export default function Payments({ activeBranch }) {
   <div class="top-space"></div>
 
   <div class="content">
-    <div class="center title">${esc(branchName || "Edu ERP")}</div>
+    <!-- Logo (public/logo-ia.png ga joylashtiring) -->
+    <img class="logo" src="/logo-ia.png" alt="IA" onerror="this.style.display='none'" />
+
+    <div class="center brand">INTELLECT ACADEMY</div>
+    <div class="center brand" style="font-size:10px; margin-bottom:4px;">LEARNING CENTER</div>
     <div class="center sub">TO'LOV CHEKI</div>
     <div class="line"></div>
 
     <div class="row"><span>O'quvchi:</span><span>${esc(studentName)}</span></div>
     <div class="row"><span>Telefon:</span><span>${esc(phone)}</span></div>
     <div class="row"><span>Kurs:</span><span>${esc(course)}</span></div>
+    <div class="row"><span>Ustoz:</span><span>${esc(teacher)}</span></div>
+    <div class="row"><span>Guruh:</span><span>${esc(group)}</span></div>
     <div class="row"><span>Sana:</span><span>${esc(paymentDate)}</span></div>
 
     <div class="line"></div>
@@ -174,8 +193,9 @@ export default function Payments({ activeBranch }) {
     <div class="line"></div>
     <div class="footer">
       Rahmat!<br>
-      ${esc(branchName || "")}
+      INTELLECT ACADEMY
     </div>
+    <div class="admin">Admin: +998 94 618 89 39</div>
   </div>
 
   <div class="bottom-space"></div>
@@ -206,7 +226,7 @@ export default function Payments({ activeBranch }) {
 
       setTimeout(() => {
         iframe.remove();
-      }, 5000);
+      }, 6000);
     }, 500);
   };
 
@@ -218,11 +238,12 @@ export default function Payments({ activeBranch }) {
       studentName: `${s.first_name || ""} ${s.last_name || ""}`.trim(),
       phone: formatPhoneDisplay(s.phone),
       course: s.courses?.name || "—",
+      teacher: s.teachers?.name || "—",
+      group: s.groups?.name || "—",
       amount: formatCurrency(s.monthly_fee || 0),
       paymentDate: new Date(payDate).toLocaleDateString("uz-UZ"),
       fromMonth: formatMonthYear(payDate),
       toMonth: formatMonthYear(nextDate),
-      branchName: activeBranch?.name || "Edu ERP",
     });
   };
 
@@ -320,11 +341,12 @@ export default function Payments({ activeBranch }) {
         studentName: `${student.first_name || ""} ${student.last_name || ""}`.trim(),
         phone: formatPhoneDisplay(student.phone),
         course: student.courses?.name || "—",
+        teacher: student.teachers?.name || "—",
+        group: student.groups?.name || "—",
         amount: formatCurrency(student.monthly_fee || 0),
         paymentDate: new Date(today).toLocaleDateString("uz-UZ"),
         fromMonth: formatMonthYear(today),
         toMonth: formatMonthYear(nextDate),
-        branchName: activeBranch?.name || "Edu ERP",
       });
     }
   };
