@@ -156,7 +156,9 @@ export default function Payments({ activeBranch }) {
       text-align: center;
       margin-top: 4px;
     }
-  
+    .bottom-space {
+      height: 1200mm;
+    }
   </style>
 </head>
 <body>
