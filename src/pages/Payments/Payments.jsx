@@ -158,8 +158,8 @@ export default function Payments({ activeBranch }) {
       margin-top: 3px;
     }
     .stamp {
-      width: 170px;
-      height: 170px;
+      width: 200px;
+      height: 200px;
       margin: 10px auto 0;
       display: block;
     }
@@ -182,12 +182,14 @@ export default function Payments({ activeBranch }) {
     <div class="row"><span>Kurs:</span><span>${esc(course)}</span></div>
     <div class="row"><span>Ustoz:</span><span>${esc(teacher)}</span></div>
     <div class="row"><span>Guruh:</span><span>${esc(group)}</span></div>
+    <div class="line"></div>
+
     <div class="row"><span>Sana:</span><span>${esc(paymentDate)}</span></div>
 
     <div class="line"></div>
 
     <div class="row"><span>Davr:</span><span>${esc(fromMonth)}</span></div>
-    <div class="row"><span>gacha:</span><span>${esc(toMonth)}</span></div>
+    <div class="row"><span>Gacha:</span><span>${esc(toMonth)}</span></div>
 
     <div class="line"></div>
 
