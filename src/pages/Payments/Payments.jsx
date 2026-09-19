@@ -104,7 +104,7 @@ export default function Payments({ activeBranch }) {
       display: block;
     }
     .brand {
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 900;
       text-transform: uppercase;
       letter-spacing: 0.3px;
@@ -173,7 +173,7 @@ export default function Payments({ activeBranch }) {
     <img class="logo" src="/logo-ia.png" alt="IA" onerror="this.style.display='none'" />
 
     <div class="center brand">INTELLECT ACADEMY</div>
-    <div class="center brand" style="font-size:10px;">LEARNING CENTER</div>
+    <div class="center brand" style="font-size:15px;">LEARNING CENTER</div>
     <div class="center sub">TO'LOV CHEKI</div>
     <div class="line"></div>
 
