@@ -98,8 +98,8 @@ export default function Payments({ activeBranch }) {
     }
     .center { text-align: center; }
     .logo {
-      width: 48px;
-      height: 48px;
+      width: 70px;
+      height: 70px;
       margin: 0 auto 3px;
       display: block;
     }
