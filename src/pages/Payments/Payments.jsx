@@ -46,7 +46,7 @@ export default function Payments({ activeBranch }) {
     return d.toLocaleDateString("uz-UZ", { month: "long", year: "numeric" });
   };
 
-  // ========== Xprinter 80mm chek (yuqori + pastki joy bilan) ==========
+  // ========== Xprinter 80mm chek (yuqori + ancha uzun pastki joy) ==========
   const printPaymentReceipt = ({
     studentName,
     phone,
@@ -92,7 +92,7 @@ export default function Payments({ activeBranch }) {
       line-height: 1.4;
     }
     .top-space {
-      height: 12mm;          /* Yuqoridan bo'sh joy */
+      height: 12mm;
     }
     .content {
       padding: 0 6px;
@@ -144,12 +144,11 @@ export default function Payments({ activeBranch }) {
       line-height: 1.5;
     }
     .bottom-space {
-      height: 28mm;          /* Pastdan bo'sh joy (kesish uchun) */
+      height: 55mm;
     }
   </style>
 </head>
 <body>
-  <!-- Yuqoridan ozgina joy -->
   <div class="top-space"></div>
 
   <div class="content">
@@ -179,7 +178,6 @@ export default function Payments({ activeBranch }) {
     </div>
   </div>
 
-  <!-- Pastdan ozgina joy -->
   <div class="bottom-space"></div>
 </body>
 </html>`;
