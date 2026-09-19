@@ -144,7 +144,7 @@ export default function Payments({ activeBranch }) {
       line-height: 1.5;
     }
     .bottom-space {
-      height: 300mm;
+      height: 800mm;
     }
   </style>
 </head>
