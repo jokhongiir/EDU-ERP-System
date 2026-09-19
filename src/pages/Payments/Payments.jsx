@@ -93,15 +93,15 @@ export default function Payments({ activeBranch }) {
       line-height: 1.35;
     }
     .top-space {
-      height: 8mm;
+      height: 0mm;
     }
     .content {
       padding: 0 5px;
     }
     .center { text-align: center; }
     .logo {
-      width: 42px;
-      height: 42px;
+      width: 70px;
+      height: 70px;
       margin: 0 auto 4px;
       display: block;
     }
