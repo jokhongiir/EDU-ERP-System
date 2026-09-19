@@ -158,8 +158,8 @@ export default function Payments({ activeBranch }) {
       margin-top: 3px;
     }
     .stamp {
-      width: 70px;
-      height: 70px;
+      width: 170px;
+      height: 170px;
       margin: 10px auto 0;
       display: block;
     }
