@@ -14,6 +14,7 @@ import "./TeacherSchedule.css";
 const WORK_START = 9;
 const WORK_END = 20;
 const SLOT_MIN = 30;
+const TOTAL_MIN = (WORK_END - WORK_START) * 60;
 
 const DAY_OPTIONS = [
   { value: "all", label: "Barcha kunlar" },
@@ -23,7 +24,8 @@ const DAY_OPTIONS = [
 
 function toMinutes(t) {
   if (!t) return null;
-  const [h, m] = t.split(":").map(Number);
+  const [h, m] = String(t).split(":").map(Number);
+  if (Number.isNaN(h)) return null;
   return h * 60 + (m || 0);
 }
 
@@ -39,6 +41,16 @@ function matchesDayType(scheduleType, selectedDay) {
   return scheduleType === selectedDay;
 }
 
+function blockStyle(startMin, endMin) {
+  const workStartMin = WORK_START * 60;
+  const left = ((startMin - workStartMin) / TOTAL_MIN) * 100;
+  const width = ((endMin - startMin) / TOTAL_MIN) * 100;
+  return {
+    left: `${Math.max(0, left)}%`,
+    width: `${Math.min(100 - Math.max(0, left), Math.max(width, 1.2))}%`,
+  };
+}
+
 export default function TeacherSchedule({ activeBranch }) {
   const branchId = activeBranch?.id;
 
@@ -46,7 +58,6 @@ export default function TeacherSchedule({ activeBranch }) {
   const [groups, setGroups] = useState([]);
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const [dayType, setDayType] = useState("all");
   const [selectedTeacher, setSelectedTeacher] = useState("all");
   const [tooltip, setTooltip] = useState(null);
@@ -88,10 +99,15 @@ export default function TeacherSchedule({ activeBranch }) {
     [courses]
   );
 
-  const slots = useMemo(() => {
+  /* 09:00, 09:30, 10:00, 10:30 ... 20:00 — hammasi */
+  const timeMarks = useMemo(() => {
     const arr = [];
-    for (let m = WORK_START * 60; m < WORK_END * 60; m += SLOT_MIN) {
-      arr.push(m);
+    for (let m = WORK_START * 60; m <= WORK_END * 60; m += SLOT_MIN) {
+      arr.push({
+        mins: m,
+        label: toLabel(m),
+        isHour: m % 60 === 0,
+      });
     }
     return arr;
   }, []);
@@ -106,29 +122,32 @@ export default function TeacherSchedule({ activeBranch }) {
           matchesDayType(g.schedule_type, dayType)
       );
 
-      const blocks = teacherGroups.map((g) => ({
-        id: g.id,
-        name: g.name,
-        course: courseMap.get(g.course_id) || "—",
-        start: toMinutes(g.start_time),
-        end: toMinutes(g.end_time),
-        startLabel: g.start_time?.slice(0, 5),
-        endLabel: g.end_time?.slice(0, 5),
-        scheduleType: g.schedule_type || "all",
-      }));
+      const blocks = teacherGroups
+        .map((g) => {
+          const start = toMinutes(g.start_time);
+          const end = toMinutes(g.end_time);
+          if (start == null || end == null || end <= start) return null;
+          return {
+            id: g.id,
+            name: g.name,
+            course: courseMap.get(g.course_id) || "—",
+            start,
+            end,
+            startLabel: String(g.start_time).slice(0, 5),
+            endLabel: String(g.end_time).slice(0, 5),
+            scheduleType: g.schedule_type || "all",
+            durationMin: end - start,
+          };
+        })
+        .filter(Boolean)
+        .sort((a, b) => a.start - b.start);
 
-      const slotStatus = slots.map((start) => {
-        const end = start + SLOT_MIN;
-        const block = blocks.find((b) => b.start < end && b.end > start);
-        return { start, end, busy: !!block, block: block || null };
-      });
+      const busyMin = blocks.reduce((sum, b) => sum + b.durationMin, 0);
+      const freeMin = Math.max(0, TOTAL_MIN - busyMin);
 
-      const busyMin = slotStatus.filter((s) => s.busy).length * SLOT_MIN;
-      const freeMin = (WORK_END - WORK_START) * 60 - busyMin;
-
-      return { teacher, blocks, slotStatus, busyMin, freeMin };
+      return { teacher, blocks, busyMin, freeMin };
     });
-  }, [teachers, groups, courseMap, slots, dayType]);
+  }, [teachers, groups, courseMap, dayType]);
 
   const filtered = useMemo(() => {
     if (selectedTeacher === "all") return schedule;
@@ -142,6 +161,16 @@ export default function TeacherSchedule({ activeBranch }) {
     day: "numeric",
     month: "long",
   });
+
+  const showTooltip = (e, block, teacherName) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setTooltip({
+      ...block,
+      teacherName,
+      x: rect.left + rect.width / 2,
+      y: rect.top - 10,
+    });
+  };
 
   if (!branchId) {
     return (
@@ -166,7 +195,7 @@ export default function TeacherSchedule({ activeBranch }) {
           <p className="ts-desc">
             <FiCalendar size={14} /> Bugun: <strong>{todayName}</strong>
             <span className="ts-sep">·</span>
-            Ish vaqti 09:00 – 20:00
+            Ish vaqti {toLabel(WORK_START * 60)} – {toLabel(WORK_END * 60)}
           </p>
         </div>
 
@@ -204,6 +233,7 @@ export default function TeacherSchedule({ activeBranch }) {
             className="ts-refresh-btn"
             onClick={fetchData}
             title="Yangilash"
+            type="button"
           >
             <FiRefreshCw size={16} />
           </button>
@@ -213,46 +243,54 @@ export default function TeacherSchedule({ activeBranch }) {
       {/* LEGEND */}
       <div className="ts-legend">
         <div className="ts-leg-item">
-          <span className="ts-leg-box free" /> Bo‘sh
+          <span className="ts-leg-box free" /> Bo‘sh vaqt
         </div>
         <div className="ts-leg-item">
           <span className="ts-leg-box busy" /> Dars (band)
         </div>
         <div className="ts-leg-hint">
           {dayType === "odd"
-            ? "Faqat toq kunlar ko‘rsatilmoqda"
+            ? "Faqat toq kunlar (Du, Cho, Ju)"
             : dayType === "even"
-            ? "Faqat juft kunlar ko‘rsatilmoqda"
+            ? "Faqat juft kunlar (Se, Pa, Sha)"
             : "Barcha kunlar ko‘rsatilmoqda"}
         </div>
       </div>
 
-      {/* CARD */}
+      {/* GANTT CARD */}
       <div className="ts-card">
+        {/* Vaqt belgilari: 09:00 09:30 10:00 10:30 ... */}
         <div className="ts-grid-header">
           <div className="ts-col-teacher">Ustoz</div>
           <div className="ts-col-timeline">
-            {slots.map((m) => (
-              <div key={m} className="ts-hour">
-                {m % 60 === 0 ? toLabel(m) : ""}
-              </div>
-            ))}
+            <div className="ts-time-ruler">
+              {timeMarks.map((tm) => (
+                <div
+                  key={tm.mins}
+                  className={`ts-time-tick ${tm.isHour ? "hour" : "half"}`}
+                  style={{
+                    left: `${((tm.mins - WORK_START * 60) / TOTAL_MIN) * 100}%`,
+                  }}
+                >
+                  <span className="ts-time-label">{tm.label}</span>
+                  <span className="ts-time-line" />
+                </div>
+              ))}
+            </div>
           </div>
           <div className="ts-col-stats">Yuklama</div>
         </div>
 
         <div className="ts-grid-body">
           {loading ? (
-            Array.from({ length: 6 }).map((_, i) => (
+            Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="ts-row skeleton">
                 <div className="ts-col-teacher">
                   <div className="skel circle" />
                   <div className="skel line" />
                 </div>
                 <div className="ts-col-timeline">
-                  {slots.map((m) => (
-                    <div key={m} className="ts-cell skel" />
-                  ))}
+                  <div className="ts-track skel-track" />
                 </div>
                 <div className="ts-col-stats">
                   <div className="skel bar" />
@@ -265,76 +303,77 @@ export default function TeacherSchedule({ activeBranch }) {
               <p>Ustozlar topilmadi</p>
             </div>
           ) : (
-            filtered.map(
-              ({ teacher, slotStatus, blocks, busyMin, freeMin }) => {
-                const totalMin = (WORK_END - WORK_START) * 60;
-                const busyPct = Math.round((busyMin / totalMin) * 100);
+            filtered.map(({ teacher, blocks, busyMin, freeMin }) => {
+              const busyPct = Math.round((busyMin / TOTAL_MIN) * 100);
 
-                return (
-                  <div key={teacher.id} className="ts-row">
-                    <div className="ts-col-teacher">
-                      <div className="ts-avatar">
-                        {teacher.name?.charAt(0)?.toUpperCase() || "U"}
-                      </div>
-                      <div className="ts-teacher-meta">
-                        <span className="ts-name">{teacher.name}</span>
-                        <span className="ts-count">
-                          {blocks.length} guruh
-                        </span>
-                      </div>
+              return (
+                <div key={teacher.id} className="ts-row">
+                  <div className="ts-col-teacher">
+                    <div className="ts-avatar">
+                      {teacher.name?.charAt(0)?.toUpperCase() || "U"}
                     </div>
-
-                    <div className="ts-col-timeline">
-                      {slotStatus.map((s, idx) => {
-                        const isStart =
-                          s.busy &&
-                          (idx === 0 ||
-                            !slotStatus[idx - 1].busy ||
-                            slotStatus[idx - 1].block?.id !== s.block?.id);
-
-                        return (
-                          <div
-                            key={s.start}
-                            className={`ts-cell ${s.busy ? "busy" : "free"} ${
-                              isStart ? "start" : ""
-                            }`}
-                            onMouseEnter={(e) => {
-                              if (!s.block) return;
-                              const rect =
-                                e.currentTarget.getBoundingClientRect();
-                              setTooltip({
-                                ...s.block,
-                                teacherName: teacher.name,
-                                x: rect.left + rect.width / 2,
-                                y: rect.top - 8,
-                              });
-                            }}
-                            onMouseLeave={() => setTooltip(null)}
-                          />
-                        );
-                      })}
-                    </div>
-
-                    <div className="ts-col-stats">
-                      <div className="ts-progress">
-                        <div
-                          className="ts-progress-fill"
-                          style={{ width: `${busyPct}%` }}
-                        />
-                      </div>
-                      <div className="ts-stat-labels">
-                        <span className="busy">
-                          {Math.round(busyMin / 60)}s
-                        </span>
-                        <span className="free">
-                          {Math.round(freeMin / 60)}s
-                        </span>
-                      </div>
+                    <div className="ts-teacher-meta">
+                      <span className="ts-name">{teacher.name}</span>
+                      <span className="ts-count">
+                        {blocks.length} guruh
+                      </span>
                     </div>
                   </div>
-                );
-              }
-            )
+
+                  <div className="ts-col-timeline">
+                    <div className="ts-track">
+                      {/* Vertikal chiziqlar (har 30 daqiqa) */}
+                      {timeMarks.map((tm) => (
+                        <div
+                          key={tm.mins}
+                          className={`ts-vline ${tm.isHour ? "hour" : "half"}`}
+                          style={{
+                            left: `${
+                              ((tm.mins - WORK_START * 60) / TOTAL_MIN) * 100
+                            }%`,
+                          }}
+                        />
+                      ))}
+
+                      {/* Dars bloklari */}
+                      {blocks.map((b) => (
+                        <div
+                          key={b.id}
+                          className="ts-block"
+                          style={blockStyle(b.start, b.end)}
+                          onMouseEnter={(e) =>
+                            showTooltip(e, b, teacher.name)
+                          }
+                          onMouseLeave={() => setTooltip(null)}
+                        >
+                          <span className="ts-block-name">{b.name}</span>
+                          <span className="ts-block-time">
+                            {b.startLabel}–{b.endLabel}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="ts-col-stats">
+                    <div className="ts-progress">
+                      <div
+                        className="ts-progress-fill"
+                        style={{ width: `${busyPct}%` }}
+                      />
+                    </div>
+                    <div className="ts-stat-labels">
+                      <span className="busy" title="Band soatlar">
+                        {Math.round(busyMin / 60)}s
+                      </span>
+                      <span className="free" title="Bo‘sh soatlar">
+                        {Math.round(freeMin / 60)}s
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
           )}
         </div>
       </div>
@@ -358,6 +397,9 @@ export default function TeacherSchedule({ activeBranch }) {
           </div>
           <div className="ts-tip-row">
             <FiClock size={13} /> {tooltip.startLabel} – {tooltip.endLabel}
+            <span className="ts-tip-dur">
+              ({(tooltip.durationMin / 60).toFixed(1)} soat)
+            </span>
           </div>
           <div className="ts-tip-badge">
             {tooltip.scheduleType === "odd"
