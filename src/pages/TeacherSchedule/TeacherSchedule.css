@@ -1,0 +1,407 @@
+/* ========== Teacher Schedule Map ========== */
+.ts-root {
+  padding: 24px 28px 40px;
+  max-width: 1400px;
+  margin: 0 auto;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  color: #1e293b;
+}
+
+/* Header */
+.ts-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.ts-title {
+  font-size: 1.55rem;
+  font-weight: 700;
+  margin: 0 0 4px;
+  letter-spacing: -0.02em;
+}
+
+.ts-desc {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.ts-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ts-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0 12px;
+  height: 40px;
+}
+
+.ts-filter select {
+  border: none;
+  background: transparent;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #334155;
+  outline: none;
+  cursor: pointer;
+  min-width: 180px;
+}
+
+.ts-refresh {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #475569;
+  transition: all 0.15s;
+}
+
+.ts-refresh:hover {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+/* Legend */
+.ts-legend {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 16px;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.ts-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ts-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.ts-dot.free {
+  background: #22c55e;
+}
+
+.ts-dot.busy {
+  background: #ef4444;
+}
+
+.ts-dot.partial {
+  background: linear-gradient(90deg, #ef4444 50%, #22c55e 50%);
+}
+
+/* Timeline header */
+.ts-timeline-header {
+  display: grid;
+  grid-template-columns: 200px 1fr 140px;
+  gap: 0;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px 12px 0 0;
+  padding: 10px 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.ts-teacher-col {
+  padding-left: 16px;
+  display: flex;
+  align-items: center;
+}
+
+.ts-slots-header {
+  display: flex;
+  flex: 1;
+}
+
+.ts-slot-label {
+  flex: 1;
+  text-align: center;
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.ts-stats-col {
+  padding-right: 16px;
+  text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* Body rows */
+.ts-body {
+  border: 1px solid #e2e8f0;
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  overflow: hidden;
+  background: white;
+}
+
+.ts-row {
+  display: grid;
+  grid-template-columns: 200px 1fr 140px;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background 0.12s;
+  min-height: 56px;
+}
+
+.ts-row:last-child {
+  border-bottom: none;
+}
+
+.ts-row:hover {
+  background: #fafbfc;
+}
+
+.ts-teacher-col {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px 10px 16px;
+}
+
+.ts-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 15px;
+}
+
+.ts-teacher-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ts-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ts-groups-count {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+/* Slots */
+.ts-slots-row {
+  display: flex;
+  padding: 8px 0;
+  gap: 2px;
+}
+
+.ts-slot {
+  flex: 1;
+  min-width: 0;
+  height: 28px;
+  border-radius: 4px;
+  transition: transform 0.1s, box-shadow 0.1s;
+  cursor: default;
+}
+
+.ts-slot.free {
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
+}
+
+.ts-slot.busy {
+  background: #fecaca;
+  border: 1px solid #fca5a5;
+}
+
+.ts-slot.busy:hover {
+  transform: scaleY(1.15);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
+  z-index: 2;
+}
+
+.ts-slot.block-start {
+  border-left: 3px solid #dc2626;
+}
+
+/* Stats */
+.ts-stats-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-end;
+  padding: 8px 16px 8px 8px;
+  gap: 4px;
+}
+
+.ts-progress {
+  width: 100%;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.ts-progress-busy {
+  height: 100%;
+  background: linear-gradient(90deg, #ef4444, #f87171);
+  border-radius: 99px;
+  transition: width 0.3s ease;
+}
+
+.ts-stats-text {
+  display: flex;
+  gap: 8px;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.busy-t {
+  color: #dc2626;
+}
+
+.free-t {
+  color: #16a34a;
+}
+
+/* Empty & Skeleton */
+.ts-empty,
+.ts-empty-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #94a3b8;
+  gap: 10px;
+}
+
+.ts-skeleton .ts-skel-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #e2e8f0;
+}
+
+.ts-skel-name {
+  width: 90px;
+  height: 12px;
+  background: #e2e8f0;
+  border-radius: 4px;
+}
+
+.ts-slot.skel {
+  background: #f1f5f9;
+  border: none;
+}
+
+.ts-skel-bar {
+  width: 80px;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 99px;
+}
+
+/* Tooltip */
+.ts-tooltip {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0f172a;
+  color: white;
+  padding: 12px 18px;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+  z-index: 100;
+  min-width: 220px;
+  pointer-events: none;
+  animation: tsFadeIn 0.15s ease;
+}
+
+.ts-tooltip-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+}
+
+.ts-tooltip-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: #cbd5e1;
+  margin-top: 4px;
+}
+
+@keyframes tsFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .ts-timeline-header,
+  .ts-row {
+    grid-template-columns: 150px 1fr 100px;
+  }
+
+  .ts-root {
+    padding: 16px;
+  }
+
+  .ts-title {
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .ts-timeline-header,
+  .ts-row {
+    grid-template-columns: 120px 1fr;
+  }
+
+  .ts-stats-col {
+    display: none;
+  }
+
+  .ts-slot {
+    height: 22px;
+  }
+}

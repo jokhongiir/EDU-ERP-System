@@ -14,6 +14,7 @@ import GroupsPage from "../Groups/Groups";
 import PaymentsPage from "../Payments/Payments";
 import AttendancePage from "../Attendance/Attendance";
 import Profile from "../Profile/Profile";
+import TeacherSchedule from "../TeacherSchedule/TeacherSchedule";
 import ForgotPassword from "../Auth/ForgotPassword";
 import UpdatePassword from "../Auth/UpdatePassword";
 import Leads from "../Leads/Leads";
@@ -191,6 +192,12 @@ export default function Dashboard({ centerName, setCenterName }) {
           path="profile"
           element={
             <Profile key={activeBranch?.id} activeBranch={activeBranch} />
+          }
+        />
+        <Route
+          path="schedule"
+          element={
+            <TeacherSchedule key={activeBranch?.id} activeBranch={activeBranch} />
           }
         />
 

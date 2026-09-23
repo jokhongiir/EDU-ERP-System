@@ -38,6 +38,7 @@ function Sidebar({ collapsed, mobileOpen, activeBranch, setMobileOpen }) {
       { label: "Courses", icon: BookOpen, path: "courses" },
       { label: "Groups", icon: Layers, path: "groups" },
       { label: "Attendance", icon: CalendarCheck, path: "attendance" },
+      { label: "Schedule", icon: CalendarCheck, path: "schedule" },
       { label: "Payments", icon: Wallet, path: "payments" },
       { label: "Store", icon: ShoppingCart, path: "store" },
       { label: "Add Students", icon: UserPlus, path: "addstudents" },
