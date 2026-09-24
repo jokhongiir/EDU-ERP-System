@@ -12,6 +12,10 @@ import {
   FiFilter,
   FiRefreshCw,
   FiPrinter,
+  FiBookOpen,
+  FiUsers,
+  FiLayers,
+  FiClock,
 } from "react-icons/fi";
 import "./Payments.css";
 
@@ -19,16 +23,22 @@ export default function Payments({ activeBranch }) {
   const branchId = activeBranch?.id;
 
   const [students, setStudents] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(false);
+
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [filterCourse, setFilterCourse] = useState("all");
+  const [filterGroup, setFilterGroup] = useState("all");
+  const [filterMonth, setFilterMonth] = useState("all");
 
   const [editOpen, setEditOpen] = useState(false);
   const [editData, setEditData] = useState(null);
   const [saving, setSaving] = useState(false);
 
   const formatCurrency = (value = 0) =>
-    new Intl.NumberFormat("uz-UZ").format(value) + " UZS";
+    new Intl.NumberFormat("uz-UZ").format(value) + " so'm";
 
   const getTodayStr = () => new Date().toISOString().slice(0, 10);
 
@@ -36,17 +46,37 @@ export default function Payments({ activeBranch }) {
     if (!value) return "—";
     const digits = String(value).replace(/\D/g, "");
     if (digits.length < 12) return value;
-    return `+${digits.slice(0, 3)} (${digits.slice(3, 5)}) ${digits.slice(5, 8)}-${digits.slice(8, 10)}-${digits.slice(10, 12)}`;
+    return `+${digits.slice(0, 3)} (${digits.slice(3, 5)}) ${digits.slice(
+      5,
+      8
+    )}-${digits.slice(8, 10)}-${digits.slice(10, 12)}`;
   };
 
   const formatMonthYear = (dateStr) => {
     if (!dateStr) return "—";
     const d = new Date(dateStr);
     if (Number.isNaN(d.getTime())) return "—";
-    return d.toLocaleDateString("uz-UZ", { month: "long", year: "numeric" });
+    return d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
   };
 
-  // ========== Xprinter 80mm chek (logo + pechat) ==========
+  const formatShortDate = (dateStr) => {
+    if (!dateStr) return "—";
+    const d = new Date(dateStr);
+    if (Number.isNaN(d.getTime())) return "—";
+    return d.toLocaleDateString("en-US", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  const isOverdue = (s) => {
+    if (s.paid) return false;
+    if (!s.next_payment_date) return false;
+    return s.next_payment_date < getTodayStr();
+  };
+
+  // ========== Print receipt ==========
   const printPaymentReceipt = ({
     studentName,
     phone,
@@ -70,143 +100,56 @@ export default function Payments({ activeBranch }) {
 <html>
 <head>
   <meta charset="utf-8">
-  <title>To'lov cheki</title>
+  <title>Payment Receipt</title>
   <style>
-    @page {
-      size: 80mm auto;
-      margin: 0;
-    }
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    @page { size: 80mm auto; margin: 0; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      width: 72mm;
-      max-width: 72mm;
-      margin: 0 auto;
-      padding: 0;
+      width: 72mm; max-width: 72mm; margin: 0 auto; padding: 0;
       font-family: "Courier New", Courier, monospace;
-      font-size: 12px;
-      font-weight: 600;
-      color: #000;
-      background: #fff;
-      line-height: 1.35;
+      font-size: 12px; font-weight: 600; color: #000; background: #fff; line-height: 1.35;
     }
-    .content {
-      padding: 3px 5px 0;
-    }
+    .content { padding: 3px 5px 0; }
     .center { text-align: center; }
-    .logo {
-      width: 100px;
-      height: 100px;
-      margin: 0 auto 3px;
-      display: block;
-    }
-    .brand {
-      font-size: 15px;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-      line-height: 1.2;
-    }
-    .sub {
-      font-size: 11px;
-      font-weight: 700;
-      margin: 3px 0 5px;
-    }
-    .line {
-      border-top: 1.5px dashed #000;
-      margin: 6px 0;
-    }
-    .row {
-      display: flex;
-      justify-content: space-between;
-      margin: 3px 0;
-      gap: 4px;
-      font-weight: 600;
-    }
-    .row span:last-child {
-      text-align: right;
-      font-weight: 800;
-      max-width: 58%;
-      word-break: break-word;
-    }
-    .amount {
-      font-size: 17px;
-      font-weight: 900;
-      text-align: center;
-      margin: 9px 0 4px;
-    }
-    .status {
-      text-align: center;
-      font-weight: 900;
-      font-size: 14px;
-      margin-bottom: 4px;
-    }
-    .footer {
-      text-align: center;
-      font-size: 11px;
-      font-weight: 700;
-      margin-top: 7px;
-      line-height: 1.4;
-    }
-    .admin {
-      font-size: 11px;
-      font-weight: 700;
-      text-align: center;
-      margin-top: 3px;
-    }
-    .stamp {
-      width: 200px;
-      height: 200px;
-      margin: 10px auto 0;
-      display: block;
-    }
-    .bottom-space {
-      height: 1600mm;
-    }
+    .logo { width: 100px; height: 100px; margin: 0 auto 3px; display: block; }
+    .brand { font-size: 15px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.3px; line-height: 1.2; }
+    .sub { font-size: 11px; font-weight: 700; margin: 3px 0 5px; }
+    .line { border-top: 1.5px dashed #000; margin: 6px 0; }
+    .row { display: flex; justify-content: space-between; margin: 3px 0; gap: 4px; font-weight: 600; }
+    .row span:last-child { text-align: right; font-weight: 800; max-width: 58%; word-break: break-word; }
+    .amount { font-size: 17px; font-weight: 900; text-align: center; margin: 9px 0 4px; }
+    .status { text-align: center; font-weight: 900; font-size: 14px; margin-bottom: 4px; }
+    .footer { text-align: center; font-size: 11px; font-weight: 700; margin-top: 7px; line-height: 1.4; }
+    .admin { font-size: 11px; font-weight: 700; text-align: center; margin-top: 3px; }
+    .stamp { width: 200px; height: 200px; margin: 10px auto 0; display: block; }
+    .bottom-space { height: 1600mm; }
   </style>
 </head>
 <body>
   <div class="content">
     <img class="logo" src="/logo-ia.png" alt="IA" onerror="this.style.display='none'" />
-
     <div class="center brand">INTELLECT ACADEMY</div>
     <div class="center brand" style="font-size:15px;">LEARNING CENTER</div>
-    <div class="center sub">TO'LOV CHEKI</div>
+    <div class="center sub">PAYMENT RECEIPT</div>
     <div class="line"></div>
-
-    <div class="row"><span>O'quvchi:</span><span>${esc(studentName)}</span></div>
-    <div class="row"><span>Telefon:</span><span>${esc(phone)}</span></div>
-    <div class="row"><span>Kurs:</span><span>${esc(course)}</span></div>
-    <div class="row"><span>Ustoz:</span><span>${esc(teacher)}</span></div>
-    <div class="row"><span>Guruh:</span><span>${esc(group)}</span></div>
+    <div class="row"><span>Student:</span><span>${esc(studentName)}</span></div>
+    <div class="row"><span>Phone:</span><span>${esc(phone)}</span></div>
+    <div class="row"><span>Course:</span><span>${esc(course)}</span></div>
+    <div class="row"><span>Teacher:</span><span>${esc(teacher)}</span></div>
+    <div class="row"><span>Group:</span><span>${esc(group)}</span></div>
     <div class="line"></div>
-
-    <div class="row"><span>Sana:</span><span>${esc(paymentDate)}</span></div>
-
+    <div class="row"><span>Date:</span><span>${esc(paymentDate)}</span></div>
     <div class="line"></div>
-
-    <div class="row"><span>Davr:</span><span>${esc(fromMonth)}</span></div>
-    <div class="row"><span>Gacha:</span><span>${esc(toMonth)}</span></div>
-
+    <div class="row"><span>From:</span><span>${esc(fromMonth)}</span></div>
+    <div class="row"><span>Until:</span><span>${esc(toMonth)}</span></div>
     <div class="line"></div>
-
     <div class="amount">${esc(amount)}</div>
-    <div class="status">TO'LANDI</div>
-
+    <div class="status">PAID</div>
     <div class="line"></div>
-    <div class="footer">
-      Rahmat!<br>
-      INTELLECT ACADEMY
-    </div>
+    <div class="footer">Thank you!<br>INTELLECT ACADEMY</div>
     <div class="admin">Admin: +998 94 618 89 39</div>
-
-    <!-- Pechat (muhr) -->
-    <img class="stamp" src="/stamp-ia.png" alt="Pechat" onerror="this.style.display='none'" />
+    <img class="stamp" src="/stamp-ia.png" alt="Stamp" onerror="this.style.display='none'" />
   </div>
-
   <div class="bottom-space"></div>
 </body>
 </html>`;
@@ -216,12 +159,8 @@ export default function Payments({ activeBranch }) {
 
     const iframe = document.createElement("iframe");
     iframe.id = "receipt-print-iframe";
-    iframe.style.position = "fixed";
-    iframe.style.right = "0";
-    iframe.style.bottom = "0";
-    iframe.style.width = "0";
-    iframe.style.height = "0";
-    iframe.style.border = "0";
+    iframe.style.cssText =
+      "position:fixed;right:0;bottom:0;width:0;height:0;border:0;";
     document.body.appendChild(iframe);
 
     const doc = iframe.contentWindow.document;
@@ -232,10 +171,7 @@ export default function Payments({ activeBranch }) {
     setTimeout(() => {
       iframe.contentWindow.focus();
       iframe.contentWindow.print();
-
-      setTimeout(() => {
-        iframe.remove();
-      }, 6000);
+      setTimeout(() => iframe.remove(), 6000);
     }, 500);
   };
 
@@ -250,31 +186,43 @@ export default function Payments({ activeBranch }) {
       teacher: s.teachers?.name || "—",
       group: s.groups?.name || "—",
       amount: formatCurrency(s.monthly_fee || 0),
-      paymentDate: new Date(payDate).toLocaleDateString("uz-UZ"),
+      paymentDate: formatShortDate(payDate),
       fromMonth: formatMonthYear(payDate),
       toMonth: formatMonthYear(nextDate),
     });
   };
 
   // ========== Fetch ==========
-  const fetchPayments = useCallback(
-    async (showSilent = false) => {
+  const fetchData = useCallback(
+    async (silent = false) => {
       if (!branchId) return;
-      if (!showSilent) setLoading(true);
+      if (!silent) setLoading(true);
 
       try {
-        const { data, error } = await supabase
-          .from("students")
-          .select(`*, courses(name), teachers(name), groups(name)`)
-          .eq("branch_id", branchId)
-          .eq("is_free", false)
-          .eq("is_archived", false)
-          .order("created_at", { ascending: false });
+        const [stuRes, courseRes, groupRes] = await Promise.all([
+          supabase
+            .from("students")
+            .select(`*, courses(name), teachers(name), groups(name)`)
+            .eq("branch_id", branchId)
+            .eq("is_free", false)
+            .eq("is_archived", false)
+            .order("created_at", { ascending: false }),
+          supabase
+            .from("courses")
+            .select("id, name")
+            .eq("branch_id", branchId)
+            .order("name"),
+          supabase
+            .from("groups")
+            .select("id, name")
+            .eq("branch_id", branchId)
+            .order("name"),
+        ]);
 
-        if (error) throw error;
+        if (stuRes.error) throw stuRes.error;
 
         const today = getTodayStr();
-        const expiredIds = (data || [])
+        const expiredIds = (stuRes.data || [])
           .filter(
             (s) =>
               s.paid && s.next_payment_date && s.next_payment_date <= today
@@ -286,11 +234,12 @@ export default function Payments({ activeBranch }) {
             .from("students")
             .update({ paid: false })
             .in("id", expiredIds);
-
-          return fetchPayments(true);
+          return fetchData(true);
         }
 
-        setStudents(data || []);
+        setStudents(stuRes.data || []);
+        setCourses(courseRes.data || []);
+        setGroups(groupRes.data || []);
       } catch (err) {
         console.error("Fetch error:", err.message);
       } finally {
@@ -301,8 +250,8 @@ export default function Payments({ activeBranch }) {
   );
 
   useEffect(() => {
-    fetchPayments();
-  }, [fetchPayments]);
+    fetchData();
+  }, [fetchData]);
 
   // ========== Collect / Refund ==========
   const togglePayment = async (student) => {
@@ -347,13 +296,15 @@ export default function Payments({ activeBranch }) {
 
     if (isNowPaid) {
       printPaymentReceipt({
-        studentName: `${student.first_name || ""} ${student.last_name || ""}`.trim(),
+        studentName: `${student.first_name || ""} ${
+          student.last_name || ""
+        }`.trim(),
         phone: formatPhoneDisplay(student.phone),
         course: student.courses?.name || "—",
         teacher: student.teachers?.name || "—",
         group: student.groups?.name || "—",
         amount: formatCurrency(student.monthly_fee || 0),
-        paymentDate: new Date(today).toLocaleDateString("uz-UZ"),
+        paymentDate: formatShortDate(today),
         fromMonth: formatMonthYear(today),
         toMonth: formatMonthYear(nextDate),
       });
@@ -379,14 +330,14 @@ export default function Payments({ activeBranch }) {
     if (error) return alert(error.message);
 
     setEditOpen(false);
-    fetchPayments(true);
+    fetchData(true);
   };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
     setEditData((prev) => {
-      const updatedData = {
+      const updated = {
         ...prev,
         [name]: type === "checkbox" ? checked : value,
       };
@@ -396,241 +347,540 @@ export default function Payments({ activeBranch }) {
           const today = getTodayStr();
           const d = new Date();
           d.setMonth(d.getMonth() + 1);
-          updatedData.payment_date = today;
-          updatedData.next_payment_date = d.toISOString().slice(0, 10);
+          updated.payment_date = today;
+          updated.next_payment_date = d.toISOString().slice(0, 10);
         } else {
-          updatedData.payment_date = null;
-          updatedData.next_payment_date = null;
+          updated.payment_date = null;
+          updated.next_payment_date = null;
         }
       }
 
-      return updatedData;
+      return updated;
     });
   };
 
-  // ========== Filter ==========
-  const processedStudents = useMemo(() => {
-    return students.filter((s) => {
-      const matchesSearch = `${s.first_name || ""} ${s.last_name || ""}`
-        .toLowerCase()
-        .includes(search.toLowerCase());
+  const clearFilters = () => {
+    setSearch("");
+    setFilterStatus("all");
+    setFilterCourse("all");
+    setFilterGroup("all");
+    setFilterMonth("all");
+  };
 
-      const matchesFilter =
+  const hasActiveFilters =
+    search ||
+    filterStatus !== "all" ||
+    filterCourse !== "all" ||
+    filterGroup !== "all" ||
+    filterMonth !== "all";
+
+  // ========== Month options ==========
+  const monthOptions = useMemo(() => {
+    const opts = [{ value: "all", label: "All months" }];
+    const now = new Date();
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}`;
+      const label = d.toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
+      });
+      opts.push({ value, label });
+    }
+    return opts;
+  }, []);
+
+  // ========== Filtered + Sorted ==========
+  const processedStudents = useMemo(() => {
+    const filtered = students.filter((s) => {
+      const fullName = `${s.first_name || ""} ${
+        s.last_name || ""
+      }`.toLowerCase();
+      const matchesSearch = fullName.includes(search.toLowerCase());
+
+      const matchesStatus =
         filterStatus === "all"
           ? true
           : filterStatus === "paid"
-            ? s.paid === true
-            : s.paid === false;
+          ? s.paid === true
+          : s.paid === false;
 
-      return matchesSearch && matchesFilter;
+      const matchesCourse =
+        filterCourse === "all" || String(s.course_id) === String(filterCourse);
+
+      const matchesGroup =
+        filterGroup === "all" || String(s.group_id) === String(filterGroup);
+
+      let matchesMonth = true;
+      if (filterMonth !== "all") {
+        if (!s.payment_date) matchesMonth = false;
+        else matchesMonth = s.payment_date.slice(0, 7) === filterMonth;
+      }
+
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesCourse &&
+        matchesGroup &&
+        matchesMonth
+      );
     });
-  }, [students, search, filterStatus]);
+
+    return filtered.sort((a, b) => {
+      if (a.paid !== b.paid) return a.paid ? 1 : -1;
+
+      if (!a.paid && !b.paid) {
+        const aOver = isOverdue(a);
+        const bOver = isOverdue(b);
+        if (aOver !== bOver) return aOver ? -1 : 1;
+      }
+
+      const nameA = `${a.first_name || ""} ${a.last_name || ""}`.toLowerCase();
+      const nameB = `${b.first_name || ""} ${b.last_name || ""}`.toLowerCase();
+      return nameA.localeCompare(nameB, "en");
+    });
+  }, [students, search, filterStatus, filterCourse, filterGroup, filterMonth]);
+
+  const unpaidList = useMemo(
+    () => processedStudents.filter((s) => !s.paid),
+    [processedStudents]
+  );
+  const paidList = useMemo(
+    () => processedStudents.filter((s) => s.paid),
+    [processedStudents]
+  );
 
   const stats = useMemo(() => {
-    const paid = students.filter((s) => s.paid);
+    const paid = processedStudents.filter((s) => s.paid);
+    const unpaid = processedStudents.filter((s) => !s.paid);
+    const overdue = unpaid.filter((s) => isOverdue(s));
     return {
       total: paid.reduce((sum, s) => sum + (s.monthly_fee || 0), 0),
+      debt: unpaid.reduce((sum, s) => sum + (s.monthly_fee || 0), 0),
       countPaid: paid.length,
-      countUnpaid: students.length - paid.length,
+      countUnpaid: unpaid.length,
+      countOverdue: overdue.length,
+      countAll: processedStudents.length,
     };
-  }, [students]);
+  }, [processedStudents]);
 
   if (!branchId) {
     return (
-      <div className="payments-container">
-        <div style={{ padding: 40, textAlign: "center", color: "#94a3b8" }}>
-          Filial tanlanmagan
+      <div className="pay-page">
+        <div className="pay-empty">
+          <FiLayers size={40} />
+          <h3>No branch selected</h3>
+          <p>Please select a branch to view payments</p>
         </div>
       </div>
     );
   }
 
+  const renderRow = (s) => {
+    const overdue = isOverdue(s);
+
+    return (
+      <tr
+        key={s.id}
+        className={!s.paid ? (overdue ? "row-overdue" : "row-unpaid") : ""}
+      >
+        <td data-label="Student">
+          <div className="pay-user">
+            <div className={`pay-avatar ${!s.paid ? "unpaid" : ""}`}>
+              {(s.first_name?.[0] || "").toUpperCase()}
+              {(s.last_name?.[0] || "").toUpperCase()}
+            </div>
+            <div className="pay-user-meta">
+              <span className="pay-name">
+                {s.first_name} {s.last_name}
+              </span>
+              <span className="pay-phone">
+                {formatPhoneDisplay(s.phone)}
+              </span>
+            </div>
+          </div>
+        </td>
+
+        <td data-label="Course / Group">
+          <div className="pay-course-group">
+            <span className="pay-course-tag">{s.courses?.name || "—"}</span>
+            <span className="pay-group-name">{s.groups?.name || "—"}</span>
+          </div>
+        </td>
+
+        <td className="pay-fee" data-label="Monthly fee">
+          {formatCurrency(s.monthly_fee || 0)}
+        </td>
+
+        <td data-label="Status">
+          <div className="pay-status-wrap">
+            <span
+              className={`pay-badge ${
+                s.paid ? "success" : overdue ? "warning" : "danger"
+              }`}
+            >
+              {s.paid ? "PAID" : overdue ? "OVERDUE" : "DEBTOR"}
+            </span>
+          </div>
+        </td>
+
+        <td data-label="Payment">
+          <div className="pay-date">
+            {s.payment_date ? formatShortDate(s.payment_date) : "—"}
+          </div>
+        </td>
+
+        <td data-label="Next">
+          <div className={`pay-date ${!s.paid ? "danger" : ""}`}>
+            {s.next_payment_date
+              ? formatShortDate(s.next_payment_date)
+              : "—"}
+          </div>
+        </td>
+
+        <td data-label="Actions">
+          <div className="pay-actions">
+            {s.paid && (
+              <button
+                className="pay-icon-btn"
+                title="Print receipt"
+                onClick={() => openReceiptForStudent(s)}
+                type="button"
+              >
+                <FiPrinter size={14} />
+              </button>
+            )}
+            <button
+              className="pay-icon-btn"
+              title="Edit"
+              onClick={() => {
+                setEditData({ ...s });
+                setEditOpen(true);
+              }}
+              type="button"
+            >
+              <FiEdit2 size={14} />
+            </button>
+            <button
+              className={`pay-pill ${s.paid ? "refund" : "collect"}`}
+              onClick={() => togglePayment(s)}
+              type="button"
+            >
+              <FiCreditCard size={13} />
+              {s.paid ? "Refund" : "Collect"}
+            </button>
+          </div>
+        </td>
+      </tr>
+    );
+  };
+
   return (
-    <div className="payments-container">
-      <header className="payments-header">
-        <div className="header-info">
-          <h1>{activeBranch?.name || "Management"} • Payments</h1>
-          <p>
-            Avtomatik to‘lov tizimi — {students.length} ta faol o‘quvchi
+    <div className="pay-page">
+      {/* HEADER */}
+      <header className="pay-header">
+        <div className="pay-title-area">
+          <h1 className="pay-title">{activeBranch?.name} • Payments</h1>
+          <p className="pay-desc">
+            Automatic payment system — <strong>{students.length}</strong> active
+            students
+            {stats.countOverdue > 0 && (
+              <span className="pay-overdue-hint">
+                · <FiClock size={12} /> {stats.countOverdue} overdue
+              </span>
+            )}
           </p>
         </div>
         <button
-          className="refresh-btn"
-          onClick={() => fetchPayments()}
+          className="pay-refresh-btn"
+          onClick={() => fetchData()}
           disabled={loading}
-          title="Yangilash"
+          title="Refresh"
+          type="button"
         >
-          <FiRefreshCw className={loading ? "spin" : ""} />
+          <FiRefreshCw className={loading ? "spin" : ""} size={15} />
         </button>
       </header>
 
-      <section className="stats-grid">
-        <div className="stat-card">
-          <div className="icon-box income">
-            <FiDollarSign />
+      {/* STATS */}
+      <section className="pay-stats">
+        <button
+          type="button"
+          className={`pay-stat-card ${
+            filterStatus === "all" && !hasActiveFilters ? "active" : ""
+          }`}
+          onClick={() => setFilterStatus("all")}
+        >
+          <div className="pay-stat-icon income">
+            <FiDollarSign size={16} />
           </div>
-          <div className="stat-val">
-            <h3>{formatCurrency(stats.total)}</h3>
-            <span>Jami yig‘ilgan</span>
+          <div className="pay-stat-body">
+            <span className="pay-stat-label">Total collected</span>
+            <strong className="pay-stat-value">
+              {formatCurrency(stats.total)}
+            </strong>
           </div>
-        </div>
-        <div className="stat-card">
-          <div className="icon-box paid">
-            <FiCheckCircle />
+        </button>
+
+        <button
+          type="button"
+          className={`pay-stat-card ${filterStatus === "paid" ? "active" : ""}`}
+          onClick={() => setFilterStatus("paid")}
+        >
+          <div className="pay-stat-icon paid">
+            <FiCheckCircle size={16} />
           </div>
-          <div className="stat-val">
-            <h3>{stats.countPaid}</h3>
-            <span>Shu oy to‘lagan</span>
+          <div className="pay-stat-body">
+            <span className="pay-stat-label">Paid</span>
+            <strong className="pay-stat-value">{stats.countPaid}</strong>
           </div>
-        </div>
-        <div className="stat-card">
-          <div className="icon-box unpaid">
-            <FiAlertCircle />
+        </button>
+
+        <button
+          type="button"
+          className={`pay-stat-card ${
+            filterStatus === "unpaid" ? "active" : ""
+          }`}
+          onClick={() => setFilterStatus("unpaid")}
+        >
+          <div className="pay-stat-icon unpaid">
+            <FiAlertCircle size={16} />
           </div>
-          <div className="stat-val">
-            <h3>{stats.countUnpaid}</h3>
-            <span>Qarzdor</span>
+          <div className="pay-stat-body">
+            <span className="pay-stat-label">Debtors</span>
+            <strong className="pay-stat-value">{stats.countUnpaid}</strong>
+          </div>
+        </button>
+
+        <div className="pay-stat-card debt">
+          <div className="pay-stat-icon total">
+            <FiUsers size={16} />
+          </div>
+          <div className="pay-stat-body">
+            <span className="pay-stat-label">Debt amount</span>
+            <strong className="pay-stat-value danger">
+              {formatCurrency(stats.debt)}
+            </strong>
           </div>
         </div>
       </section>
 
-      <div className="table-toolbar">
-        <div className="search-wrapper">
-          <FiSearch />
+      {/* TOOLBAR */}
+      <div className="pay-toolbar">
+        <div className="pay-search">
+          <FiSearch size={15} />
           <input
             type="text"
-            placeholder="O‘quvchi qidirish..."
+            placeholder="Search student..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+          {search && (
+            <button
+              className="pay-search-clear"
+              onClick={() => setSearch("")}
+              type="button"
+            >
+              <FiX size={13} />
+            </button>
+          )}
         </div>
 
-        <div className="filter-wrapper">
-          <FiFilter />
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-          >
-            <option value="all">Barchasi</option>
-            <option value="paid">To‘langan</option>
-            <option value="unpaid">Qarzdor</option>
-          </select>
+        <div className="pay-filters">
+          <div className="pay-select-wrap">
+            <FiFilter size={13} />
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+            >
+              <option value="all">All statuses</option>
+              <option value="paid">Paid</option>
+              <option value="unpaid">Debtors</option>
+            </select>
+          </div>
+
+          <div className="pay-select-wrap">
+            <FiBookOpen size={13} />
+            <select
+              value={filterCourse}
+              onChange={(e) => setFilterCourse(e.target.value)}
+            >
+              <option value="all">All courses</option>
+              {courses.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="pay-select-wrap">
+            <FiUsers size={13} />
+            <select
+              value={filterGroup}
+              onChange={(e) => setFilterGroup(e.target.value)}
+            >
+              <option value="all">All groups</option>
+              {groups.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="pay-select-wrap">
+            <FiCalendar size={13} />
+            <select
+              value={filterMonth}
+              onChange={(e) => setFilterMonth(e.target.value)}
+            >
+              {monthOptions.map((m) => (
+                <option key={m.value} value={m.value}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {hasActiveFilters && (
+            <button
+              className="pay-clear-btn"
+              onClick={clearFilters}
+              type="button"
+            >
+              <FiX size={13} /> Clear
+            </button>
+          )}
         </div>
       </div>
 
-      <div className="table-container">
+      {/* TABLE */}
+      <div className="pay-card">
         {loading ? (
-          <div className="professional-loader">
-            <div className="skeleton-row" />
-            <div className="skeleton-row" />
-            <div className="skeleton-row" />
+          <div className="pay-skeleton">
+            {/* Header skeleton */}
+            <div className="pay-skel-header">
+              <div className="skel line w120" />
+              <div className="skel line w100" />
+              <div className="skel line w80" />
+              <div className="skel line w70" />
+              <div className="skel line w80" />
+              <div className="skel line w70" />
+              <div className="skel line w90" />
+            </div>
+
+            {/* Rows */}
+            {Array.from({ length: 9 }).map((_, i) => (
+              <div key={i} className="pay-skel-row">
+                <div className="pay-skel-user">
+                  <div className="skel circle" />
+                  <div className="pay-skel-user-meta">
+                    <div className="skel line w140" />
+                    <div className="skel line w100" style={{ marginTop: 6 }} />
+                  </div>
+                </div>
+
+                <div className="pay-skel-col">
+                  <div className="skel line w110" />
+                  <div className="skel line w80" style={{ marginTop: 6 }} />
+                </div>
+
+                <div className="skel line w90" />
+                <div className="skel badge" />
+                <div className="skel line w80" />
+                <div className="skel line w80" />
+
+                <div className="pay-skel-actions">
+                  <div className="skel circle-sm" />
+                  <div className="skel circle-sm" />
+                  <div className="skel pill" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : processedStudents.length === 0 ? (
+          <div className="pay-empty-inside">
+            <FiUsers size={36} style={{ opacity: 0.35 }} />
+            <p>No students found</p>
+            <span>Try changing the filters</span>
           </div>
         ) : (
-          <table className="modern-table">
-            <thead>
-              <tr>
-                <th>O‘quvchi</th>
-                <th>Kurs</th>
-                <th>Oylik to‘lov</th>
-                <th>Status</th>
-                <th>Keyingi to‘lov</th>
-                <th align="right">Amallar</th>
-              </tr>
-            </thead>
-            <tbody>
-              {processedStudents.length === 0 ? (
+          <div className="pay-table-wrap">
+            <table className="pay-table">
+              <thead>
                 <tr>
-                  <td colSpan="6" style={{ textAlign: "center", padding: "40px" }}>
-                    O‘quvchi topilmadi
-                  </td>
+                  <th>Student</th>
+                  <th>Course / Group</th>
+                  <th>Monthly fee</th>
+                  <th>Status</th>
+                  <th>Payment</th>
+                  <th>Next</th>
+                  <th className="text-right">Actions</th>
                 </tr>
-              ) : (
-                processedStudents.map((s) => (
-                  <tr key={s.id} className={!s.paid ? "row-unpaid" : ""}>
-                    <td>
-                      <div className="user-cell">
-                        <div className="avatar">
-                          {s.first_name?.[0] || ""}
-                          {s.last_name?.[0] || ""}
+              </thead>
+              <tbody>
+                {unpaidList.length > 0 && (
+                  <>
+                    <tr className="pay-section-row">
+                      <td colSpan={7}>
+                        <div className="pay-section unpaid">
+                          <FiAlertCircle size={14} />
+                          <span>Debtors</span>
+                          <em>{unpaidList.length}</em>
                         </div>
-                        <div>
-                          <div className="full-name">
-                            {s.first_name} {s.last_name}
-                          </div>
-                          <div className="sub-text">
-                            {formatPhoneDisplay(s.phone)}
-                          </div>
+                      </td>
+                    </tr>
+                    {unpaidList.map(renderRow)}
+                  </>
+                )}
+
+                {paidList.length > 0 && (
+                  <>
+                    <tr className="pay-section-row">
+                      <td colSpan={7}>
+                        <div className="pay-section paid">
+                          <FiCheckCircle size={14} />
+                          <span>Paid</span>
+                          <em>{paidList.length}</em>
                         </div>
-                      </div>
-                    </td>
-                    <td>
-                      <span className="course-tag">
-                        {s.courses?.name || "N/A"}
-                      </span>
-                    </td>
-                    <td className="fee-cell">
-                      {formatCurrency(s.monthly_fee)}
-                    </td>
-                    <td>
-                      <span className={`badge ${s.paid ? "bg-success" : "bg-danger"}`}>
-                        {s.paid ? "TO‘LANGAN" : "QARZDOR"}
-                      </span>
-                    </td>
-                    <td>
-                      <div className={`due-date ${!s.paid ? "text-danger" : ""}`}>
-                        <FiCalendar /> {s.next_payment_date || "Sana yo‘q"}
-                      </div>
-                    </td>
-                    <td align="right">
-                      <div className="action-btns">
-                        {s.paid && (
-                          <button
-                            className="icon-btn edit"
-                            title="Chek chiqarish"
-                            onClick={() => openReceiptForStudent(s)}
-                          >
-                            <FiPrinter />
-                          </button>
-                        )}
-                        <button
-                          className="icon-btn edit"
-                          title="Tahrirlash"
-                          onClick={() => {
-                            setEditData({ ...s });
-                            setEditOpen(true);
-                          }}
-                        >
-                          <FiEdit2 />
-                        </button>
-                        <button
-                          className={`action-pill ${s.paid ? "is-paid" : "is-unpaid"}`}
-                          onClick={() => togglePayment(s)}
-                        >
-                          <FiCreditCard /> {s.paid ? "Refund" : "Collect"}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                      </td>
+                    </tr>
+                    {paidList.map(renderRow)}
+                  </>
+                )}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
+      {/* EDIT MODAL */}
       {editOpen && editData && (
-        <div className="professional-modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h2>To‘lov sozlamalari</h2>
-              <button onClick={() => setEditOpen(false)}>
-                <FiX />
+        <div
+          className="pay-modal-overlay"
+          onClick={() => setEditOpen(false)}
+        >
+          <div className="pay-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="pay-modal-accent" />
+            <div className="pay-modal-header">
+              <h2>Payment settings</h2>
+              <button
+                className="pay-modal-close"
+                onClick={() => setEditOpen(false)}
+                type="button"
+              >
+                <FiX size={16} />
               </button>
             </div>
-            <div className="modal-form">
-              <div className="input-grid">
-                <div className="form-item">
-                  <label>Oylik to‘lov (UZS)</label>
+
+            <div className="pay-modal-body">
+              <div className="pay-form-grid">
+                <div className="pay-form-item full">
+                  <label>Monthly fee (so'm)</label>
                   <input
                     type="number"
                     name="monthly_fee"
@@ -638,8 +888,17 @@ export default function Payments({ activeBranch }) {
                     onChange={handleChange}
                   />
                 </div>
-                <div className="form-item">
-                  <label>Keyingi to‘lov sanasi</label>
+                <div className="pay-form-item">
+                  <label>Payment date</label>
+                  <input
+                    type="date"
+                    name="payment_date"
+                    value={editData.payment_date || ""}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="pay-form-item">
+                  <label>Next payment</label>
                   <input
                     type="date"
                     name="next_payment_date"
@@ -648,29 +907,33 @@ export default function Payments({ activeBranch }) {
                   />
                 </div>
               </div>
-              <div className="form-checkbox">
+
+              <label className="pay-checkbox-row">
                 <input
                   type="checkbox"
-                  id="paidCheck"
                   name="paid"
                   checked={editData.paid || false}
                   onChange={handleChange}
                 />
-                <label htmlFor="paidCheck">
-                  Joriy oy uchun to‘langan deb belgilash
-                </label>
-              </div>
+                <span>Mark as paid for the current month</span>
+              </label>
             </div>
-            <div className="modal-actions">
-              <button className="btn-cancel" onClick={() => setEditOpen(false)}>
-                Bekor qilish
+
+            <div className="pay-modal-footer">
+              <button
+                className="pay-btn-cancel"
+                onClick={() => setEditOpen(false)}
+                type="button"
+              >
+                Cancel
               </button>
               <button
-                className="btn-primary"
+                className="pay-btn-save"
                 onClick={handleSave}
                 disabled={saving}
+                type="button"
               >
-                {saving ? "Saqlanmoqda..." : "Saqlash"}
+                {saving ? "Saving..." : "Save"}
               </button>
             </div>
           </div>
