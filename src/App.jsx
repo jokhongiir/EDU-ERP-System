@@ -15,6 +15,7 @@ import TeacherLayout from "./pages/TeacherDashboard/TeacherLayout";
 import MyGroups from "./pages/TeacherDashboard/MyGroups";
 import MyStudents from "./pages/TeacherDashboard/MyStudents";
 import TeacherAttendance from "./pages/TeacherDashboard/TeacherAttendance";
+import TeacherProfile from "./pages/TeacherDashboard/TeacherProfile";
 
 import { Analytics } from "@vercel/analytics/react";
 
@@ -40,6 +41,7 @@ export default function App() {
           <Route path="groups" element={<MyGroups />} />
           <Route path="students" element={<MyStudents />} />
           <Route path="attendance" element={<TeacherAttendance />} />
+          <Route path="profile" element={<TeacherProfile />} />
         </Route>
 
         {/* Admin Dashboard */}

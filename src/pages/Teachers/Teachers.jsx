@@ -215,23 +215,71 @@ export default function Teachers({ activeBranch }) {
     setSaving(true);
     try {
       let authId = null;
+      const email = form.email?.trim() || null;
+      const password = form.password || null;
 
       if (!editId) {
-        if (form.email && form.password) {
+        // ===== YANGI O'QITUVCHI =====
+
+        // Shu branchda email takrorlanmasin
+        if (email) {
+          const { data: sameBranch } = await supabase
+            .from("teachers")
+            .select("id")
+            .eq("branch_id", branchId)
+            .ilike("email", email)
+            .maybeSingle();
+
+          if (sameBranch) {
+            throw new Error("Bu email allaqachon ushbu branchda mavjud.");
+          }
+        }
+
+        // Boshqa branchda shu email bilan teacher bormi?
+        if (email) {
+          const { data: existing } = await supabase
+            .from("teachers")
+            .select("auth_id")
+            .ilike("email", email)
+            .not("auth_id", "is", null)
+            .limit(1);
+
+          if (existing?.length > 0) {
+            authId = existing[0].auth_id;
+          }
+        }
+
+        // auth_id topilmasa va email+password berilgan bo'lsa — yangi auth yaratamiz
+        if (!authId && email && password) {
           const { data: authData, error: authError } =
             await supabase.auth.signUp({
-              email: form.email.trim(),
-              password: form.password,
+              email,
+              password,
             });
-          if (authError) throw authError;
-          authId = authData?.user?.id || null;
+
+          if (authError) {
+            const msg = authError.message || "";
+            // Email allaqachon auth da bor — teacher ni auth_id siz qo'shamiz,
+            // login paytida TeacherLayout avtomatik bog'laydi
+            if (
+              msg.includes("already registered") ||
+              msg.includes("User already registered") ||
+              msg.includes("already been registered")
+            ) {
+              authId = null;
+            } else {
+              throw authError;
+            }
+          } else {
+            authId = authData?.user?.id || null;
+          }
         }
 
         const newTeacher = {
           name: form.name.trim(),
-          phone: form.phone.trim(),
-          email: form.email.trim() || null,
-          password: form.password || null,
+          phone: form.phone.trim() || null,
+          email: email,
+          password: password || null,
           course_id: form.course_id || null,
           salary_paid: form.salary_paid,
           last_payment: form.last_payment || null,
@@ -244,35 +292,44 @@ export default function Teachers({ activeBranch }) {
         const { error } = await supabase.from("teachers").insert([newTeacher]);
         if (error) throw error;
       } else {
+        // ===== TAHRIRLASH =====
         const currentTeacher = teachers.find((t) => t.id === editId);
         authId = currentTeacher?.auth_id || null;
 
-        if (!authId && form.email && form.password) {
-          const { data: authData, error: authError } =
-            await supabase.auth.signUp({
-              email: form.email.trim(),
-              password: form.password,
-            });
-          if (!authError) {
-            authId = authData?.user?.id || null;
+        if (!authId && email) {
+          const { data: existing } = await supabase
+            .from("teachers")
+            .select("auth_id")
+            .ilike("email", email)
+            .not("auth_id", "is", null)
+            .limit(1);
+
+          if (existing?.length > 0) {
+            authId = existing[0].auth_id;
+          } else if (password) {
+            const { data: authData, error: authError } =
+              await supabase.auth.signUp({ email, password });
+            if (!authError) {
+              authId = authData?.user?.id || null;
+            }
           }
         }
 
         const updatedTeacher = {
           name: form.name.trim(),
-          phone: form.phone.trim(),
-          email: form.email.trim() || null,
+          phone: form.phone.trim() || null,
+          email: email,
           course_id: form.course_id || null,
           salary_paid: form.salary_paid,
           last_payment: form.last_payment || null,
           next_payment: form.next_payment || null,
           notes: form.notes || "",
           auth_id: authId,
-          updated_at: new Date(),
+          updated_at: new Date().toISOString(),
         };
 
-        if (form.password) {
-          updatedTeacher.password = form.password;
+        if (password) {
+          updatedTeacher.password = password;
         }
 
         const { error } = await supabase
