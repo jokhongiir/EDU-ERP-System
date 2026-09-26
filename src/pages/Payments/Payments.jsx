@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { supabase } from "../../services/supabaseClient";
 import {
   FiSearch,
@@ -16,6 +16,9 @@ import {
   FiUsers,
   FiLayers,
   FiClock,
+  FiUpload,
+  FiEye,
+  FiTrash2,
 } from "react-icons/fi";
 import "./Payments.css";
 
@@ -37,10 +40,30 @@ export default function Payments({ activeBranch }) {
   const [editData, setEditData] = useState(null);
   const [saving, setSaving] = useState(false);
 
+  const [collectOpen, setCollectOpen] = useState(false);
+  const [collectStudent, setCollectStudent] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [screenshotFile, setScreenshotFile] = useState(null);
+  const [screenshotPreview, setScreenshotPreview] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const [previewUrl, setPreviewUrl] = useState(null);
+
+  // History Modal
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyFilter, setHistoryFilter] = useState("today");
+
   const formatCurrency = (value = 0) =>
     new Intl.NumberFormat("uz-UZ").format(value) + " so'm";
 
   const getTodayStr = () => new Date().toISOString().slice(0, 10);
+
+  const getYesterdayStr = () => {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return d.toISOString().slice(0, 10);
+  };
 
   const formatPhoneDisplay = (value) => {
     if (!value) return "—";
@@ -76,7 +99,19 @@ export default function Payments({ activeBranch }) {
     return s.next_payment_date < getTodayStr();
   };
 
-  // ========== Print receipt ==========
+  const getRelativeDay = (dateStr) => {
+    if (!dateStr) return null;
+    const today = getTodayStr();
+    const yesterday = getYesterdayStr();
+    if (dateStr === today) return "today";
+    if (dateStr === yesterday) return "yesterday";
+    const d = new Date(dateStr);
+    const now = new Date();
+    const diff = (now - d) / (1000 * 60 * 60 * 24);
+    if (diff >= 0 && diff < 7) return "week";
+    return "older";
+  };
+
   const printPaymentReceipt = ({
     studentName,
     phone,
@@ -87,6 +122,7 @@ export default function Payments({ activeBranch }) {
     paymentDate,
     fromMonth,
     toMonth,
+    method,
   }) => {
     const esc = (v) =>
       String(v ?? "—")
@@ -94,6 +130,13 @@ export default function Payments({ activeBranch }) {
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;");
+
+    const methodLabel =
+      method === "click"
+        ? "CLICK (Card)"
+        : method === "cash"
+        ? "CASH (Naqd)"
+        : "—";
 
     const html = `
 <!DOCTYPE html>
@@ -139,6 +182,7 @@ export default function Payments({ activeBranch }) {
     <div class="row"><span>Group:</span><span>${esc(group)}</span></div>
     <div class="line"></div>
     <div class="row"><span>Date:</span><span>${esc(paymentDate)}</span></div>
+    <div class="row"><span>Method:</span><span>${esc(methodLabel)}</span></div>
     <div class="line"></div>
     <div class="row"><span>From:</span><span>${esc(fromMonth)}</span></div>
     <div class="row"><span>Until:</span><span>${esc(toMonth)}</span></div>
@@ -189,10 +233,49 @@ export default function Payments({ activeBranch }) {
       paymentDate: formatShortDate(payDate),
       fromMonth: formatMonthYear(payDate),
       toMonth: formatMonthYear(nextDate),
+      method: s.payment_method,
     });
   };
 
-  // ========== Fetch ==========
+  const printFromEdit = () => {
+    if (!editData?.paid) return;
+    const payDate = editData.payment_date || getTodayStr();
+    const nextDate = editData.next_payment_date;
+
+    printPaymentReceipt({
+      studentName: `${editData.first_name || ""} ${
+        editData.last_name || ""
+      }`.trim(),
+      phone: formatPhoneDisplay(editData.phone),
+      course: editData.courses?.name || "—",
+      teacher: editData.teachers?.name || "—",
+      group: editData.groups?.name || "—",
+      amount: formatCurrency(editData.monthly_fee || 0),
+      paymentDate: formatShortDate(payDate),
+      fromMonth: formatMonthYear(payDate),
+      toMonth: formatMonthYear(nextDate),
+      method: editData.payment_method,
+    });
+  };
+
+  const uploadScreenshot = async (file, studentId) => {
+    if (!file) return null;
+    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const path = `${branchId}/${studentId}/${Date.now()}.${ext}`;
+
+    const { error } = await supabase.storage
+      .from("payment-screenshots")
+      .upload(path, file, { upsert: true, contentType: file.type });
+
+    if (error) throw error;
+
+    const { data } = supabase.storage
+      .from("payment-screenshots")
+      .getPublicUrl(path);
+
+    return data.publicUrl;
+  };
+
   const fetchData = useCallback(
     async (silent = false) => {
       if (!branchId) return;
@@ -232,7 +315,11 @@ export default function Payments({ activeBranch }) {
         if (expiredIds.length > 0) {
           await supabase
             .from("students")
-            .update({ paid: false })
+            .update({
+              paid: false,
+              payment_method: null,
+              payment_screenshot: null,
+            })
             .in("id", expiredIds);
           return fetchData(true);
         }
@@ -253,17 +340,113 @@ export default function Payments({ activeBranch }) {
     fetchData();
   }, [fetchData]);
 
-  // ========== Collect / Refund ==========
-  const togglePayment = async (student) => {
-    const isNowPaid = !student.paid;
-    const today = getTodayStr();
+  const openCollectModal = (student) => {
+    setCollectStudent(student);
+    setPaymentMethod("cash");
+    setScreenshotFile(null);
+    setScreenshotPreview(null);
+    setCollectOpen(true);
+  };
 
-    let nextDate = null;
-    if (isNowPaid) {
-      const d = new Date();
-      d.setMonth(d.getMonth() + 1);
-      nextDate = d.toISOString().slice(0, 10);
+  const handleScreenshotSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      alert("Faqat rasm yuklash mumkin (JPG, PNG, WEBP)");
+      return;
     }
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Rasm hajmi 5 MB dan oshmasligi kerak");
+      return;
+    }
+    setScreenshotFile(file);
+    setScreenshotPreview(URL.createObjectURL(file));
+  };
+
+  const clearScreenshot = () => {
+    setScreenshotFile(null);
+    if (screenshotPreview) URL.revokeObjectURL(screenshotPreview);
+    setScreenshotPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const confirmCollect = async () => {
+    if (!collectStudent) return;
+    if (paymentMethod === "click" && !screenshotFile) {
+      alert("Click to‘lovi uchun skrinshot yuklash majburiy!");
+      return;
+    }
+
+    setUploading(true);
+    const today = getTodayStr();
+    const d = new Date();
+    d.setMonth(d.getMonth() + 1);
+    const nextDate = d.toISOString().slice(0, 10);
+
+    try {
+      let screenshotUrl = null;
+      if (paymentMethod === "click" && screenshotFile) {
+        screenshotUrl = await uploadScreenshot(
+          screenshotFile,
+          collectStudent.id
+        );
+      }
+
+      const { error } = await supabase
+        .from("students")
+        .update({
+          paid: true,
+          payment_date: today,
+          next_payment_date: nextDate,
+          payment_method: paymentMethod,
+          payment_screenshot: screenshotUrl,
+        })
+        .eq("id", collectStudent.id);
+
+      if (error) throw error;
+
+      setStudents((prev) =>
+        prev.map((s) =>
+          s.id === collectStudent.id
+            ? {
+                ...s,
+                paid: true,
+                payment_date: today,
+                next_payment_date: nextDate,
+                payment_method: paymentMethod,
+                payment_screenshot: screenshotUrl,
+              }
+            : s
+        )
+      );
+
+      printPaymentReceipt({
+        studentName: `${collectStudent.first_name || ""} ${
+          collectStudent.last_name || ""
+        }`.trim(),
+        phone: formatPhoneDisplay(collectStudent.phone),
+        course: collectStudent.courses?.name || "—",
+        teacher: collectStudent.teachers?.name || "—",
+        group: collectStudent.groups?.name || "—",
+        amount: formatCurrency(collectStudent.monthly_fee || 0),
+        paymentDate: formatShortDate(today),
+        fromMonth: formatMonthYear(today),
+        toMonth: formatMonthYear(nextDate),
+        method: paymentMethod,
+      });
+
+      setCollectOpen(false);
+      setCollectStudent(null);
+      clearScreenshot();
+    } catch (err) {
+      alert("Xatolik: " + (err.message || "Unknown error"));
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRefund = async (student) => {
+    if (!window.confirm("To‘lovni bekor qilmoqchimisiz?")) return;
 
     const oldStudents = [...students];
     setStudents((prev) =>
@@ -271,9 +454,11 @@ export default function Payments({ activeBranch }) {
         s.id === student.id
           ? {
               ...s,
-              paid: isNowPaid,
-              payment_date: isNowPaid ? today : null,
-              next_payment_date: nextDate,
+              paid: false,
+              payment_date: null,
+              next_payment_date: null,
+              payment_method: null,
+              payment_screenshot: null,
             }
           : s
       )
@@ -282,66 +467,67 @@ export default function Payments({ activeBranch }) {
     const { error } = await supabase
       .from("students")
       .update({
-        paid: isNowPaid,
-        payment_date: isNowPaid ? today : null,
-        next_payment_date: nextDate,
+        paid: false,
+        payment_date: null,
+        next_payment_date: null,
+        payment_method: null,
+        payment_screenshot: null,
       })
       .eq("id", student.id);
 
     if (error) {
       setStudents(oldStudents);
       alert("Update failed: " + error.message);
-      return;
-    }
-
-    if (isNowPaid) {
-      printPaymentReceipt({
-        studentName: `${student.first_name || ""} ${
-          student.last_name || ""
-        }`.trim(),
-        phone: formatPhoneDisplay(student.phone),
-        course: student.courses?.name || "—",
-        teacher: student.teachers?.name || "—",
-        group: student.groups?.name || "—",
-        amount: formatCurrency(student.monthly_fee || 0),
-        paymentDate: formatShortDate(today),
-        fromMonth: formatMonthYear(today),
-        toMonth: formatMonthYear(nextDate),
-      });
     }
   };
 
-  // ========== Edit modal ==========
   const handleSave = async () => {
     if (!editData?.id) return;
     setSaving(true);
 
-    const { error } = await supabase
-      .from("students")
-      .update({
-        monthly_fee: Number(editData.monthly_fee) || 0,
-        paid: Boolean(editData.paid),
-        payment_date: editData.payment_date || null,
-        next_payment_date: editData.next_payment_date || null,
-      })
-      .eq("id", editData.id);
+    try {
+      let screenshotUrl = editData.payment_screenshot || null;
+      if (editData._newScreenshotFile) {
+        screenshotUrl = await uploadScreenshot(
+          editData._newScreenshotFile,
+          editData.id
+        );
+      }
 
-    setSaving(false);
-    if (error) return alert(error.message);
+      const { error } = await supabase
+        .from("students")
+        .update({
+          monthly_fee: Number(editData.monthly_fee) || 0,
+          paid: Boolean(editData.paid),
+          payment_date: editData.payment_date || null,
+          next_payment_date: editData.next_payment_date || null,
+          payment_method: editData.paid
+            ? editData.payment_method || "cash"
+            : null,
+          payment_screenshot:
+            editData.paid && editData.payment_method === "click"
+              ? screenshotUrl
+              : null,
+        })
+        .eq("id", editData.id);
 
-    setEditOpen(false);
-    fetchData(true);
+      if (error) throw error;
+      setEditOpen(false);
+      fetchData(true);
+    } catch (err) {
+      alert(err.message || "Saqlashda xatolik");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-
     setEditData((prev) => {
       const updated = {
         ...prev,
         [name]: type === "checkbox" ? checked : value,
       };
-
       if (name === "paid") {
         if (checked) {
           const today = getTodayStr();
@@ -349,14 +535,30 @@ export default function Payments({ activeBranch }) {
           d.setMonth(d.getMonth() + 1);
           updated.payment_date = today;
           updated.next_payment_date = d.toISOString().slice(0, 10);
+          if (!updated.payment_method) updated.payment_method = "cash";
         } else {
           updated.payment_date = null;
           updated.next_payment_date = null;
+          updated.payment_method = null;
+          updated.payment_screenshot = null;
         }
       }
-
       return updated;
     });
+  };
+
+  const handleEditScreenshot = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      alert("Faqat rasm yuklash mumkin");
+      return;
+    }
+    setEditData((prev) => ({
+      ...prev,
+      _newScreenshotFile: file,
+      _previewUrl: URL.createObjectURL(file),
+    }));
   };
 
   const clearFilters = () => {
@@ -374,7 +576,6 @@ export default function Payments({ activeBranch }) {
     filterGroup !== "all" ||
     filterMonth !== "all";
 
-  // ========== Month options ==========
   const monthOptions = useMemo(() => {
     const opts = [{ value: "all", label: "All months" }];
     const now = new Date();
@@ -393,7 +594,6 @@ export default function Payments({ activeBranch }) {
     return opts;
   }, []);
 
-  // ========== Filtered + Sorted ==========
   const processedStudents = useMemo(() => {
     const filtered = students.filter((s) => {
       const fullName = `${s.first_name || ""} ${
@@ -431,18 +631,23 @@ export default function Payments({ activeBranch }) {
 
     return filtered.sort((a, b) => {
       if (a.paid !== b.paid) return a.paid ? 1 : -1;
-
       if (!a.paid && !b.paid) {
         const aOver = isOverdue(a);
         const bOver = isOverdue(b);
         if (aOver !== bOver) return aOver ? -1 : 1;
       }
-
       const nameA = `${a.first_name || ""} ${a.last_name || ""}`.toLowerCase();
       const nameB = `${b.first_name || ""} ${b.last_name || ""}`.toLowerCase();
       return nameA.localeCompare(nameB, "en");
     });
-  }, [students, search, filterStatus, filterCourse, filterGroup, filterMonth]);
+  }, [
+    students,
+    search,
+    filterStatus,
+    filterCourse,
+    filterGroup,
+    filterMonth,
+  ]);
 
   const unpaidList = useMemo(
     () => processedStudents.filter((s) => !s.paid),
@@ -452,6 +657,52 @@ export default function Payments({ activeBranch }) {
     () => processedStudents.filter((s) => s.paid),
     [processedStudents]
   );
+
+  const paymentHistory = useMemo(() => {
+    const paid = students.filter((s) => s.paid && s.payment_date);
+    const groups = { today: [], yesterday: [], week: [], older: [] };
+
+    paid.forEach((s) => {
+      const rel = getRelativeDay(s.payment_date);
+      if (rel === "today") groups.today.push(s);
+      else if (rel === "yesterday") groups.yesterday.push(s);
+      else if (rel === "week") groups.week.push(s);
+      else groups.older.push(s);
+    });
+
+    const sortByDate = (a, b) =>
+      (b.payment_date || "").localeCompare(a.payment_date || "");
+
+    groups.today.sort(sortByDate);
+    groups.yesterday.sort(sortByDate);
+    groups.week.sort(sortByDate);
+    groups.older.sort(sortByDate);
+
+    return groups;
+  }, [students]);
+
+  const historyStats = useMemo(() => {
+    const sum = (arr) =>
+      arr.reduce((acc, s) => acc + (s.monthly_fee || 0), 0);
+    return {
+      todayCount: paymentHistory.today.length,
+      todaySum: sum(paymentHistory.today),
+      yesterdayCount: paymentHistory.yesterday.length,
+      yesterdaySum: sum(paymentHistory.yesterday),
+      weekCount:
+        paymentHistory.today.length +
+        paymentHistory.yesterday.length +
+        paymentHistory.week.length,
+      weekSum:
+        sum(paymentHistory.today) +
+        sum(paymentHistory.yesterday) +
+        sum(paymentHistory.week),
+      allCount: students.filter((s) => s.paid && s.payment_date).length,
+      allSum: students
+        .filter((s) => s.paid && s.payment_date)
+        .reduce((acc, s) => acc + (s.monthly_fee || 0), 0),
+    };
+  }, [paymentHistory, students]);
 
   const stats = useMemo(() => {
     const paid = processedStudents.filter((s) => s.paid);
@@ -467,10 +718,27 @@ export default function Payments({ activeBranch }) {
     };
   }, [processedStudents]);
 
+  const currentHistoryList = useMemo(() => {
+    if (historyFilter === "today") return paymentHistory.today;
+    if (historyFilter === "yesterday") return paymentHistory.yesterday;
+    if (historyFilter === "week")
+      return [
+        ...paymentHistory.today,
+        ...paymentHistory.yesterday,
+        ...paymentHistory.week,
+      ];
+    return [
+      ...paymentHistory.today,
+      ...paymentHistory.yesterday,
+      ...paymentHistory.week,
+      ...paymentHistory.older,
+    ];
+  }, [historyFilter, paymentHistory]);
+
   if (!branchId) {
     return (
-      <div className="pay-page">
-        <div className="pay-empty">
+      <div className="ia-pay">
+        <div className="ia-pay-empty">
           <FiLayers size={40} />
           <h3>No branch selected</h3>
           <p>Please select a branch to view payments</p>
@@ -481,71 +749,103 @@ export default function Payments({ activeBranch }) {
 
   const renderRow = (s) => {
     const overdue = isOverdue(s);
-
     return (
       <tr
         key={s.id}
-        className={!s.paid ? (overdue ? "row-overdue" : "row-unpaid") : ""}
+        className={
+          !s.paid
+            ? overdue
+              ? "ia-pay-row--overdue"
+              : "ia-pay-row--unpaid"
+            : ""
+        }
       >
         <td data-label="Student">
-          <div className="pay-user">
-            <div className={`pay-avatar ${!s.paid ? "unpaid" : ""}`}>
+          <div className="ia-pay-user">
+            <div
+              className={`ia-pay-avatar ${
+                !s.paid ? "ia-pay-avatar--unpaid" : ""
+              }`}
+            >
               {(s.first_name?.[0] || "").toUpperCase()}
               {(s.last_name?.[0] || "").toUpperCase()}
             </div>
-            <div className="pay-user-meta">
-              <span className="pay-name">
+            <div className="ia-pay-user-meta">
+              <span className="ia-pay-name">
                 {s.first_name} {s.last_name}
               </span>
-              <span className="pay-phone">
+              <span className="ia-pay-phone">
                 {formatPhoneDisplay(s.phone)}
               </span>
             </div>
           </div>
         </td>
-
         <td data-label="Course / Group">
-          <div className="pay-course-group">
-            <span className="pay-course-tag">{s.courses?.name || "—"}</span>
-            <span className="pay-group-name">{s.groups?.name || "—"}</span>
+          <div className="ia-pay-course-group">
+            <span className="ia-pay-course-tag">
+              {s.courses?.name || "—"}
+            </span>
+            <span className="ia-pay-group-name">{s.groups?.name || "—"}</span>
           </div>
         </td>
-
-        <td className="pay-fee" data-label="Monthly fee">
+        <td className="ia-pay-fee" data-label="Monthly fee">
           {formatCurrency(s.monthly_fee || 0)}
         </td>
-
         <td data-label="Status">
-          <div className="pay-status-wrap">
+          <div className="ia-pay-status">
             <span
-              className={`pay-badge ${
-                s.paid ? "success" : overdue ? "warning" : "danger"
+              className={`ia-pay-badge ${
+                s.paid
+                  ? "ia-pay-badge--success"
+                  : overdue
+                  ? "ia-pay-badge--warning"
+                  : "ia-pay-badge--danger"
               }`}
             >
               {s.paid ? "PAID" : overdue ? "OVERDUE" : "DEBTOR"}
             </span>
+            {s.paid && s.payment_method && (
+              <span
+                className={`ia-pay-method ${
+                  s.payment_method === "click"
+                    ? "ia-pay-method--click"
+                    : "ia-pay-method--cash"
+                }`}
+              >
+                {s.payment_method === "click" ? "CLICK" : "CASH"}
+              </span>
+            )}
           </div>
         </td>
-
         <td data-label="Payment">
-          <div className="pay-date">
+          <div className="ia-pay-date">
             {s.payment_date ? formatShortDate(s.payment_date) : "—"}
           </div>
         </td>
-
         <td data-label="Next">
-          <div className={`pay-date ${!s.paid ? "danger" : ""}`}>
+          <div
+            className={`ia-pay-date ${!s.paid ? "ia-pay-date--danger" : ""}`}
+          >
             {s.next_payment_date
               ? formatShortDate(s.next_payment_date)
               : "—"}
           </div>
         </td>
-
         <td data-label="Actions">
-          <div className="pay-actions">
+          <div className="ia-pay-actions">
+            {s.paid && s.payment_screenshot && (
+              <button
+                className="ia-pay-icon-btn"
+                title="Skrinshotni ko‘rish"
+                onClick={() => setPreviewUrl(s.payment_screenshot)}
+                type="button"
+              >
+                <FiEye size={14} />
+              </button>
+            )}
             {s.paid && (
               <button
-                className="pay-icon-btn"
+                className="ia-pay-icon-btn"
                 title="Print receipt"
                 onClick={() => openReceiptForStudent(s)}
                 type="button"
@@ -554,7 +854,7 @@ export default function Payments({ activeBranch }) {
               </button>
             )}
             <button
-              className="pay-icon-btn"
+              className="ia-pay-icon-btn"
               title="Edit"
               onClick={() => {
                 setEditData({ ...s });
@@ -564,113 +864,169 @@ export default function Payments({ activeBranch }) {
             >
               <FiEdit2 size={14} />
             </button>
-            <button
-              className={`pay-pill ${s.paid ? "refund" : "collect"}`}
-              onClick={() => togglePayment(s)}
-              type="button"
-            >
-              <FiCreditCard size={13} />
-              {s.paid ? "Refund" : "Collect"}
-            </button>
+            {s.paid ? (
+              <button
+                className="ia-pay-pill ia-pay-pill--refund"
+                onClick={() => handleRefund(s)}
+                type="button"
+              >
+                <FiCreditCard size={13} />
+                Refund
+              </button>
+            ) : (
+              <button
+                className="ia-pay-pill ia-pay-pill--collect"
+                onClick={() => openCollectModal(s)}
+                type="button"
+              >
+                <FiCreditCard size={13} />
+                Collect
+              </button>
+            )}
           </div>
         </td>
       </tr>
     );
   };
 
+  const renderHistoryItem = (s) => (
+    <div key={s.id} className="ia-pay-history-item">
+      <div className="ia-pay-history-avatar">
+        {(s.first_name?.[0] || "").toUpperCase()}
+        {(s.last_name?.[0] || "").toUpperCase()}
+      </div>
+      <div className="ia-pay-history-meta">
+        <span className="ia-pay-history-name">
+          {s.first_name} {s.last_name}
+        </span>
+        <span className="ia-pay-history-sub">
+          {s.courses?.name || "—"} · {s.groups?.name || "—"} ·{" "}
+          {formatShortDate(s.payment_date)}
+        </span>
+      </div>
+      <div className="ia-pay-history-right">
+        <span className="ia-pay-history-amount">
+          {formatCurrency(s.monthly_fee || 0)}
+        </span>
+        <span
+          className={`ia-pay-method ${
+            s.payment_method === "click"
+              ? "ia-pay-method--click"
+              : "ia-pay-method--cash"
+          }`}
+        >
+          {s.payment_method === "click" ? "CLICK" : "CASH"}
+        </span>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="pay-page">
-      {/* HEADER */}
-      <header className="pay-header">
-        <div className="pay-title-area">
-          <h1 className="pay-title">{activeBranch?.name} • Payments</h1>
-          <p className="pay-desc">
+    <div className="ia-pay">
+      <header className="ia-pay-header">
+        <div className="ia-pay-title-wrap">
+          <h1 className="ia-pay-title">{activeBranch?.name} • Payments</h1>
+          <p className="ia-pay-desc">
             Automatic payment system — <strong>{students.length}</strong> active
             students
             {stats.countOverdue > 0 && (
-              <span className="pay-overdue-hint">
+              <span className="ia-pay-overdue-hint">
                 · <FiClock size={12} /> {stats.countOverdue} overdue
               </span>
             )}
           </p>
         </div>
-        <button
-          className="pay-refresh-btn"
-          onClick={() => fetchData()}
-          disabled={loading}
-          title="Refresh"
-          type="button"
-        >
-          <FiRefreshCw className={loading ? "spin" : ""} size={15} />
-        </button>
+
+        <div className="ia-pay-header-actions">
+          <button
+            className="ia-pay-history-btn"
+            onClick={() => setHistoryOpen(true)}
+            type="button"
+          >
+            <FiClock size={16} />
+            <span>To‘lovlar tarixi</span>
+            {historyStats.todayCount > 0 && (
+              <em>{historyStats.todayCount}</em>
+            )}
+          </button>
+
+          <button
+            className="ia-pay-refresh"
+            onClick={() => fetchData()}
+            disabled={loading}
+            title="Refresh"
+            type="button"
+          >
+            <FiRefreshCw className={loading ? "ia-pay-spin" : ""} size={15} />
+          </button>
+        </div>
       </header>
 
-      {/* STATS */}
-      <section className="pay-stats">
+      <section className="ia-pay-stats">
         <button
           type="button"
-          className={`pay-stat-card ${
-            filterStatus === "all" && !hasActiveFilters ? "active" : ""
+          className={`ia-pay-stat ${
+            filterStatus === "all" && !hasActiveFilters
+              ? "ia-pay-stat--active"
+              : ""
           }`}
           onClick={() => setFilterStatus("all")}
         >
-          <div className="pay-stat-icon income">
+          <div className="ia-pay-stat-icon ia-pay-stat-icon--income">
             <FiDollarSign size={16} />
           </div>
-          <div className="pay-stat-body">
-            <span className="pay-stat-label">Total collected</span>
-            <strong className="pay-stat-value">
+          <div className="ia-pay-stat-body">
+            <span className="ia-pay-stat-label">Total collected</span>
+            <strong className="ia-pay-stat-value">
               {formatCurrency(stats.total)}
             </strong>
           </div>
         </button>
-
         <button
           type="button"
-          className={`pay-stat-card ${filterStatus === "paid" ? "active" : ""}`}
+          className={`ia-pay-stat ${
+            filterStatus === "paid" ? "ia-pay-stat--active" : ""
+          }`}
           onClick={() => setFilterStatus("paid")}
         >
-          <div className="pay-stat-icon paid">
+          <div className="ia-pay-stat-icon ia-pay-stat-icon--paid">
             <FiCheckCircle size={16} />
           </div>
-          <div className="pay-stat-body">
-            <span className="pay-stat-label">Paid</span>
-            <strong className="pay-stat-value">{stats.countPaid}</strong>
+          <div className="ia-pay-stat-body">
+            <span className="ia-pay-stat-label">Paid</span>
+            <strong className="ia-pay-stat-value">{stats.countPaid}</strong>
           </div>
         </button>
-
         <button
           type="button"
-          className={`pay-stat-card ${
-            filterStatus === "unpaid" ? "active" : ""
+          className={`ia-pay-stat ${
+            filterStatus === "unpaid" ? "ia-pay-stat--active" : ""
           }`}
           onClick={() => setFilterStatus("unpaid")}
         >
-          <div className="pay-stat-icon unpaid">
+          <div className="ia-pay-stat-icon ia-pay-stat-icon--unpaid">
             <FiAlertCircle size={16} />
           </div>
-          <div className="pay-stat-body">
-            <span className="pay-stat-label">Debtors</span>
-            <strong className="pay-stat-value">{stats.countUnpaid}</strong>
+          <div className="ia-pay-stat-body">
+            <span className="ia-pay-stat-label">Debtors</span>
+            <strong className="ia-pay-stat-value">{stats.countUnpaid}</strong>
           </div>
         </button>
-
-        <div className="pay-stat-card debt">
-          <div className="pay-stat-icon total">
+        <div className="ia-pay-stat ia-pay-stat--debt">
+          <div className="ia-pay-stat-icon ia-pay-stat-icon--total">
             <FiUsers size={16} />
           </div>
-          <div className="pay-stat-body">
-            <span className="pay-stat-label">Debt amount</span>
-            <strong className="pay-stat-value danger">
+          <div className="ia-pay-stat-body">
+            <span className="ia-pay-stat-label">Debt amount</span>
+            <strong className="ia-pay-stat-value ia-pay-stat-value--danger">
               {formatCurrency(stats.debt)}
             </strong>
           </div>
         </div>
       </section>
 
-      {/* TOOLBAR */}
-      <div className="pay-toolbar">
-        <div className="pay-search">
+      <div className="ia-pay-toolbar">
+        <div className="ia-pay-search">
           <FiSearch size={15} />
           <input
             type="text"
@@ -680,7 +1036,7 @@ export default function Payments({ activeBranch }) {
           />
           {search && (
             <button
-              className="pay-search-clear"
+              className="ia-pay-search-clear"
               onClick={() => setSearch("")}
               type="button"
             >
@@ -688,9 +1044,8 @@ export default function Payments({ activeBranch }) {
             </button>
           )}
         </div>
-
-        <div className="pay-filters">
-          <div className="pay-select-wrap">
+        <div className="ia-pay-filters">
+          <div className="ia-pay-select">
             <FiFilter size={13} />
             <select
               value={filterStatus}
@@ -701,14 +1056,13 @@ export default function Payments({ activeBranch }) {
               <option value="unpaid">Debtors</option>
             </select>
           </div>
-
-          <div className="pay-select-wrap">
+          <div className="ia-pay-select">
             <FiBookOpen size={13} />
             <select
               value={filterCourse}
               onChange={(e) => setFilterCourse(e.target.value)}
             >
-              <option value="all">All courses</option>
+              <option hidden value="all">All courses</option>
               {courses.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
@@ -716,14 +1070,13 @@ export default function Payments({ activeBranch }) {
               ))}
             </select>
           </div>
-
-          <div className="pay-select-wrap">
+          <div className="ia-pay-select">
             <FiUsers size={13} />
-            <select
+            <select 
               value={filterGroup}
               onChange={(e) => setFilterGroup(e.target.value)}
             >
-              <option value="all">All groups</option>
+              <option hidden value="all">All groups</option>
               {groups.map((g) => (
                 <option key={g.id} value={g.id}>
                   {g.name}
@@ -731,8 +1084,7 @@ export default function Payments({ activeBranch }) {
               ))}
             </select>
           </div>
-
-          <div className="pay-select-wrap">
+          <div className="ia-pay-select">
             <FiCalendar size={13} />
             <select
               value={filterMonth}
@@ -745,10 +1097,9 @@ export default function Payments({ activeBranch }) {
               ))}
             </select>
           </div>
-
           {hasActiveFilters && (
             <button
-              className="pay-clear-btn"
+              className="ia-pay-clear"
               onClick={clearFilters}
               type="button"
             >
@@ -758,59 +1109,58 @@ export default function Payments({ activeBranch }) {
         </div>
       </div>
 
-      {/* TABLE */}
-      <div className="pay-card">
+      <div className="ia-pay-card">
         {loading ? (
-          <div className="pay-skeleton">
-            {/* Header skeleton */}
-            <div className="pay-skel-header">
-              <div className="skel line w120" />
-              <div className="skel line w100" />
-              <div className="skel line w80" />
-              <div className="skel line w70" />
-              <div className="skel line w80" />
-              <div className="skel line w70" />
-              <div className="skel line w90" />
+          <div className="ia-pay-skeleton">
+            <div className="ia-pay-skel-header">
+              <div className="ia-pay-skel ia-pay-skel--line ia-pay-skel--w120" />
+              <div className="ia-pay-skel ia-pay-skel--line ia-pay-skel--w100" />
+              <div className="ia-pay-skel ia-pay-skel--line ia-pay-skel--w80" />
+              <div className="ia-pay-skel ia-pay-skel--line ia-pay-skel--w70" />
+              <div className="ia-pay-skel ia-pay-skel--line ia-pay-skel--w80" />
+              <div className="ia-pay-skel ia-pay-skel--line ia-pay-skel--w70" />
+              <div className="ia-pay-skel ia-pay-skel--line ia-pay-skel--w90" />
             </div>
-
-            {/* Rows */}
             {Array.from({ length: 9 }).map((_, i) => (
-              <div key={i} className="pay-skel-row">
-                <div className="pay-skel-user">
-                  <div className="skel circle" />
-                  <div className="pay-skel-user-meta">
-                    <div className="skel line w140" />
-                    <div className="skel line w100" style={{ marginTop: 6 }} />
+              <div key={i} className="ia-pay-skel-row">
+                <div className="ia-pay-skel-user">
+                  <div className="ia-pay-skel ia-pay-skel--circle" />
+                  <div className="ia-pay-skel-user-meta">
+                    <div className="ia-pay-skel ia-pay-skel--line ia-pay-skel--w140" />
+                    <div
+                      className="ia-pay-skel ia-pay-skel--line ia-pay-skel--w100"
+                      style={{ marginTop: 6 }}
+                    />
                   </div>
                 </div>
-
-                <div className="pay-skel-col">
-                  <div className="skel line w110" />
-                  <div className="skel line w80" style={{ marginTop: 6 }} />
+                <div className="ia-pay-skel-col">
+                  <div className="ia-pay-skel ia-pay-skel--line ia-pay-skel--w110" />
+                  <div
+                    className="ia-pay-skel ia-pay-skel--line ia-pay-skel--w80"
+                    style={{ marginTop: 6 }}
+                  />
                 </div>
-
-                <div className="skel line w90" />
-                <div className="skel badge" />
-                <div className="skel line w80" />
-                <div className="skel line w80" />
-
-                <div className="pay-skel-actions">
-                  <div className="skel circle-sm" />
-                  <div className="skel circle-sm" />
-                  <div className="skel pill" />
+                <div className="ia-pay-skel ia-pay-skel--line ia-pay-skel--w90" />
+                <div className="ia-pay-skel ia-pay-skel--badge" />
+                <div className="ia-pay-skel ia-pay-skel--line ia-pay-skel--w80" />
+                <div className="ia-pay-skel ia-pay-skel--line ia-pay-skel--w80" />
+                <div className="ia-pay-skel-actions">
+                  <div className="ia-pay-skel ia-pay-skel--circle-sm" />
+                  <div className="ia-pay-skel ia-pay-skel--circle-sm" />
+                  <div className="ia-pay-skel ia-pay-skel--pill" />
                 </div>
               </div>
             ))}
           </div>
         ) : processedStudents.length === 0 ? (
-          <div className="pay-empty-inside">
+          <div className="ia-pay-empty-inside">
             <FiUsers size={36} style={{ opacity: 0.35 }} />
             <p>No students found</p>
             <span>Try changing the filters</span>
           </div>
         ) : (
-          <div className="pay-table-wrap">
-            <table className="pay-table">
+          <div className="ia-pay-table-wrap">
+            <table className="ia-pay-table">
               <thead>
                 <tr>
                   <th>Student</th>
@@ -819,15 +1169,15 @@ export default function Payments({ activeBranch }) {
                   <th>Status</th>
                   <th>Payment</th>
                   <th>Next</th>
-                  <th className="text-right">Actions</th>
+                  <th className="ia-pay-text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {unpaidList.length > 0 && (
                   <>
-                    <tr className="pay-section-row">
+                    <tr className="ia-pay-section-row">
                       <td colSpan={7}>
-                        <div className="pay-section unpaid">
+                        <div className="ia-pay-section ia-pay-section--unpaid">
                           <FiAlertCircle size={14} />
                           <span>Debtors</span>
                           <em>{unpaidList.length}</em>
@@ -837,12 +1187,11 @@ export default function Payments({ activeBranch }) {
                     {unpaidList.map(renderRow)}
                   </>
                 )}
-
                 {paidList.length > 0 && (
                   <>
-                    <tr className="pay-section-row">
+                    <tr className="ia-pay-section-row">
                       <td colSpan={7}>
-                        <div className="pay-section paid">
+                        <div className="ia-pay-section ia-pay-section--paid">
                           <FiCheckCircle size={14} />
                           <span>Paid</span>
                           <em>{paidList.length}</em>
@@ -858,28 +1207,256 @@ export default function Payments({ activeBranch }) {
         )}
       </div>
 
+      {/* HISTORY MODAL */}
+      {historyOpen && (
+        <div
+          className="ia-pay-overlay"
+          onClick={() => setHistoryOpen(false)}
+        >
+          <div
+            className="ia-pay-history-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="ia-pay-modal-accent" />
+            <div className="ia-pay-modal-header">
+              <div className="ia-pay-history-modal-title">
+                <FiClock size={20} />
+                <h2>To‘lovlar tarixi</h2>
+              </div>
+              <button
+                className="ia-pay-modal-close"
+                onClick={() => setHistoryOpen(false)}
+                type="button"
+              >
+                <FiX size={18} />
+              </button>
+            </div>
+
+            <div className="ia-pay-history-modal-body">
+              <div className="ia-pay-history-tabs">
+                <button
+                  type="button"
+                  className={`ia-pay-history-tab ${
+                    historyFilter === "today" ? "ia-pay-history-tab--active" : ""
+                  }`}
+                  onClick={() => setHistoryFilter("today")}
+                >
+                  Bugun
+                  {historyStats.todayCount > 0 && (
+                    <em>{historyStats.todayCount}</em>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className={`ia-pay-history-tab ${
+                    historyFilter === "yesterday"
+                      ? "ia-pay-history-tab--active"
+                      : ""
+                  }`}
+                  onClick={() => setHistoryFilter("yesterday")}
+                >
+                  Kecha
+                  {historyStats.yesterdayCount > 0 && (
+                    <em>{historyStats.yesterdayCount}</em>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className={`ia-pay-history-tab ${
+                    historyFilter === "week" ? "ia-pay-history-tab--active" : ""
+                  }`}
+                  onClick={() => setHistoryFilter("week")}
+                >
+                  7 kun
+                  {historyStats.weekCount > 0 && (
+                    <em>{historyStats.weekCount}</em>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className={`ia-pay-history-tab ${
+                    historyFilter === "all" ? "ia-pay-history-tab--active" : ""
+                  }`}
+                  onClick={() => setHistoryFilter("all")}
+                >
+                  Barchasi
+                  {historyStats.allCount > 0 && (
+                    <em>{historyStats.allCount}</em>
+                  )}
+                </button>
+              </div>
+
+              <div className="ia-pay-history-summary">
+                <div className="ia-pay-history-chip">
+                  <span>Bugun</span>
+                  <strong>{formatCurrency(historyStats.todaySum)}</strong>
+                  <small>{historyStats.todayCount} ta</small>
+                </div>
+                <div className="ia-pay-history-chip">
+                  <span>Kecha</span>
+                  <strong>{formatCurrency(historyStats.yesterdaySum)}</strong>
+                  <small>{historyStats.yesterdayCount} ta</small>
+                </div>
+                <div className="ia-pay-history-chip">
+                  <span>7 kun</span>
+                  <strong>{formatCurrency(historyStats.weekSum)}</strong>
+                  <small>{historyStats.weekCount} ta</small>
+                </div>
+              </div>
+
+              <div className="ia-pay-history-list">
+                {currentHistoryList.length === 0 ? (
+                  <div className="ia-pay-history-empty">
+                    <FiClock size={32} />
+                    <p>Bu davrda to‘lovlar yo‘q</p>
+                  </div>
+                ) : (
+                  currentHistoryList.map(renderHistoryItem)
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* COLLECT MODAL */}
+      {collectOpen && collectStudent && (
+        <div
+          className="ia-pay-overlay"
+          onClick={() => !uploading && setCollectOpen(false)}
+        >
+          <div className="ia-pay-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="ia-pay-modal-accent" />
+            <div className="ia-pay-modal-header">
+              <h2>To‘lovni qabul qilish</h2>
+              <button
+                className="ia-pay-modal-close"
+                onClick={() => !uploading && setCollectOpen(false)}
+                type="button"
+                disabled={uploading}
+              >
+                <FiX size={16} />
+              </button>
+            </div>
+            <div className="ia-pay-modal-body">
+              <div className="ia-pay-collect-student">
+                <strong>
+                  {collectStudent.first_name} {collectStudent.last_name}
+                </strong>
+                <span>{formatCurrency(collectStudent.monthly_fee || 0)}</span>
+              </div>
+              <div className="ia-pay-method-select">
+                <label className="ia-pay-method-label">To‘lov usuli</label>
+                <div className="ia-pay-method-options">
+                  <button
+                    type="button"
+                    className={`ia-pay-method-btn ${
+                      paymentMethod === "cash" ? "ia-pay-method-btn--active" : ""
+                    }`}
+                    onClick={() => {
+                      setPaymentMethod("cash");
+                      clearScreenshot();
+                    }}
+                    disabled={uploading}
+                  >
+                    <FiDollarSign size={18} />
+                    <span>Naqd (Cash)</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`ia-pay-method-btn ${
+                      paymentMethod === "click"
+                        ? "ia-pay-method-btn--active"
+                        : ""
+                    }`}
+                    onClick={() => setPaymentMethod("click")}
+                    disabled={uploading}
+                  >
+                    <FiCreditCard size={18} />
+                    <span>Click</span>
+                  </button>
+                </div>
+              </div>
+              {paymentMethod === "click" && (
+                <div className="ia-pay-screenshot">
+                  <label className="ia-pay-method-label">
+                    Click skrinshoti <em>(majburiy)</em>
+                  </label>
+                  {screenshotPreview ? (
+                    <div className="ia-pay-screenshot-preview">
+                      <img src={screenshotPreview} alt="Preview" />
+                      <button
+                        type="button"
+                        className="ia-pay-screenshot-remove"
+                        onClick={clearScreenshot}
+                        disabled={uploading}
+                      >
+                        <FiTrash2 size={14} /> O‘chirish
+                      </button>
+                    </div>
+                  ) : (
+                    <div
+                      className="ia-pay-screenshot-drop"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <FiUpload size={24} />
+                      <span>Rasmni tanlang yoki tashlang</span>
+                      <small>JPG, PNG, WEBP · max 5 MB</small>
+                    </div>
+                  )}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={handleScreenshotSelect}
+                    style={{ display: "none" }}
+                  />
+                </div>
+              )}
+            </div>
+            <div className="ia-pay-modal-footer">
+              <button
+                className="ia-pay-btn-cancel"
+                onClick={() => setCollectOpen(false)}
+                type="button"
+                disabled={uploading}
+              >
+                Bekor qilish
+              </button>
+              <button
+                className="ia-pay-btn-save"
+                onClick={confirmCollect}
+                disabled={uploading}
+                type="button"
+              >
+                {uploading ? "Saqlanmoqda..." : "Tasdiqlash va chek chiqarish"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* EDIT MODAL */}
       {editOpen && editData && (
         <div
-          className="pay-modal-overlay"
+          className="ia-pay-overlay"
           onClick={() => setEditOpen(false)}
         >
-          <div className="pay-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="pay-modal-accent" />
-            <div className="pay-modal-header">
+          <div className="ia-pay-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="ia-pay-modal-accent" />
+            <div className="ia-pay-modal-header">
               <h2>Payment settings</h2>
               <button
-                className="pay-modal-close"
+                className="ia-pay-modal-close"
                 onClick={() => setEditOpen(false)}
                 type="button"
               >
                 <FiX size={16} />
               </button>
             </div>
-
-            <div className="pay-modal-body">
-              <div className="pay-form-grid">
-                <div className="pay-form-item full">
+            <div className="ia-pay-modal-body">
+              <div className="ia-pay-form-grid">
+                <div className="ia-pay-form-item ia-pay-form-item--full">
                   <label>Monthly fee (so'm)</label>
                   <input
                     type="number"
@@ -888,7 +1465,7 @@ export default function Payments({ activeBranch }) {
                     onChange={handleChange}
                   />
                 </div>
-                <div className="pay-form-item">
+                <div className="ia-pay-form-item">
                   <label>Payment date</label>
                   <input
                     type="date"
@@ -897,7 +1474,7 @@ export default function Payments({ activeBranch }) {
                     onChange={handleChange}
                   />
                 </div>
-                <div className="pay-form-item">
+                <div className="ia-pay-form-item">
                   <label>Next payment</label>
                   <input
                     type="date"
@@ -907,8 +1484,7 @@ export default function Payments({ activeBranch }) {
                   />
                 </div>
               </div>
-
-              <label className="pay-checkbox-row">
+              <label className="ia-pay-checkbox">
                 <input
                   type="checkbox"
                   name="paid"
@@ -917,25 +1493,129 @@ export default function Payments({ activeBranch }) {
                 />
                 <span>Mark as paid for the current month</span>
               </label>
+              {editData.paid && (
+                <>
+                  <div className="ia-pay-method-select" style={{ marginTop: 16 }}>
+                    <label className="ia-pay-method-label">To‘lov usuli</label>
+                    <div className="ia-pay-method-options">
+                      <button
+                        type="button"
+                        className={`ia-pay-method-btn ${
+                          editData.payment_method === "cash"
+                            ? "ia-pay-method-btn--active"
+                            : ""
+                        }`}
+                        onClick={() =>
+                          setEditData((p) => ({
+                            ...p,
+                            payment_method: "cash",
+                            payment_screenshot: null,
+                            _newScreenshotFile: null,
+                            _previewUrl: null,
+                          }))
+                        }
+                      >
+                        <FiDollarSign size={16} />
+                        <span>Naqd</span>
+                      </button>
+                      <button
+                        type="button"
+                        className={`ia-pay-method-btn ${
+                          editData.payment_method === "click"
+                            ? "ia-pay-method-btn--active"
+                            : ""
+                        }`}
+                        onClick={() =>
+                          setEditData((p) => ({
+                            ...p,
+                            payment_method: "click",
+                          }))
+                        }
+                      >
+                        <FiCreditCard size={16} />
+                        <span>Click</span>
+                      </button>
+                    </div>
+                  </div>
+                  {editData.payment_method === "click" && (
+                    <div className="ia-pay-screenshot" style={{ marginTop: 12 }}>
+                      <label className="ia-pay-method-label">Skrinshot</label>
+                      {(editData._previewUrl ||
+                        editData.payment_screenshot) && (
+                        <div className="ia-pay-screenshot-preview">
+                          <img
+                            src={
+                              editData._previewUrl ||
+                              editData.payment_screenshot
+                            }
+                            alt="Screenshot"
+                          />
+                        </div>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={handleEditScreenshot}
+                        style={{ marginTop: 8 }}
+                      />
+                    </div>
+                  )}
+                </>
+              )}
             </div>
+            <div className="ia-pay-modal-footer">
+              <div className="ia-pay-modal-footer-left">
+                {editData.paid && (
+                  <button
+                    className="ia-pay-btn-print"
+                    onClick={printFromEdit}
+                    type="button"
+                    title="Chek chiqarish"
+                  >
+                    <FiPrinter size={15} />
+                    Chek chiqarish
+                  </button>
+                )}
+              </div>
+              <div className="ia-pay-modal-footer-right">
+                <button
+                  className="ia-pay-btn-cancel"
+                  onClick={() => setEditOpen(false)}
+                  type="button"
+                >
+                  Cancel
+                </button>
+                <button
+                  className="ia-pay-btn-save"
+                  onClick={handleSave}
+                  disabled={saving}
+                  type="button"
+                >
+                  {saving ? "Saving..." : "Save"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
-            <div className="pay-modal-footer">
-              <button
-                className="pay-btn-cancel"
-                onClick={() => setEditOpen(false)}
-                type="button"
-              >
-                Cancel
-              </button>
-              <button
-                className="pay-btn-save"
-                onClick={handleSave}
-                disabled={saving}
-                type="button"
-              >
-                {saving ? "Saving..." : "Save"}
-              </button>
-            </div>
+      {previewUrl && (
+        <div
+          className="ia-pay-overlay"
+          onClick={() => setPreviewUrl(null)}
+        >
+          <div
+            className="ia-pay-preview-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="ia-pay-modal-close"
+              onClick={() => setPreviewUrl(null)}
+              type="button"
+            >
+              <FiX size={18} />
+            </button>
+            <img src={previewUrl} alt="Payment screenshot" />
           </div>
         </div>
       )}
